@@ -5,6 +5,14 @@ OpenStreetMapにスタートとゴールのポイントを置き、経路生成�
 各ポイントには、吹き出しでコメントを入力/表示が可能。
 各ポイント、コメント、生成した経路の情報は、ユーザーごとにDB保存しておき、再表示することができる。
 
+## プロジェクト名
+
+- プロジェクト名: `route-planner`
+- モノレポ構成のため、各パッケージは以下の命名規則に従う:
+  - ルート: `route-planner` (private)
+  - バックエンド: `@route-planner/backend`
+  - フロントエンド: `@route-planner/frontend`
+
 ## 主な技術スタック
 
 - 言語: TypeScript
