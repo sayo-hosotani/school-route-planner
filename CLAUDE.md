@@ -18,7 +18,18 @@ OpenStreetMapにスタートとゴールのポイントを置き、経路生成�
 - 言語: TypeScript
 - フレームワーク: Fastify, React, Kysely
 - データベース: Postgresql
+- 地図ライブラリ: Leaflet, React Leaflet
+- 地図タイル: 国土地理院 地理院タイル（標準地図）
 - その他の重要なツール: Vite, Vitest, Biome, Docker, Valhalla(経路計算API)
+
+## 地図表示について
+
+- **地図ライブラリ**: React Leafletを使用してOpenStreetMapベースの地図を表示
+- **地図タイルプロバイダー**: 国土地理院 地理院タイル（標準地図）
+  - タイルURL: `https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png`
+  - 出典表示: `<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>`
+  - 利用規約: 国土地理院の利用規約に準拠
+- **初期表示位置**: 東京（緯度: 35.6812, 経度: 139.7671）、ズームレベル: 13
 
 ## プロジェクト構成
 

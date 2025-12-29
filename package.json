@@ -1,30 +1,26 @@
 {
-  "name": "route-planner",
-  "version": "0.0.1",
-  "description": "学校に提出する通学路マップを作成します。",
-  "license": "ISC",
-  "author": "",
-  "type": "module",
-  "main": "index.ts",
-  "scripts": {
-    "start": "npx ts-node index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "acorn": "^8.15.0",
-    "acorn-walk": "^8.3.4",
-    "arg": "^4.1.3",
-    "create-require": "^1.1.1",
-    "diff": "^4.0.2",
-    "fastify": "^5.6.2",
-    "make-error": "^1.3.6",
-    "undici-types": "^7.16.0",
-    "v8-compile-cache-lib": "^3.0.1",
-    "yn": "^3.1.1"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  }
+	"name": "route-planner",
+	"version": "1.0.0",
+	"private": true,
+	"description": "OpenStreetMapを使った経路生成Webアプリケーション",
+	"type": "module",
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "npm run dev --workspace=@route-planner/backend",
+		"dev:frontend": "npm run dev --workspace=@route-planner/frontend",
+		"build": "npm run build --workspaces",
+		"test": "npm run test --workspaces",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4"
+	},
+	"engines": {
+		"node": ">=20.0.0",
+		"npm": ">=10.0.0"
+	}
 }
