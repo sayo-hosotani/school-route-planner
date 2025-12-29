@@ -10,6 +10,7 @@
 	"scripts": {
 		"dev": "npm run dev --workspace=@route-planner/backend",
 		"dev:frontend": "npm run dev --workspace=@route-planner/frontend",
+		"dev:all": "concurrently \"npm run dev\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
 		"build": "npm run build --workspaces",
 		"test": "npm run test --workspaces",
 		"lint": "biome check .",
@@ -17,7 +18,8 @@
 		"format": "biome format --write ."
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^1.9.4"
+		"@biomejs/biome": "^1.9.4",
+		"concurrently": "^9.1.2"
 	},
 	"engines": {
 		"node": ">=20.0.0",
