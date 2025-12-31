@@ -17,10 +17,11 @@ OpenStreetMapにスタートとゴールのポイントを置き、経路生成�
 
 - 言語: TypeScript
 - フレームワーク: Fastify, React, Kysely
-- データベース: Postgresql
+- データベース: PostgreSQL
 - 地図ライブラリ: Leaflet, React Leaflet
 - 地図タイル: 国土地理院 地理院タイル（標準地図）
-- その他の重要なツール: Vite, Vitest, Biome, Docker, Valhalla(経路計算API)
+- 経路計算: Valhalla (Dockerでローカル構築)
+- その他の重要なツール: Vite, Vitest, Biome, Docker
 
 ## 地図表示について
 
@@ -269,11 +270,13 @@ interface Route {
 │       └── package.json
 │
 ├── docker/                   # Docker関連ファイル
-│   ├── Dockerfile.backend
-│   ├── Dockerfile.frontend
+│   ├── valhalla/             # Valhalla経路計算サーバー
+│   │   └── Dockerfile        # Valhallaのカスタムビルド設定
+│   ├── Dockerfile.backend    # （将来追加予定）
+│   ├── Dockerfile.frontend   # （将来追加予定）
 │   └── postgres/             # PostgreSQL初期化スクリプト
 │
-├── docker-compose.yml        # Docker Compose設定
+├── docker-compose.yml        # Docker Compose設定（PostgreSQL + Valhalla）
 ├── package.json              # ルートpackage.json（ワークスペース管理）
 ├── biome.json                # Biome設定（リンター・フォーマッター）
 └── CLAUDE.md                 # このファイル
@@ -534,10 +537,34 @@ async function insert(user: User) {
 
 ### Valhalla経路計算APIとの連携
 
-1. **Serviceでの呼び出し**: `packages/backend/src/services/route-service.ts`でValhalla APIを呼び出す
+**Valhalla環境について:**
+- Dockerでローカル構築（`docker/valhalla/Dockerfile`）
+- 関東地方のOSMデータを使用（初回ビルド時にダウンロード）
+- APIエンドポイント: `http://localhost:8002`
+
+**連携手順:**
+1. **Serviceでの呼び出し**: `packages/backend/src/services/valhalla-service.ts`でValhalla APIを呼び出す
+   - エンドポイント: `POST http://localhost:8002/route`
+   - リクエスト形式:
+     ```json
+     {
+       "locations": [
+         {"lat": 35.681236, "lon": 139.767125},
+         {"lat": 35.689729, "lon": 139.700294}
+       ],
+       "costing": "auto"
+     }
+     ```
 2. **エラーハンドリング**: Valhalla APIのエラーを適切にハンドリング
-3. **レスポンスの変換**: Valhalla APIのレスポンスをアプリケーション用の型に変換
+   - 座標が範囲外の場合のエラー処理
+   - タイムアウト処理
+3. **レスポンスの変換**: Valhalla APIのレスポンス（GeoJSON）をアプリケーション用の型に変換
 4. **経路データの保存**: 生成された経路をデータベースに保存
+
+**Dockerビルド:**
+- 初回ビルド: `docker-compose build valhalla`（10-20分程度）
+- 起動: `docker-compose up -d`
+- ステータス確認: `curl http://localhost:8002/status`
 
 ## AI開発アシスタント向けの特記事項
 

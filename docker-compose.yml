@@ -1,0 +1,41 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: route-planner-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-route_planner}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - route-planner-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Valhalla Routing Engine
+  valhalla:
+    build:
+      context: ./docker/valhalla
+      dockerfile: Dockerfile
+    container_name: route-planner-valhalla
+    ports:
+      - "${VALHALLA_PORT:-8002}:8002"
+    networks:
+      - route-planner-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  route-planner-network:
+    driver: bridge
