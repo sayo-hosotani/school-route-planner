@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Point } from '../types/point';
 
 interface SidebarProps {
@@ -10,6 +11,9 @@ interface SidebarProps {
 	onEditPoint: (pointId: string) => void;
 	onDeletePoint: (pointId: string) => void;
 	onMovePoint: (pointId: string, direction: 'up' | 'down') => void;
+	onPointClick: (pointId: string) => void;
+	onUpdateComment: (pointId: string, comment: string) => void;
+	highlightedPointId: string | null;
 }
 
 const Sidebar = ({
@@ -22,7 +26,13 @@ const Sidebar = ({
 	onEditPoint,
 	onDeletePoint,
 	onMovePoint,
+	onPointClick,
+	onUpdateComment,
+	highlightedPointId,
 }: SidebarProps) => {
+	const [expandedPointId, setExpandedPointId] = useState<string | null>(null);
+	const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+	const [editingCommentText, setEditingCommentText] = useState('');
 	const getPointTypeLabel = (type: Point['type'], waypointNumber?: number) => {
 		switch (type) {
 			case 'start':
@@ -32,6 +42,37 @@ const Sidebar = ({
 			case 'goal':
 				return '🔴 ゴール';
 		}
+	};
+
+	const getDisplayTitle = (point: Point | undefined | null, type: Point['type'], waypointNumber?: number) => {
+		if (!point || !point.comment) {
+			return getPointTypeLabel(type, waypointNumber);
+		}
+		// コメントの1行目または最初の16文字を取得
+		const firstLine = point.comment.split('\n')[0];
+		if (firstLine.length <= 16) {
+			return firstLine;
+		}
+		return firstLine.substring(0, 16);
+	};
+
+	// コメント編集の開始
+	const handleStartEditComment = (point: Point) => {
+		setEditingCommentId(point.id);
+		setEditingCommentText(point.comment);
+	};
+
+	// コメント編集の保存
+	const handleSaveComment = (pointId: string) => {
+		onUpdateComment(pointId, editingCommentText);
+		setEditingCommentId(null);
+		setEditingCommentText('');
+	};
+
+	// コメント編集のキャンセル
+	const handleCancelEditComment = () => {
+		setEditingCommentId(null);
+		setEditingCommentText('');
 	};
 
 	// ポイント項目をレンダリングする関数
@@ -45,9 +86,18 @@ const Sidebar = ({
 		canMoveDown?: boolean,
 	) => {
 		const hasPoint = !!point;
-		const backgroundColor = isHighlighted ? '#fff3cd' : hasPoint ? '#f8f9fa' : '#e9ecef';
-		const borderColor = isHighlighted ? '#ffc107' : 'transparent';
+		const isPointHighlighted = hasPoint && point.id === highlightedPointId;
+		const backgroundColor = isHighlighted
+			? '#fff3cd'
+			: isPointHighlighted
+				? '#e3f2fd'
+				: hasPoint
+					? '#f8f9fa'
+					: '#e9ecef';
+		const borderColor = isHighlighted ? '#ffc107' : isPointHighlighted ? '#2196f3' : 'transparent';
 		const isWaypoint = type === 'waypoint';
+		const isExpanded = hasPoint && expandedPointId === point.id;
+		const isEditingComment = hasPoint && editingCommentId === point.id;
 
 		return (
 			<div
@@ -61,16 +111,135 @@ const Sidebar = ({
 					opacity: hasPoint ? 1 : 0.6,
 				}}
 			>
-				<div style={{ marginBottom: '4px', fontWeight: isHighlighted ? 'bold' : 'normal' }}>
-					{displayIndex}. {getPointTypeLabel(type, waypointNumber)}
-					{isHighlighted && ' ← 地図をクリックして追加'}
-					{!hasPoint && ' (未設定)'}
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						marginBottom: '4px',
+						fontWeight: isHighlighted || isPointHighlighted ? 'bold' : 'normal',
+					}}
+				>
+					<button
+						type="button"
+						onClick={() => hasPoint && onPointClick(point.id)}
+						disabled={!hasPoint}
+						style={{
+							flex: 1,
+							cursor: hasPoint ? 'pointer' : 'default',
+							backgroundColor: 'transparent',
+							border: 'none',
+							textAlign: 'left',
+							padding: 0,
+							fontSize: '14px',
+							fontWeight: 'inherit',
+						}}
+					>
+						{displayIndex}. {getDisplayTitle(point, type, waypointNumber)}
+						{isHighlighted && ' ← 地図をクリックして追加'}
+					</button>
+					{hasPoint && (
+						<button
+							type="button"
+							onClick={() => setExpandedPointId(isExpanded ? null : point.id)}
+							style={{
+								padding: '2px 6px',
+								fontSize: '12px',
+								cursor: 'pointer',
+								backgroundColor: 'transparent',
+								border: 'none',
+								color: '#666',
+							}}
+							title={isExpanded ? 'コメントを閉じる' : 'コメントを表示'}
+						>
+							{isExpanded ? '▲' : '▼'}
+						</button>
+					)}
 				</div>
-				{hasPoint && point.comment && (
-					<div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-						{point.comment}
+
+				{/* 展開時のコメント表示・編集エリア */}
+				{hasPoint && isExpanded && (
+					<div style={{ marginBottom: '4px', padding: '8px', backgroundColor: '#fff', borderRadius: '4px' }}>
+						{mode === 'edit' && isEditingComment ? (
+							<>
+								<textarea
+									value={editingCommentText}
+									onChange={(e) => setEditingCommentText(e.target.value)}
+									placeholder="コメントを入力してください（任意）&#13;&#10;1行目または最初の16文字が地図上のタイトルになります"
+									style={{
+										width: '100%',
+										minHeight: '60px',
+										padding: '6px',
+										fontSize: '12px',
+										border: '1px solid #ccc',
+										borderRadius: '4px',
+										resize: 'vertical',
+										boxSizing: 'border-box',
+										marginBottom: '4px',
+									}}
+								/>
+								<div style={{ display: 'flex', gap: '4px' }}>
+									<button
+										type="button"
+										onClick={() => handleSaveComment(point.id)}
+										style={{
+											flex: 1,
+											padding: '4px 8px',
+											fontSize: '12px',
+											cursor: 'pointer',
+											backgroundColor: '#28a745',
+											color: 'white',
+											border: 'none',
+											borderRadius: '4px',
+										}}
+									>
+										保存
+									</button>
+									<button
+										type="button"
+										onClick={handleCancelEditComment}
+										style={{
+											flex: 1,
+											padding: '4px 8px',
+											fontSize: '12px',
+											cursor: 'pointer',
+											backgroundColor: '#6c757d',
+											color: 'white',
+											border: 'none',
+											borderRadius: '4px',
+										}}
+									>
+										キャンセル
+									</button>
+								</div>
+							</>
+						) : (
+							<>
+								<div style={{ fontSize: '12px', color: '#333', whiteSpace: 'pre-wrap' }}>
+									{point.comment || 'コメントなし'}
+								</div>
+								{mode === 'edit' && (
+									<button
+										type="button"
+										onClick={() => handleStartEditComment(point)}
+										style={{
+											padding: '4px 8px',
+											fontSize: '12px',
+											cursor: 'pointer',
+											backgroundColor: '#007bff',
+											color: 'white',
+											border: 'none',
+											borderRadius: '4px',
+											marginTop: '4px',
+										}}
+									>
+										編集
+									</button>
+								)}
+							</>
+						)}
 					</div>
 				)}
+
 				{mode === 'edit' && hasPoint && (
 					<div style={{ display: 'flex', gap: '4px' }}>
 						{isWaypoint && (

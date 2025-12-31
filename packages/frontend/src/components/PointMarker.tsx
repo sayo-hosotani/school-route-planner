@@ -55,9 +55,17 @@ const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) 
 				<Popup>
 					<div>
 						<strong>
-							{point.type === 'start' && 'スタート'}
-							{point.type === 'waypoint' && '中継地点'}
-							{point.type === 'goal' && 'ゴール'}
+							{(() => {
+								if (!point.comment) {
+									return (
+										(point.type === 'start' && 'スタート') ||
+										(point.type === 'waypoint' && '中継地点') ||
+										(point.type === 'goal' && 'ゴール')
+									);
+								}
+								const firstLine = point.comment.split('\n')[0];
+								return firstLine.length <= 16 ? firstLine : firstLine.substring(0, 16);
+							})()}
 						</strong>
 						<br />
 						{point.comment && <p>{point.comment}</p>}

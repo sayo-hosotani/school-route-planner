@@ -118,7 +118,7 @@ const PointEditModal = ({ point, onClose, onSave, onDelete }: PointEditModalProp
 						id="comment"
 						value={comment}
 						onChange={(e) => setComment(e.target.value)}
-						placeholder="コメントを入力してください（任意）"
+						placeholder="コメントを入力してください（任意）&#13;&#10;1行目または最初の16文字が地図上のタイトルになります"
 						style={{
 							width: '100%',
 							minHeight: '80px',

@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import PointEditModal from './components/PointEditModal';
 import MapClickHandler from './components/MapClickHandler';
 import MessageDisplay from './components/MessageDisplay';
+import MapCenter from './components/MapCenter';
 import { samplePoints, sampleRouteLine } from './data/sample-route';
 import { saveRoute, loadRoute } from './api/route-api';
 import type { Point } from './types/point';
@@ -19,6 +20,8 @@ const App = () => {
 	const [routeLine, setRouteLine] = useState<[number, number][]>(sampleRouteLine);
 	const [message, setMessage] = useState<string>('');
 	const [editingPoint, setEditingPoint] = useState<Point | null>(null);
+	const [highlightedPointId, setHighlightedPointId] = useState<string | null>(null);
+	const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
 
 	// ポイント種別の自動判定
 	const determinePointType = (index: number, totalPoints: number): Point['type'] => {
@@ -120,6 +123,29 @@ const App = () => {
 		);
 		setMessage('ポイントを更新しました');
 		setTimeout(() => setMessage(''), 3000);
+	};
+
+	// サイドバーからのコメント更新
+	const handleUpdateComment = (pointId: string, comment: string) => {
+		setPoints((prevPoints) =>
+			prevPoints.map((p) => (p.id === pointId ? { ...p, comment, updated_at: new Date().toISOString() } : p)),
+		);
+		setMessage('コメントを更新しました');
+		setTimeout(() => setMessage(''), 3000);
+	};
+
+	// ポイントクリック時の処理（地図中央に移動＋ハイライト）
+	const handlePointClick = (pointId: string) => {
+		const point = points.find((p) => p.id === pointId);
+		if (point) {
+			setMapCenter([point.lat, point.lng]);
+			setHighlightedPointId(pointId);
+			// 3秒後にハイライト解除
+			setTimeout(() => {
+				setHighlightedPointId(null);
+				setMapCenter(null);
+			}, 3000);
+		}
 	};
 
 	// ポイント削除
@@ -233,6 +259,9 @@ const App = () => {
 				onEditPoint={handleEditPoint}
 				onDeletePoint={handleDeletePoint}
 				onMovePoint={handleMovePoint}
+				onPointClick={handlePointClick}
+				onUpdateComment={handleUpdateComment}
+				highlightedPointId={highlightedPointId}
 			/>
 
 			{/* ポイント編集モーダル */}
@@ -262,6 +291,9 @@ const App = () => {
 
 				{/* 地図クリックハンドラー（編集モード時のみ有効） */}
 				<MapClickHandler enabled={mode === 'edit'} onMapClick={handleMapClick} />
+
+				{/* 地図の中心を変更 */}
+				<MapCenter center={mapCenter} />
 
 				{/* 経路全体を画面に収める */}
 				<FitBounds positions={routeLine} />
