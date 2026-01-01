@@ -8,9 +8,9 @@
 		"packages/*"
 	],
 	"scripts": {
-		"dev": "npm run dev --workspace=@route-planner/backend",
+		"dev:backend": "npm run dev --workspace=@route-planner/backend",
 		"dev:frontend": "npm run dev --workspace=@route-planner/frontend",
-		"dev:all": "concurrently \"npm run dev\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
+		"dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
 		"build": "npm run build --workspaces",
 		"test": "npm run test --workspaces",
 		"lint": "biome check .",

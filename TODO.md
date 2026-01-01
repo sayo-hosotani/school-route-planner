@@ -60,18 +60,33 @@
   - 編集モード: サイドバー内でコメントをインライン編集（保存・キャンセルボタン）
   - 通常モード: コメント全文の読み取り専用表示
 
-### 3. 経路生成機能（優先度: 中）← 次のステップ
-- [ ] Valhalla API連携の調査
-  - ローカルで動かすか、外部サービスを使うか決定
-  - Docker Composeでの起動方法検討
-- [ ] バックエンド: Valhalla APIへのリクエスト処理
-  - `packages/backend/src/services/route-service.ts` 作成
-  - ポイント配列からValhalla APIリクエスト生成
-  - レスポンスをGeoJSON形式に変換
-- [ ] フロントエンド: 自動経路生成
-  - ポイント追加時に経路生成APIを呼び出し（TODO箇所あり）
-  - ポイント移動終了時に経路生成APIを呼び出し（TODO箇所あり）
-  - 直線接続から道路沿い経路に変更
+### 3. 経路生成機能（優先度: 中）← デバッグ中
+- [x] Valhalla Docker環境のセットアップ
+  - ✅ Dockerfileを作成（`docker/valhalla/Dockerfile`）
+  - ✅ docker-compose.ymlを更新（カスタムビルド設定）
+  - ✅ 関東地方のOSMデータを使用
+  - ✅ Valhalla APIが正常に動作（curl テスト成功）
+- [x] バックエンド: Valhalla APIクライアント実装
+  - ✅ `packages/backend/src/services/valhalla-service.ts` 作成
+  - ✅ ポイント配列からValhalla APIリクエスト生成（/route エンドポイント）
+  - ✅ Encoded polylineのデコード処理
+  - ✅ レスポンス（GeoJSON）を処理
+  - ✅ エラーハンドリング実装
+- [x] バックエンド: 経路生成エンドポイント追加
+  - ✅ `POST /routes/generate` エンドポイント作成
+  - ✅ リクエストバリデーション（緯度・経度・ポイント数）
+  - ✅ Valhalla Serviceの呼び出し
+  - ✅ curl テストで正常に経路データを取得
+- [x] フロントエンド: 自動経路生成API連携
+  - ✅ `packages/frontend/src/api/route-api.ts`に`generateRoute()`関数追加
+  - ✅ `App.tsx`で`updateRouteLine()`を非同期化
+  - ✅ ポイント追加・移動・削除時に経路生成APIを呼び出し
+  - ✅ GeoJSON座標を[lat, lng]形式に変換
+  - ✅ エラー時のフォールバック処理（直線接続）
+- [x] **デバッグ: 経路表示の問題解決** ✅ 完了
+  - ✅ 原因: Valhallaコンテナが起動していなかった
+  - ✅ 解決: `docker-compose up -d valhalla` で起動
+  - ✅ 経路生成が正常に動作することを確認
 
 ### 4. データベース対応（優先度: 中）
 - [ ] PostgreSQL環境構築
@@ -120,8 +135,7 @@
 - [ ] サイドバーの改善
   - 通常モードと編集モードでコンポーネントを別にすべきか検討
   - サイドバーのコンポーネント分割検討（関心の分離、保守性向上）
-  - コメント表示周りの改善検討（HTML標準にDOMの開閉機能があった気がする）
-  - コメント編集周りの改善検討（編集ボタンいるかな？編集欄表示されっぱなしでよくない？）
+  - コメント表示/編集周りの改善検討（HTMLレンダリング、リッチテキスト対応等）
 
 ### 7. テスト（優先度: 低）
 - [ ] バックエンドのテスト

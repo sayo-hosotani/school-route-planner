@@ -8,6 +8,47 @@ export interface ApiResponse<T> {
 	data?: T;
 }
 
+export interface Point {
+	lat: number;
+	lng: number;
+	order: number;
+}
+
+export interface RouteResult {
+	coordinates: Array<[number, number]>; // [lng, lat] の配列（GeoJSON形式）
+	distance: number; // キロメートル
+	duration: number; // 秒
+	summary: {
+		has_toll: boolean;
+		has_highway: boolean;
+		has_ferry: boolean;
+	};
+}
+
+/**
+ * ポイントから経路を生成する（Valhalla API経由）
+ */
+export async function generateRoute(points: Point[]): Promise<ApiResponse<RouteResult>> {
+	try {
+		const response = await fetch(`${API_BASE_URL}/routes/generate`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ points }),
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		return await response.json();
+	} catch (error) {
+		console.error('Failed to generate route:', error);
+		throw error;
+	}
+}
+
 /**
  * 経路データを保存する
  */

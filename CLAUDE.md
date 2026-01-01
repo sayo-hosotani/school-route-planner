@@ -286,8 +286,16 @@ interface Route {
 
 **Backend（packages/backend/src/）**
 - `routes/`: Fastifyのルート定義。APIエンドポイントを定義
+  - `routes.ts`: 経路関連のエンドポイント
+    - `POST /routes/generate`: Valhalla APIで経路を生成
+    - `POST /routes`: 経路データを保存
+    - `GET /routes`: 保存済み経路データを読み込み
 - `plugins/`: 認証、CORS、ロギングなどのFastifyプラグイン
 - `services/`: ビジネスロジックを含むサービス層
+  - `valhalla-service.ts`: Valhalla API連携サービス
+    - `generateRoute()`: ポイント配列から経路を生成
+    - `decodePolyline()`: Valhallaのencoded polylineをデコード
+    - `checkStatus()`: Valhallaサーバーのステータス確認
 - `repositories/`: Kyselyを使ったデータベースアクセス層
 - `models/`: データベーステーブルとAPIレスポンスの型定義
 - `schemas/`: リクエスト/レスポンスのバリデーションスキーマ
@@ -306,7 +314,10 @@ interface Route {
 - `pages/`: ルーティングに対応するページコンポーネント
 - `hooks/`: カスタムReactフック
 - `api/`: バックエンドAPIとの通信処理
-  - `route-api.ts`: 経路保存・読み込みAPI呼び出し
+  - `route-api.ts`: 経路保存・読み込み・生成API呼び出し
+    - `generateRoute()`: Valhalla APIで経路を生成
+    - `saveRoute()`: 経路データをファイルに保存
+    - `loadRoute()`: 保存済み経路データを読み込み
 
 ## 重要な設計パターンとルール
 

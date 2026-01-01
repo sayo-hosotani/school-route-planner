@@ -11,7 +11,7 @@ import MapClickHandler from './components/MapClickHandler';
 import MessageDisplay from './components/MessageDisplay';
 import MapCenter from './components/MapCenter';
 import { samplePoints, sampleRouteLine } from './data/sample-route';
-import { saveRoute, loadRoute } from './api/route-api';
+import { saveRoute, loadRoute, generateRoute } from './api/route-api';
 import type { Point } from './types/point';
 
 const App = () => {
@@ -30,8 +30,8 @@ const App = () => {
 		return 'waypoint';
 	};
 
-	// ポイントを直線で接続して経路ラインを更新
-	const updateRouteLine = (pointsList: Point[]) => {
+	// ポイントを直線で接続して経路ラインを更新（フォールバック用）
+	const updateRouteLineStraight = (pointsList: Point[]) => {
 		if (pointsList.length < 2) {
 			// ポイントが2つ未満の場合は経路を描画しない
 			setRouteLine([]);
@@ -42,6 +42,58 @@ const App = () => {
 		const sortedPoints = [...pointsList].sort((a, b) => a.order - b.order);
 		const newRouteLine: [number, number][] = sortedPoints.map((p) => [p.lat, p.lng]);
 		setRouteLine(newRouteLine);
+	};
+
+	// Valhalla APIで経路を生成
+	const updateRouteLine = async (pointsList: Point[]) => {
+		if (pointsList.length < 2) {
+			// ポイントが2つ未満の場合は経路を描画しない
+			setRouteLine([]);
+			return;
+		}
+
+		// スタートとゴールが存在するかチェック
+		const hasStart = pointsList.some((p) => p.type === 'start');
+		const hasGoal = pointsList.some((p) => p.type === 'goal');
+
+		if (!hasStart || !hasGoal) {
+			// スタートまたはゴールがない場合は直線接続
+			updateRouteLineStraight(pointsList);
+			return;
+		}
+
+		try {
+			// Valhalla APIで経路を生成
+			const apiPoints = pointsList.map((p) => ({
+				lat: p.lat,
+				lng: p.lng,
+				order: p.order,
+			}));
+
+			console.log('Generating route with points:', apiPoints);
+			const response = await generateRoute(apiPoints);
+			console.log('Route API response:', response);
+
+			if (response.success && response.data) {
+				console.log('Coordinates count:', response.data.coordinates.length);
+				console.log('First 3 coordinates:', response.data.coordinates.slice(0, 3));
+
+				// GeoJSON形式の座標を[lat, lng]形式に変換
+				const coordinates: [number, number][] = response.data.coordinates.map(
+					([lng, lat]) => [lat, lng],
+				);
+				console.log('Converted coordinates (first 3):', coordinates.slice(0, 3));
+				setRouteLine(coordinates);
+			} else {
+				console.warn('Route generation failed, using straight line');
+				// エラー時は直線接続
+				updateRouteLineStraight(pointsList);
+			}
+		} catch (error) {
+			console.error('Failed to generate route:', error);
+			// エラー時は直線接続
+			updateRouteLineStraight(pointsList);
+		}
 	};
 
 	// 地図クリックでポイント追加
@@ -83,10 +135,9 @@ const App = () => {
 
 		setPoints(newPoints);
 
-		// ポイントを直線で接続
+		// Valhalla APIで経路を生成
 		updateRouteLine(newPoints);
 
-		// TODO: 経路生成APIを呼び出す
 		setMessage('ポイントを追加しました');
 		setTimeout(() => setMessage(''), 3000);
 	};
@@ -98,10 +149,9 @@ const App = () => {
 		);
 		setPoints(updatedPoints);
 
-		// 経路ラインを更新
+		// Valhalla APIで経路を生成
 		updateRouteLine(updatedPoints);
 
-		// TODO: 経路生成APIを呼び出す
 		setMessage('ポイントを移動しました');
 		setTimeout(() => setMessage(''), 3000);
 	};
@@ -159,10 +209,9 @@ const App = () => {
 		}));
 		setPoints(updatedPoints);
 
-		// 経路ラインを更新
+		// Valhalla APIで経路を生成
 		updateRouteLine(updatedPoints);
 
-		// TODO: 経路生成APIを呼び出す
 		setMessage('ポイントを削除しました');
 		setTimeout(() => setMessage(''), 3000);
 	};
