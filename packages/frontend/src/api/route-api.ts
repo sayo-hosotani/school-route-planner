@@ -25,6 +25,15 @@ export interface RouteResult {
 	};
 }
 
+export interface SavedRoute {
+	id: string;
+	user_id: string;
+	name: string;
+	route_data: RouteResult;
+	created_at: string;
+	updated_at: string;
+}
+
 /**
  * ポイントから経路を生成する（Valhalla API経由）
  */
@@ -52,11 +61,14 @@ export async function generateRoute(points: Point[]): Promise<ApiResponse<RouteR
 /**
  * 経路データを保存する
  */
-export async function saveRoute(routeData: RouteData): Promise<ApiResponse<RouteData>> {
+export async function saveRoute(
+	routeData: RouteData,
+	routeName: string,
+): Promise<ApiResponse<RouteData>> {
 	try {
 		// バックエンドが期待する形式に変換
 		const requestBody = {
-			name: `経路 ${new Date().toLocaleString('ja-JP')}`,
+			name: routeName,
 			points: routeData.points.map((p) => ({
 				lat: p.lat,
 				lng: p.lng,
@@ -81,6 +93,114 @@ export async function saveRoute(routeData: RouteData): Promise<ApiResponse<Route
 		return { success: true };
 	} catch (error) {
 		console.error('Failed to save route:', error);
+		throw error;
+	}
+}
+
+/**
+ * すべての保存済み経路を取得
+ */
+export async function getAllRoutes(): Promise<ApiResponse<SavedRoute[]>> {
+	try {
+		const response = await fetch(`${API_BASE_URL}/routes`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const result = await response.json();
+
+		if (result.success && result.data) {
+			return {
+				success: true,
+				data: result.data,
+			};
+		}
+
+		return {
+			success: false,
+			message: 'No saved routes found',
+		};
+	} catch (error) {
+		console.error('Failed to get all routes:', error);
+		throw error;
+	}
+}
+
+/**
+ * 特定の経路を削除
+ */
+export async function deleteRoute(routeId: string): Promise<ApiResponse<void>> {
+	try {
+		const response = await fetch(`${API_BASE_URL}/routes/${routeId}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		return { success: true };
+	} catch (error) {
+		console.error('Failed to delete route:', error);
+		throw error;
+	}
+}
+
+/**
+ * 特定の経路を読み込む
+ */
+export async function loadRouteById(routeId: string): Promise<ApiResponse<RouteData>> {
+	try {
+		const response = await fetch(`${API_BASE_URL}/routes/${routeId}`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return {
+					success: false,
+					message: 'Route not found',
+				};
+			}
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const result = await response.json();
+
+		if (result.success && result.data) {
+			const routeData: RouteData = {
+				points: result.data.points || [],
+				routeLine: result.data.route.route_data.coordinates.map(
+					([lng, lat]: [number, number]) => [lat, lng],
+				),
+				created_at: result.data.route.created_at,
+				updated_at: result.data.route.updated_at,
+			};
+
+			return {
+				success: true,
+				data: routeData,
+			};
+		}
+
+		return {
+			success: false,
+			message: 'Route not found',
+		};
+	} catch (error) {
+		console.error('Failed to load route by id:', error);
 		throw error;
 	}
 }

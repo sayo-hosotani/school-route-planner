@@ -10,7 +10,8 @@ import PointEditModal from './components/PointEditModal';
 import MapClickHandler from './components/MapClickHandler';
 import MessageDisplay, { type MessageType } from './components/MessageDisplay';
 import MapCenter from './components/MapCenter';
-import { saveRoute, loadRoute, generateRoute } from './api/route-api';
+import RouteNameModal from './components/RouteNameModal';
+import { saveRoute, loadRoute, generateRoute, loadRouteById } from './api/route-api';
 import type { Point } from './types/point';
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
 	const [editingPoint, setEditingPoint] = useState<Point | null>(null);
 	const [highlightedPointId, setHighlightedPointId] = useState<string | null>(null);
 	const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+	const [isRouteNameModalOpen, setIsRouteNameModalOpen] = useState(false);
 
 	// ポイント種別の自動判定
 	const determinePointType = (index: number, totalPoints: number): Point['type'] => {
@@ -263,8 +265,8 @@ const App = () => {
 		setTimeout(() => setMessage(''), 3000);
 	};
 
-	// 経路保存
-	const handleSave = async () => {
+	// 経路保存（モーダル表示）
+	const handleSave = () => {
 		// バリデーション: スタートとゴールが両方存在するかチェック
 		const hasStart = points.some((p) => p.type === 'start');
 		const hasGoal = points.some((p) => p.type === 'goal');
@@ -276,11 +278,20 @@ const App = () => {
 			return;
 		}
 
+		// 経路名入力モーダルを表示
+		setIsRouteNameModalOpen(true);
+	};
+
+	// 経路名入力後の保存処理
+	const handleSaveWithName = async (routeName: string) => {
 		try {
-			const result = await saveRoute({
-				points,
-				routeLine,
-			});
+			const result = await saveRoute(
+				{
+					points,
+					routeLine,
+				},
+				routeName,
+			);
 			if (result.success) {
 				setMessage('経路を保存しました');
 				setMessageType('success');
@@ -334,6 +345,13 @@ const App = () => {
 				onPointClick={handlePointClick}
 				onUpdateComment={handleUpdateComment}
 				highlightedPointId={highlightedPointId}
+			/>
+
+			{/* 経路名入力モーダル */}
+			<RouteNameModal
+				isOpen={isRouteNameModalOpen}
+				onSave={handleSaveWithName}
+				onClose={() => setIsRouteNameModalOpen(false)}
 			/>
 
 			{/* ポイント編集モーダル */}
