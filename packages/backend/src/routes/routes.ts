@@ -1,10 +1,11 @@
 import type { FastifyInstance } from 'fastify';
-import { promises as fs } from 'node:fs';
-import { join } from 'node:path';
-import type { RouteData } from '../models/route';
-import { valhallaService } from '../services/valhalla-service';
+import { valhallaService } from '../services/valhalla-service.js';
+import { routeService } from '../services/route-service.js';
+import { pointService } from '../services/point-service.js';
 
-const ROUTE_FILE_PATH = join(process.cwd(), 'route.txt');
+// TODO: 認証機能実装後に削除。現在は仮のユーザーIDを使用
+// 注: database/seed.tsで作成した固定UUIDと一致させる必要がある
+const TEMPORARY_USER_ID = '00000000-0000-0000-0000-000000000001';
 
 interface Point {
 	lat: number;
@@ -72,65 +73,152 @@ export default async function routesRoutes(fastify: FastifyInstance) {
 		},
 	);
 
-	// 経路を保存
-	fastify.post<{ Body: RouteData }>('/routes', async (request, reply) => {
+	// 経路を保存（ポイントも含めて保存）
+	fastify.post<{
+		Body: {
+			name: string;
+			points: Array<{
+				lat: number;
+				lng: number;
+				type: 'start' | 'waypoint' | 'goal';
+				order: number;
+				comment?: string;
+			}>;
+		};
+	}>('/routes', async (request, reply) => {
 		try {
-			const routeData = request.body;
+			const { name, points } = request.body;
 
-			// タイムスタンプを更新
-			const dataToSave = {
-				...routeData,
-				updated_at: new Date().toISOString(),
-			};
+			// バリデーション
+			if (!name || typeof name !== 'string') {
+				return reply.status(400).send({
+					success: false,
+					message: '経路名が必要です',
+				});
+			}
 
-			// JSONとしてシリアライズして保存
-			await fs.writeFile(ROUTE_FILE_PATH, JSON.stringify(dataToSave, null, 2), 'utf-8');
+			if (!points || !Array.isArray(points) || points.length < 2) {
+				return reply.status(400).send({
+					success: false,
+					message: '最低2つのポイントが必要です',
+				});
+			}
 
-			fastify.log.info('Route saved successfully');
+			// 経路とポイントを一括作成
+			const result = await routeService.createRouteWithPoints({
+				user_id: TEMPORARY_USER_ID,
+				name,
+				points,
+			});
+
+			fastify.log.info(`Route saved successfully: ${result.route.id}`);
 
 			return reply.status(201).send({
 				success: true,
 				message: 'Route saved successfully',
-				data: dataToSave,
+				data: result,
 			});
 		} catch (error) {
 			fastify.log.error(error);
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error';
 			return reply.status(500).send({
 				success: false,
-				message: 'Failed to save route',
+				message: `経路の保存に失敗しました: ${errorMessage}`,
 			});
 		}
 	});
 
-	// 経路を読み込み
+	// 経路一覧を取得
 	fastify.get('/routes', async (request, reply) => {
 		try {
-			// ファイルが存在するか確認
-			try {
-				await fs.access(ROUTE_FILE_PATH);
-			} catch {
-				return reply.status(404).send({
-					success: false,
-					message: 'No saved route found',
-				});
-			}
+			const routes = await routeService.getUserRoutes(TEMPORARY_USER_ID);
 
-			// ファイルを読み込んでパース
-			const fileContent = await fs.readFile(ROUTE_FILE_PATH, 'utf-8');
-			const routeData: RouteData = JSON.parse(fileContent);
-
-			fastify.log.info('Route loaded successfully');
+			fastify.log.info(`Loaded ${routes.length} routes`);
 
 			return reply.status(200).send({
 				success: true,
-				data: routeData,
+				data: routes,
 			});
 		} catch (error) {
 			fastify.log.error(error);
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error';
 			return reply.status(500).send({
 				success: false,
-				message: 'Failed to load route',
+				message: `経路の読み込みに失敗しました: ${errorMessage}`,
 			});
 		}
 	});
+
+	// 特定の経路を取得（ポイント込み）
+	fastify.get<{ Params: { id: string } }>(
+		'/routes/:id',
+		async (request, reply) => {
+			try {
+				const { id } = request.params;
+
+				const result = await routeService.getRouteWithPoints(
+					id,
+					TEMPORARY_USER_ID,
+				);
+
+				if (!result) {
+					return reply.status(404).send({
+						success: false,
+						message: 'Route not found',
+					});
+				}
+
+				fastify.log.info(`Route loaded: ${id}`);
+
+				return reply.status(200).send({
+					success: true,
+					data: result,
+				});
+			} catch (error) {
+				fastify.log.error(error);
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
+				return reply.status(500).send({
+					success: false,
+					message: `経路の読み込みに失敗しました: ${errorMessage}`,
+				});
+			}
+		},
+	);
+
+	// 経路を削除
+	fastify.delete<{ Params: { id: string } }>(
+		'/routes/:id',
+		async (request, reply) => {
+			try {
+				const { id } = request.params;
+
+				const deleted = await routeService.deleteRoute(id, TEMPORARY_USER_ID);
+
+				if (!deleted) {
+					return reply.status(404).send({
+						success: false,
+						message: 'Route not found',
+					});
+				}
+
+				fastify.log.info(`Route deleted: ${id}`);
+
+				return reply.status(200).send({
+					success: true,
+					message: 'Route deleted successfully',
+				});
+			} catch (error) {
+				fastify.log.error(error);
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
+				return reply.status(500).send({
+					success: false,
+					message: `経路の削除に失敗しました: ${errorMessage}`,
+				});
+			}
+		},
+	);
 }

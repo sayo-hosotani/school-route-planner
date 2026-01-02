@@ -248,12 +248,18 @@ interface Route {
 │   │   │   ├── plugins/      # Fastifyプラグイン
 │   │   │   ├── services/     # ビジネスロジック
 │   │   │   ├── repositories/ # データアクセス層（Kysely使用）
+│   │   │   ├── database/     # データベース設定・マイグレーション
+│   │   │   │   ├── migrations/ # SQLマイグレーションファイル
+│   │   │   │   ├── types.ts    # Kysely型定義
+│   │   │   │   ├── database.ts # DB接続設定
+│   │   │   │   ├── migrate.ts  # マイグレーション実行
+│   │   │   │   ├── seed.ts     # シードデータ
+│   │   │   │   └── test-connection.ts # 接続テスト
 │   │   │   ├── models/       # TypeScript型定義
 │   │   │   ├── schemas/      # バリデーションスキーマ
 │   │   │   ├── utils/        # ユーティリティ関数
 │   │   │   └── server.ts     # サーバーエントリーポイント
 │   │   ├── tests/            # バックエンドテスト（Vitest）
-│   │   ├── migrations/       # データベースマイグレーション
 │   │   └── package.json
 │   │
 │   └── frontend/             # Reactフロントエンドアプリケーション
@@ -275,10 +281,14 @@ interface Route {
 │   ├── Dockerfile.backend    # （将来追加予定）
 │   ├── Dockerfile.frontend   # （将来追加予定）
 │   └── postgres/             # PostgreSQL初期化スクリプト
+│       └── init.sql          # UUID拡張機能有効化
 │
 ├── docker-compose.yml        # Docker Compose設定（PostgreSQL + Valhalla）
+├── .env                      # 環境変数（Gitにコミットしない）
+├── .env.example              # 環境変数テンプレート
 ├── package.json              # ルートpackage.json（ワークスペース管理）
 ├── biome.json                # Biome設定（リンター・フォーマッター）
+├── TODO.md                   # タスク管理
 └── CLAUDE.md                 # このファイル
 ```
 
@@ -288,15 +298,34 @@ interface Route {
 - `routes/`: Fastifyのルート定義。APIエンドポイントを定義
   - `routes.ts`: 経路関連のエンドポイント
     - `POST /routes/generate`: Valhalla APIで経路を生成
-    - `POST /routes`: 経路データを保存
-    - `GET /routes`: 保存済み経路データを読み込み
+    - `POST /routes`: 経路+ポイントをデータベースに保存
+    - `GET /routes`: ユーザーの経路一覧を取得
+    - `GET /routes/:id`: 特定の経路とポイントを取得
+    - `DELETE /routes/:id`: 経路を削除
 - `plugins/`: 認証、CORS、ロギングなどのFastifyプラグイン
 - `services/`: ビジネスロジックを含むサービス層
   - `valhalla-service.ts`: Valhalla API連携サービス
     - `generateRoute()`: ポイント配列から経路を生成
     - `decodePolyline()`: Valhallaのencoded polylineをデコード
     - `checkStatus()`: Valhallaサーバーのステータス確認
-- `repositories/`: Kyselyを使ったデータベースアクセス層
+  - `route-service.ts`: 経路管理サービス
+    - `createRouteWithPoints()`: 経路とポイントを一括作成（Valhalla連携）
+    - `getRouteWithPoints()`: 経路とポイントを取得
+    - `getUserRoutes()`: ユーザーの経路一覧取得
+    - `deleteRoute()`: 経路削除
+    - `regenerateRoute()`: 経路の再生成
+  - `point-service.ts`: ポイント管理サービス
+    - `createPoint()`, `createPoints()`: ポイント作成
+    - `updatePoint()`: ポイント更新（座標バリデーション付き）
+    - `deletePoint()`: ポイント削除
+- `repositories/`: Kyselyを使ったデータベースアクセス層（CRUD操作、認可フィルタ）
+  - `route-repository.ts`: routesテーブルへのアクセス
+  - `point-repository.ts`: pointsテーブルへのアクセス
+- `database/`: データベース設定とマイグレーション
+  - `database.ts`: Kysely接続設定、シングルトンインスタンス
+  - `types.ts`: データベーステーブルの型定義（users, routes, points）
+  - `migrations/`: SQLマイグレーションファイル
+  - `migrate.ts`, `seed.ts`: マイグレーション・シード実行スクリプト
 - `models/`: データベーステーブルとAPIレスポンスの型定義
 - `schemas/`: リクエスト/レスポンスのバリデーションスキーマ
 
@@ -316,7 +345,7 @@ interface Route {
 - `api/`: バックエンドAPIとの通信処理
   - `route-api.ts`: 経路保存・読み込み・生成API呼び出し
     - `generateRoute()`: Valhalla APIで経路を生成
-    - `saveRoute()`: 経路データをファイルに保存
+    - `saveRoute()`: 経路データをデータベースに保存
     - `loadRoute()`: 保存済み経路データを読み込み
 
 ## 重要な設計パターンとルール
@@ -442,11 +471,16 @@ async function insert(user: User) {
 ### セキュリティ
 
 - **認証・認可の仕組み**:
-  - JWT（JSON Web Token）を使用した認証を実装
+  - **現在の状態**: 認証未実装。仮ユーザーID（`00000000-0000-0000-0000-000000000001`）を使用
+    - `routes.ts`で`TEMPORARY_USER_ID`定数として定義
+    - `seed.ts`でデータベースに仮ユーザーを作成
+    - 認証実装後にこれらのコードは削除予定（TODOコメント付き）
+  - **将来の実装**: JWT（JSON Web Token）を使用した認証を実装予定
   - ログイン時にトークンを発行し、クライアント側で保存（localStorage or httpOnly cookie）
   - すべての保護されたAPIエンドポイントでトークン検証を必須とする
   - ユーザーは自分が作成した経路・ポイント・コメントのみアクセス可能（認可）
   - Fastifyの認証プラグイン（@fastify/jwt等）を使用
+  - **重要**: Repository層では必ず`user_id`でフィルタリングすること（実装済み）
 
 - **機密情報の取り扱い**:
   - ユーザーが保存したポイント、経路、コメントは機密情報として扱う
@@ -526,12 +560,18 @@ async function insert(user: User) {
 
 ### データベースマイグレーション
 
-1. **マイグレーションファイル作成**: `packages/backend/migrations/`に新しいマイグレーションファイルを作成
-   - ファイル名: `YYYYMMDDHHMMSS_description.ts` (例: `20250128120000_create_users_table.ts`)
-2. **UP/DOWNスクリプト記述**: テーブル作成/変更のSQLを記述
-3. **マイグレーション実行**: マイグレーションツールを使用して適用
-4. **Kysely型生成**: データベーススキーマから型を自動生成
-5. **動作確認**: 新しいテーブル/カラムが正しく作成されたか確認
+1. **マイグレーションファイル作成**: `packages/backend/src/database/migrations/`に新しいマイグレーションファイルを作成
+   - ファイル名: `XXX_description.sql` (例: `001_initial_schema.sql`)
+2. **SQLスクリプト記述**: テーブル作成/変更のSQLを記述
+3. **型定義更新**: `packages/backend/src/database/types.ts`のDatabase型を更新
+4. **マイグレーション実行**: `npm run migrate --workspace=@route-planner/backend`
+5. **動作確認**: `docker exec -it route-planner-postgres psql -U postgres -d route_planner -c "\dt"`
+6. **シードデータ**: 必要に応じて`seed.ts`を更新し、`npm run seed --workspace=@route-planner/backend`を実行
+
+**利用可能なコマンド:**
+- `npm run migrate --workspace=@route-planner/backend` - マイグレーション実行
+- `npm run seed --workspace=@route-planner/backend` - シードデータ作成
+- `npm run db:test --workspace=@route-planner/backend` - DB接続テスト
 
 ### テストの追加
 

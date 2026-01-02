@@ -1,0 +1,19 @@
+{
+  "name": "テスト経路",
+  "points": [
+    {
+      "lat": 35.6812,
+      "lng": 139.7671,
+      "type": "start",
+      "order": 0,
+      "comment": "スタート地点"
+    },
+    {
+      "lat": 35.6897,
+      "lng": 139.7003,
+      "type": "goal",
+      "order": 1,
+      "comment": "ゴール地点"
+    }
+  ]
+}

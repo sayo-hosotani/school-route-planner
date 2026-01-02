@@ -88,24 +88,38 @@
   - ✅ 解決: `docker-compose up -d valhalla` で起動
   - ✅ 経路生成が正常に動作することを確認
 
-### 4. データベース対応（優先度: 中）
-- [ ] PostgreSQL環境構築
-  - Docker Composeでの起動設定
-- [ ] マイグレーション作成
-  - usersテーブル
-  - pointsテーブル
-  - routesテーブル
-  - commentsテーブル（または pointsテーブルに含める）
-- [ ] Kysely設定
-  - データベース接続
-  - 型生成
-- [ ] Repository層実装
-  - route-repository.ts
-  - point-repository.ts
-- [ ] Service層実装
-  - route-service.ts（既存のファイル保存処理をDB保存に変更）
-- [ ] ルート更新
-  - route.txtではなくDBに保存・読み込み
+### 4. データベース対応（優先度: 中）✅ 完了
+- [x] PostgreSQL環境構築
+  - ✅ Docker Composeでの起動設定（既存）
+  - ✅ 環境変数設定（.env, .env.example）
+- [x] マイグレーション作成
+  - ✅ usersテーブル
+  - ✅ pointsテーブル（commentフィールド含む）
+  - ✅ routesテーブル
+  - ✅ UUID拡張機能有効化
+  - ✅ トリガー関数（updated_at自動更新）
+  - ✅ インデックス作成
+  - ✅ 外部キー制約（ON DELETE CASCADE）
+- [x] Kysely設定
+  - ✅ データベース接続（`database/database.ts`）
+  - ✅ 型定義（`database/types.ts`）
+  - ✅ 接続テストスクリプト（`npm run db:test`）
+- [x] Repository層実装
+  - ✅ route-repository.ts（CRUD操作、認可フィルタ）
+  - ✅ point-repository.ts（CRUD操作、一括作成、認可フィルタ）
+- [x] Service層実装
+  - ✅ route-service.ts（経路+ポイント一括作成、Valhalla連携）
+  - ✅ point-service.ts（座標バリデーション）
+- [x] ルート更新
+  - ✅ routes.tsをDB保存に完全移行
+  - ✅ 仮ユーザーID対応（認証実装まで）
+  - ✅ 新エンドポイント追加（GET /routes/:id, DELETE /routes/:id）
+- [x] シードデータ作成
+  - ✅ 仮ユーザー作成スクリプト（`npm run seed`）
+- [x] 動作確認
+  - ✅ 経路生成API動作確認
+  - ✅ 経路保存・読み込み動作確認
+  - ✅ データベースに正しく保存されることを確認
 
 ### 5. 認証機能（優先度: 低）
 - [ ] ユーザー登録・ログイン画面
