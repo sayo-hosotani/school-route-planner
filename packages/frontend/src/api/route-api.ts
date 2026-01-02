@@ -54,19 +54,31 @@ export async function generateRoute(points: Point[]): Promise<ApiResponse<RouteR
  */
 export async function saveRoute(routeData: RouteData): Promise<ApiResponse<RouteData>> {
 	try {
+		// バックエンドが期待する形式に変換
+		const requestBody = {
+			name: `経路 ${new Date().toLocaleString('ja-JP')}`,
+			points: routeData.points.map((p) => ({
+				lat: p.lat,
+				lng: p.lng,
+				type: p.type,
+				order: p.order,
+				comment: p.comment || '',
+			})),
+		};
+
 		const response = await fetch(`${API_BASE_URL}/routes`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(routeData),
+			body: JSON.stringify(requestBody),
 		});
 
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
-		return await response.json();
+		return { success: true };
 	} catch (error) {
 		console.error('Failed to save route:', error);
 		throw error;
@@ -74,7 +86,7 @@ export async function saveRoute(routeData: RouteData): Promise<ApiResponse<Route
 }
 
 /**
- * 保存済み経路データを読み込む
+ * 保存済み経路データを読み込む（最新の1件）
  */
 export async function loadRoute(): Promise<ApiResponse<RouteData>> {
 	try {
@@ -95,7 +107,48 @@ export async function loadRoute(): Promise<ApiResponse<RouteData>> {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
-		return await response.json();
+		const result = await response.json();
+
+		// 経路のリストが返ってくるので、最新の1件を取得
+		if (result.success && result.data && result.data.length > 0) {
+			const latestRoute = result.data[result.data.length - 1];
+
+			// バックエンドのデータをフロントエンド形式に変換
+			const routeData: RouteData = {
+				points: [], // pointsは別途取得が必要
+				routeLine: latestRoute.route_data.coordinates.map(([lng, lat]: [number, number]) => [
+					lat,
+					lng,
+				]),
+				created_at: latestRoute.created_at,
+				updated_at: latestRoute.updated_at,
+			};
+
+			// 特定の経路のポイントを取得
+			const pointsResponse = await fetch(`${API_BASE_URL}/routes/${latestRoute.id}`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (pointsResponse.ok) {
+				const pointsResult = await pointsResponse.json();
+				if (pointsResult.success && pointsResult.data && pointsResult.data.points) {
+					routeData.points = pointsResult.data.points;
+				}
+			}
+
+			return {
+				success: true,
+				data: routeData,
+			};
+		}
+
+		return {
+			success: false,
+			message: 'No saved route found',
+		};
 	} catch (error) {
 		console.error('Failed to load route:', error);
 		throw error;

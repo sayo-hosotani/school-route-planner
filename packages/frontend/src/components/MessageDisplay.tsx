@@ -1,9 +1,17 @@
+export type MessageType = 'success' | 'error';
+
 interface MessageDisplayProps {
 	message: string;
+	type?: MessageType;
 }
 
-const MessageDisplay = ({ message }: MessageDisplayProps) => {
+const MessageDisplay = ({ message, type = 'success' }: MessageDisplayProps) => {
 	if (!message) return null;
+
+	// メッセージタイプに応じた色を設定
+	const isError = type === 'error';
+	const backgroundColor = isError ? '#ffebee' : '#e8f5e9';
+	const textColor = isError ? '#c62828' : '#2e7d32';
 
 	return (
 		<div
@@ -15,8 +23,8 @@ const MessageDisplay = ({ message }: MessageDisplayProps) => {
 				zIndex: 2000,
 				padding: '12px 24px',
 				borderRadius: '8px',
-				backgroundColor: message.includes('失敗') ? '#ffebee' : '#e8f5e9',
-				color: message.includes('失敗') ? '#c62828' : '#2e7d32',
+				backgroundColor,
+				color: textColor,
 				fontSize: '14px',
 				fontWeight: 'bold',
 				boxShadow: '0 4px 12px rgba(0,0,0,0.3)',

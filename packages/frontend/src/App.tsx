@@ -8,17 +8,17 @@ import FitBounds from './components/FitBounds';
 import Sidebar from './components/Sidebar';
 import PointEditModal from './components/PointEditModal';
 import MapClickHandler from './components/MapClickHandler';
-import MessageDisplay from './components/MessageDisplay';
+import MessageDisplay, { type MessageType } from './components/MessageDisplay';
 import MapCenter from './components/MapCenter';
-import { samplePoints, sampleRouteLine } from './data/sample-route';
 import { saveRoute, loadRoute, generateRoute } from './api/route-api';
 import type { Point } from './types/point';
 
 const App = () => {
 	const [mode, setMode] = useState<'view' | 'edit'>('view');
-	const [points, setPoints] = useState<Point[]>(samplePoints);
-	const [routeLine, setRouteLine] = useState<[number, number][]>(sampleRouteLine);
+	const [points, setPoints] = useState<Point[]>([]);
+	const [routeLine, setRouteLine] = useState<[number, number][]>([]);
 	const [message, setMessage] = useState<string>('');
+	const [messageType, setMessageType] = useState<MessageType>('success');
 	const [editingPoint, setEditingPoint] = useState<Point | null>(null);
 	const [highlightedPointId, setHighlightedPointId] = useState<string | null>(null);
 	const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
@@ -139,6 +139,7 @@ const App = () => {
 		updateRouteLine(newPoints);
 
 		setMessage('ポイントを追加しました');
+		setMessageType('success');
 		setTimeout(() => setMessage(''), 3000);
 	};
 
@@ -153,6 +154,7 @@ const App = () => {
 		updateRouteLine(updatedPoints);
 
 		setMessage('ポイントを移動しました');
+		setMessageType('success');
 		setTimeout(() => setMessage(''), 3000);
 	};
 
@@ -172,6 +174,7 @@ const App = () => {
 			),
 		);
 		setMessage('ポイントを更新しました');
+		setMessageType('success');
 		setTimeout(() => setMessage(''), 3000);
 	};
 
@@ -181,6 +184,7 @@ const App = () => {
 			prevPoints.map((p) => (p.id === pointId ? { ...p, comment, updated_at: new Date().toISOString() } : p)),
 		);
 		setMessage('コメントを更新しました');
+		setMessageType('success');
 		setTimeout(() => setMessage(''), 3000);
 	};
 
@@ -213,6 +217,7 @@ const App = () => {
 		updateRouteLine(updatedPoints);
 
 		setMessage('ポイントを削除しました');
+		setMessageType('success');
 		setTimeout(() => setMessage(''), 3000);
 	};
 
@@ -222,6 +227,7 @@ const App = () => {
 			setPoints([]);
 			setRouteLine([]);
 			setMessage('すべてのポイントをクリアしました');
+			setMessageType('success');
 			setTimeout(() => setMessage(''), 3000);
 		}
 	};
@@ -253,11 +259,23 @@ const App = () => {
 		updateRouteLine(updatedPoints);
 
 		setMessage('順序を入れ替えました');
+		setMessageType('success');
 		setTimeout(() => setMessage(''), 3000);
 	};
 
 	// 経路保存
 	const handleSave = async () => {
+		// バリデーション: スタートとゴールが両方存在するかチェック
+		const hasStart = points.some((p) => p.type === 'start');
+		const hasGoal = points.some((p) => p.type === 'goal');
+
+		if (!hasStart || !hasGoal) {
+			setMessage('経路を保存するには、スタートとゴールの両方が必要です');
+			setMessageType('error');
+			setTimeout(() => setMessage(''), 3000);
+			return;
+		}
+
 		try {
 			const result = await saveRoute({
 				points,
@@ -265,10 +283,12 @@ const App = () => {
 			});
 			if (result.success) {
 				setMessage('経路を保存しました');
+				setMessageType('success');
 				setTimeout(() => setMessage(''), 3000);
 			}
 		} catch (error) {
 			setMessage('保存に失敗しました');
+			setMessageType('error');
 			setTimeout(() => setMessage(''), 3000);
 		}
 	};
@@ -281,13 +301,16 @@ const App = () => {
 				setPoints(result.data.points);
 				setRouteLine(result.data.routeLine);
 				setMessage('経路を読み込みました');
+				setMessageType('success');
 				setTimeout(() => setMessage(''), 3000);
 			} else {
 				setMessage('保存された経路が見つかりません');
+				setMessageType('error');
 				setTimeout(() => setMessage(''), 3000);
 			}
 		} catch (error) {
 			setMessage('読み込みに失敗しました');
+			setMessageType('error');
 			setTimeout(() => setMessage(''), 3000);
 		}
 	};
@@ -295,7 +318,7 @@ const App = () => {
 	return (
 		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
 			{/* メッセージ表示 */}
-			<MessageDisplay message={message} />
+			<MessageDisplay message={message} type={messageType} />
 
 			{/* サイドバー */}
 			<Sidebar
