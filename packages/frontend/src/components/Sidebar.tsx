@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import type { Point } from '../types/point';
-import { getAllRoutes, loadRouteById, deleteRoute, type SavedRoute } from '../api/route-api';
+import { getAllRoutes, deleteRoute, type SavedRoute } from '../api/route-api';
 
 interface SidebarProps {
 	mode: 'view' | 'edit';
 	onModeChange: (mode: 'view' | 'edit') => void;
 	points: Point[];
 	onSave: () => void;
-	onLoad: () => void;
 	onClearPoints: () => void;
 	onEditPoint: (pointId: string) => void;
 	onDeletePoint: (pointId: string) => void;
@@ -24,7 +23,6 @@ const Sidebar = ({
 	onModeChange,
 	points,
 	onSave,
-	onLoad,
 	onClearPoints,
 	onEditPoint,
 	onDeletePoint,

@@ -11,7 +11,7 @@ import MapClickHandler from './components/MapClickHandler';
 import MessageDisplay, { type MessageType } from './components/MessageDisplay';
 import MapCenter from './components/MapCenter';
 import RouteNameModal from './components/RouteNameModal';
-import { saveRoute, loadRoute, generateRoute, loadRouteById } from './api/route-api';
+import { saveRoute, generateRoute, loadRouteById } from './api/route-api';
 import type { Point } from './types/point';
 
 const App = () => {
@@ -304,10 +304,10 @@ const App = () => {
 		}
 	};
 
-	// 経路読み込み
-	const handleLoad = async () => {
+	// 特定の経路を読み込む（保存済み経路一覧から選択）
+	const handleLoadRoute = async (routeId: string) => {
 		try {
-			const result = await loadRoute();
+			const result = await loadRouteById(routeId);
 			if (result.success && result.data) {
 				setPoints(result.data.points);
 				setRouteLine(result.data.routeLine);
@@ -315,7 +315,7 @@ const App = () => {
 				setMessageType('success');
 				setTimeout(() => setMessage(''), 3000);
 			} else {
-				setMessage('保存された経路が見つかりません');
+				setMessage('経路が見つかりません');
 				setMessageType('error');
 				setTimeout(() => setMessage(''), 3000);
 			}
@@ -324,6 +324,13 @@ const App = () => {
 			setMessageType('error');
 			setTimeout(() => setMessage(''), 3000);
 		}
+	};
+
+	// メッセージ表示（Sidebarから呼び出し用）
+	const handleMessage = (msg: string, type: 'success' | 'error') => {
+		setMessage(msg);
+		setMessageType(type);
+		setTimeout(() => setMessage(''), 3000);
 	};
 
 	return (
@@ -337,7 +344,6 @@ const App = () => {
 				onModeChange={setMode}
 				points={points}
 				onSave={handleSave}
-				onLoad={handleLoad}
 				onClearPoints={handleClearPoints}
 				onEditPoint={handleEditPoint}
 				onDeletePoint={handleDeletePoint}
@@ -345,6 +351,8 @@ const App = () => {
 				onPointClick={handlePointClick}
 				onUpdateComment={handleUpdateComment}
 				highlightedPointId={highlightedPointId}
+				onLoadRoute={handleLoadRoute}
+				onMessage={handleMessage}
 			/>
 
 			{/* 経路名入力モーダル */}
