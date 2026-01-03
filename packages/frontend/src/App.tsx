@@ -8,329 +8,141 @@ import FitBounds from './components/FitBounds';
 import Sidebar from './components/Sidebar';
 import PointEditModal from './components/PointEditModal';
 import MapClickHandler from './components/MapClickHandler';
-import MessageDisplay, { type MessageType } from './components/MessageDisplay';
+import MessageDisplay from './components/MessageDisplay';
 import MapCenter from './components/MapCenter';
 import RouteNameModal from './components/RouteNameModal';
-import { saveRoute, generateRoute, loadRouteById } from './api/route-api';
+import { saveRoute, loadRouteById } from './api/route-api';
+import { useMessage } from './hooks/use-message';
+import { useModal } from './hooks/use-modal';
+import { usePoints } from './hooks/use-points';
+import { useRouteGeneration } from './hooks/use-route-generation';
+import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL, HIGHLIGHT_TIMEOUT_MS } from './constants/map-config';
 import type { Point } from './types/point';
 
 const App = () => {
 	const [mode, setMode] = useState<'view' | 'edit'>('view');
-	const [points, setPoints] = useState<Point[]>([]);
-	const [routeLine, setRouteLine] = useState<[number, number][]>([]);
-	const [message, setMessage] = useState<string>('');
-	const [messageType, setMessageType] = useState<MessageType>('success');
-	const [editingPoint, setEditingPoint] = useState<Point | null>(null);
 	const [highlightedPointId, setHighlightedPointId] = useState<string | null>(null);
 	const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
-	const [isRouteNameModalOpen, setIsRouteNameModalOpen] = useState(false);
 
-	// ポイント種別の自動判定
-	const determinePointType = (index: number, totalPoints: number): Point['type'] => {
-		if (index === 0) return 'start';
-		if (index === totalPoints - 1) return 'goal';
-		return 'waypoint';
-	};
-
-	// ポイントを直線で接続して経路ラインを更新（フォールバック用）
-	const updateRouteLineStraight = (pointsList: Point[]) => {
-		if (pointsList.length < 2) {
-			// ポイントが2つ未満の場合は経路を描画しない
-			setRouteLine([]);
-			return;
-		}
-
-		// ポイントをorder順にソートして座標を抽出
-		const sortedPoints = [...pointsList].sort((a, b) => a.order - b.order);
-		const newRouteLine: [number, number][] = sortedPoints.map((p) => [p.lat, p.lng]);
-		setRouteLine(newRouteLine);
-	};
-
-	// Valhalla APIで経路を生成
-	const updateRouteLine = async (pointsList: Point[]) => {
-		if (pointsList.length < 2) {
-			// ポイントが2つ未満の場合は経路を描画しない
-			setRouteLine([]);
-			return;
-		}
-
-		// スタートとゴールが存在するかチェック
-		const hasStart = pointsList.some((p) => p.type === 'start');
-		const hasGoal = pointsList.some((p) => p.type === 'goal');
-
-		if (!hasStart || !hasGoal) {
-			// スタートまたはゴールがない場合は直線接続
-			updateRouteLineStraight(pointsList);
-			return;
-		}
-
-		try {
-			// Valhalla APIで経路を生成
-			const apiPoints = pointsList.map((p) => ({
-				lat: p.lat,
-				lng: p.lng,
-				order: p.order,
-			}));
-
-			console.log('Generating route with points:', apiPoints);
-			const response = await generateRoute(apiPoints);
-			console.log('Route API response:', response);
-
-			if (response.success && response.data) {
-				console.log('Coordinates count:', response.data.coordinates.length);
-				console.log('First 3 coordinates:', response.data.coordinates.slice(0, 3));
-
-				// GeoJSON形式の座標を[lat, lng]形式に変換
-				const coordinates: [number, number][] = response.data.coordinates.map(
-					([lng, lat]) => [lat, lng],
-				);
-				console.log('Converted coordinates (first 3):', coordinates.slice(0, 3));
-				setRouteLine(coordinates);
-			} else {
-				console.warn('Route generation failed, using straight line');
-				// エラー時は直線接続
-				updateRouteLineStraight(pointsList);
-			}
-		} catch (error) {
-			console.error('Failed to generate route:', error);
-			// エラー時は直線接続
-			updateRouteLineStraight(pointsList);
-		}
-	};
+	// カスタムフック
+	const { message, messageType, showMessage } = useMessage();
+	const routeNameModal = useModal();
+	const pointEditModal = useModal<Point>();
+	const { points, addPoint, updatePoint, deletePoint, movePoint, clearPoints, findPoint, hasStartAndGoal, loadPoints } = usePoints();
+	const { routeLine, generateRouteFromPoints, setRouteLine, clearRoute } = useRouteGeneration();
 
 	// 地図クリックでポイント追加
-	const handleMapClick = (lat: number, lng: number) => {
-		const newPoint: Point = {
-			id: `point-${Date.now()}`,
-			lat,
-			lng,
-			type: 'waypoint', // 仮の種別、後で再計算
-			order: points.length,
-			comment: '',
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
-		};
-
-		let newPoints: Point[];
-
-		if (points.length === 0) {
-			// 1番目: スタート
-			newPoints = [{ ...newPoint, type: 'start', order: 0 }];
-		} else if (points.length === 1) {
-			// 2番目: ゴール（最後に追加）
-			newPoints = [...points, { ...newPoint, type: 'goal', order: 1 }];
-		} else {
-			// 3番目以降: 中継地点（ゴールの直前に挿入）
-			// 既存のゴールを探す
-			const goalIndex = points.findIndex((p) => p.type === 'goal');
-			if (goalIndex !== -1) {
-				// ゴールの直前に挿入
-				const updatedPoints = [...points];
-				updatedPoints.splice(goalIndex, 0, { ...newPoint, type: 'waypoint', order: goalIndex });
-				// order を再計算
-				newPoints = updatedPoints.map((p, index) => ({ ...p, order: index }));
-			} else {
-				// ゴールが見つからない場合（通常はあり得ないが、念のため最後に追加）
-				newPoints = [...points, { ...newPoint, type: 'waypoint', order: points.length }];
-			}
-		}
-
-		setPoints(newPoints);
-
-		// Valhalla APIで経路を生成
-		updateRouteLine(newPoints);
-
-		setMessage('ポイントを追加しました');
-		setMessageType('success');
-		setTimeout(() => setMessage(''), 3000);
+	const handleMapClick = async (lat: number, lng: number) => {
+		const newPoints = addPoint(lat, lng);
+		await generateRouteFromPoints(newPoints);
+		showMessage('ポイントを追加しました');
 	};
 
 	// ポイントのドラッグ移動
-	const handlePointDragEnd = (pointId: string, lat: number, lng: number) => {
-		const updatedPoints = points.map((p) =>
-			p.id === pointId ? { ...p, lat, lng, updated_at: new Date().toISOString() } : p,
-		);
-		setPoints(updatedPoints);
-
-		// Valhalla APIで経路を生成
-		updateRouteLine(updatedPoints);
-
-		setMessage('ポイントを移動しました');
-		setMessageType('success');
-		setTimeout(() => setMessage(''), 3000);
+	const handlePointDragEnd = async (pointId: string, lat: number, lng: number) => {
+		const updatedPoints = updatePoint(pointId, { lat, lng });
+		await generateRouteFromPoints(updatedPoints);
+		showMessage('ポイントを移動しました');
 	};
 
 	// ポイント編集モーダルを開く
 	const handleEditPoint = (pointId: string) => {
-		const point = points.find((p) => p.id === pointId);
+		const point = findPoint(pointId);
 		if (point) {
-			setEditingPoint(point);
+			pointEditModal.open(point);
 		}
 	};
 
 	// ポイント編集を保存
 	const handleSavePoint = (pointId: string, type: Point['type'], comment: string) => {
-		setPoints((prevPoints) =>
-			prevPoints.map((p) =>
-				p.id === pointId ? { ...p, type, comment, updated_at: new Date().toISOString() } : p,
-			),
-		);
-		setMessage('ポイントを更新しました');
-		setMessageType('success');
-		setTimeout(() => setMessage(''), 3000);
+		updatePoint(pointId, { type, comment });
+		showMessage('ポイントを更新しました');
 	};
 
 	// サイドバーからのコメント更新
 	const handleUpdateComment = (pointId: string, comment: string) => {
-		setPoints((prevPoints) =>
-			prevPoints.map((p) => (p.id === pointId ? { ...p, comment, updated_at: new Date().toISOString() } : p)),
-		);
-		setMessage('コメントを更新しました');
-		setMessageType('success');
-		setTimeout(() => setMessage(''), 3000);
+		updatePoint(pointId, { comment });
+		showMessage('コメントを更新しました');
 	};
 
 	// ポイントクリック時の処理（地図中央に移動＋ハイライト）
 	const handlePointClick = (pointId: string) => {
-		const point = points.find((p) => p.id === pointId);
+		const point = findPoint(pointId);
 		if (point) {
 			setMapCenter([point.lat, point.lng]);
 			setHighlightedPointId(pointId);
-			// 3秒後にハイライト解除
 			setTimeout(() => {
 				setHighlightedPointId(null);
 				setMapCenter(null);
-			}, 3000);
+			}, HIGHLIGHT_TIMEOUT_MS);
 		}
 	};
 
 	// ポイント削除
-	const handleDeletePoint = (pointId: string) => {
-		const newPoints = points.filter((p) => p.id !== pointId);
-		// ポイント削除後、種別を再計算
-		const updatedPoints = newPoints.map((p, index) => ({
-			...p,
-			type: determinePointType(index, newPoints.length),
-			order: index,
-		}));
-		setPoints(updatedPoints);
-
-		// Valhalla APIで経路を生成
-		updateRouteLine(updatedPoints);
-
-		setMessage('ポイントを削除しました');
-		setMessageType('success');
-		setTimeout(() => setMessage(''), 3000);
+	const handleDeletePoint = async (pointId: string) => {
+		const newPoints = deletePoint(pointId);
+		await generateRouteFromPoints(newPoints);
+		showMessage('ポイントを削除しました');
 	};
 
 	// 全ポイントをクリア
 	const handleClearPoints = () => {
 		if (window.confirm('すべてのポイントを削除しますか？')) {
-			setPoints([]);
-			setRouteLine([]);
-			setMessage('すべてのポイントをクリアしました');
-			setMessageType('success');
-			setTimeout(() => setMessage(''), 3000);
+			clearPoints();
+			clearRoute();
+			showMessage('すべてのポイントをクリアしました');
 		}
 	};
 
 	// ポイントの順序を入れ替え
-	const handleMovePoint = (pointId: string, direction: 'up' | 'down') => {
-		const currentIndex = points.findIndex((p) => p.id === pointId);
-		if (currentIndex === -1) return;
-
-		const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-
-		// 範囲外チェック
-		if (newIndex < 0 || newIndex >= points.length) return;
-
-		// スタートとゴールは移動できない
-		const currentPoint = points[currentIndex];
-		const targetPoint = points[newIndex];
-		if (currentPoint.type !== 'waypoint' || targetPoint.type !== 'waypoint') return;
-
-		// 入れ替え
-		const newPoints = [...points];
-		[newPoints[currentIndex], newPoints[newIndex]] = [newPoints[newIndex], newPoints[currentIndex]];
-
-		// orderを再計算
-		const updatedPoints = newPoints.map((p, index) => ({ ...p, order: index }));
-		setPoints(updatedPoints);
-
-		// 経路ラインを更新
-		updateRouteLine(updatedPoints);
-
-		setMessage('順序を入れ替えました');
-		setMessageType('success');
-		setTimeout(() => setMessage(''), 3000);
+	const handleMovePoint = async (pointId: string, direction: 'up' | 'down') => {
+		const newPoints = movePoint(pointId, direction);
+		if (newPoints) {
+			await generateRouteFromPoints(newPoints);
+			showMessage('順序を入れ替えました');
+		}
 	};
 
 	// 経路保存（モーダル表示）
 	const handleSave = () => {
-		// バリデーション: スタートとゴールが両方存在するかチェック
-		const hasStart = points.some((p) => p.type === 'start');
-		const hasGoal = points.some((p) => p.type === 'goal');
-
-		if (!hasStart || !hasGoal) {
-			setMessage('経路を保存するには、スタートとゴールの両方が必要です');
-			setMessageType('error');
-			setTimeout(() => setMessage(''), 3000);
+		if (!hasStartAndGoal()) {
+			showMessage('経路を保存するには、スタートとゴールの両方が必要です', 'error');
 			return;
 		}
-
-		// 経路名入力モーダルを表示
-		setIsRouteNameModalOpen(true);
+		routeNameModal.open();
 	};
 
 	// 経路名入力後の保存処理
 	const handleSaveWithName = async (routeName: string) => {
 		try {
-			const result = await saveRoute(
-				{
-					points,
-					routeLine,
-				},
-				routeName,
-			);
+			const result = await saveRoute({ points, routeLine }, routeName);
 			if (result.success) {
-				setMessage('経路を保存しました');
-				setMessageType('success');
-				setTimeout(() => setMessage(''), 3000);
+				showMessage('経路を保存しました');
 			}
-		} catch (error) {
-			setMessage('保存に失敗しました');
-			setMessageType('error');
-			setTimeout(() => setMessage(''), 3000);
+		} catch {
+			showMessage('保存に失敗しました', 'error');
 		}
 	};
 
-	// 特定の経路を読み込む（保存済み経路一覧から選択）
+	// 特定の経路を読み込む
 	const handleLoadRoute = async (routeId: string) => {
 		try {
 			const result = await loadRouteById(routeId);
 			if (result.success && result.data) {
-				setPoints(result.data.points);
+				loadPoints(result.data.points);
 				setRouteLine(result.data.routeLine);
-				setMessage('経路を読み込みました');
-				setMessageType('success');
-				setTimeout(() => setMessage(''), 3000);
+				showMessage('経路を読み込みました');
 			} else {
-				setMessage('経路が見つかりません');
-				setMessageType('error');
-				setTimeout(() => setMessage(''), 3000);
+				showMessage('経路が見つかりません', 'error');
 			}
-		} catch (error) {
-			setMessage('読み込みに失敗しました');
-			setMessageType('error');
-			setTimeout(() => setMessage(''), 3000);
+		} catch {
+			showMessage('読み込みに失敗しました', 'error');
 		}
 	};
 
 	// メッセージ表示（Sidebarから呼び出し用）
 	const handleMessage = (msg: string, type: 'success' | 'error') => {
-		setMessage(msg);
-		setMessageType(type);
-		setTimeout(() => setMessage(''), 3000);
+		showMessage(msg, type);
 	};
 
 	return (
@@ -357,23 +169,23 @@ const App = () => {
 
 			{/* 経路名入力モーダル */}
 			<RouteNameModal
-				isOpen={isRouteNameModalOpen}
+				isOpen={routeNameModal.isOpen}
 				onSave={handleSaveWithName}
-				onClose={() => setIsRouteNameModalOpen(false)}
+				onClose={routeNameModal.close}
 			/>
 
 			{/* ポイント編集モーダル */}
 			<PointEditModal
-				point={editingPoint}
-				onClose={() => setEditingPoint(null)}
+				point={pointEditModal.data}
+				onClose={pointEditModal.close}
 				onSave={handleSavePoint}
 				onDelete={handleDeletePoint}
 			/>
 
 			{/* 地図 */}
 			<MapContainer
-				center={[35.628, 139.596]}
-				zoom={14}
+				center={DEFAULT_MAP_CENTER}
+				zoom={DEFAULT_ZOOM_LEVEL}
 				style={{ height: '100%', width: '100%' }}
 				attributionControl={false}
 				zoomControl={false}
