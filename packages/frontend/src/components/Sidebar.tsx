@@ -15,7 +15,7 @@ interface SidebarProps {
 	onUpdateComment: (pointId: string, comment: string) => void;
 	highlightedPointId: string | null;
 	onLoadRoute: (routeId: string) => Promise<void>;
-	onMessage: (message: string, type: 'success' | 'error') => void;
+	onMessage: (message: string, type?: 'success' | 'error') => void;
 	routeListRefreshTrigger?: number;
 }
 

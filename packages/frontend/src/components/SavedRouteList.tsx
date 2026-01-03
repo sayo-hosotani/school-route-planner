@@ -3,7 +3,7 @@ import { getAllRoutes, deleteRoute, type SavedRoute } from '../api/route-api';
 
 interface SavedRouteListProps {
 	onLoadRoute: (routeId: string) => Promise<void>;
-	onMessage: (message: string, type: 'success' | 'error') => void;
+	onMessage: (message: string, type?: 'success' | 'error') => void;
 	refreshTrigger?: number;
 }
 

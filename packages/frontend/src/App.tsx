@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { MapContainer, TileLayer, ScaleControl, AttributionControl, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import CoordinateDisplay from './components/CoordinateDisplay';
@@ -12,36 +11,51 @@ import MessageDisplay from './components/MessageDisplay';
 import MapCenter from './components/MapCenter';
 import RouteNameModal from './components/RouteNameModal';
 import { saveRoute, loadRouteById } from './api/route-api';
-import { useMessage } from './hooks/use-message';
 import { useModal } from './hooks/use-modal';
-import { usePoints } from './hooks/use-points';
-import { useRouteGeneration } from './hooks/use-route-generation';
-import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL, HIGHLIGHT_TIMEOUT_MS } from './constants/map-config';
+import { PointProvider, AppProvider, usePointContext, useAppContext } from './contexts';
+import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL } from './constants/map-config';
 import type { Point } from './types/point';
 
-const App = () => {
-	const [mode, setMode] = useState<'view' | 'edit'>('view');
-	const [highlightedPointId, setHighlightedPointId] = useState<string | null>(null);
-	const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+const AppContent = () => {
+	// Context
+	const {
+		points,
+		routeLine,
+		addPoint,
+		updatePoint,
+		deletePoint,
+		movePoint,
+		clearPoints,
+		findPoint,
+		hasStartAndGoal,
+		loadRoute,
+	} = usePointContext();
 
-	// カスタムフック
-	const { message, messageType, showMessage } = useMessage();
+	const {
+		mode,
+		setMode,
+		message,
+		messageType,
+		showMessage,
+		highlightedPointId,
+		highlightPoint,
+		mapCenter,
+		setMapCenter,
+	} = useAppContext();
+
+	// モーダル
 	const routeNameModal = useModal();
 	const pointEditModal = useModal<Point>();
-	const { points, addPoint, updatePoint, deletePoint, movePoint, clearPoints, findPoint, hasStartAndGoal, loadPoints } = usePoints();
-	const { routeLine, generateRouteFromPoints, setRouteLine, clearRoute } = useRouteGeneration();
 
 	// 地図クリックでポイント追加
 	const handleMapClick = async (lat: number, lng: number) => {
-		const newPoints = addPoint(lat, lng);
-		await generateRouteFromPoints(newPoints);
+		await addPoint(lat, lng);
 		showMessage('ポイントを追加しました');
 	};
 
 	// ポイントのドラッグ移動
 	const handlePointDragEnd = async (pointId: string, lat: number, lng: number) => {
-		const updatedPoints = updatePoint(pointId, { lat, lng });
-		await generateRouteFromPoints(updatedPoints);
+		await updatePoint(pointId, { lat, lng });
 		showMessage('ポイントを移動しました');
 	};
 
@@ -54,14 +68,14 @@ const App = () => {
 	};
 
 	// ポイント編集を保存
-	const handleSavePoint = (pointId: string, type: Point['type'], comment: string) => {
-		updatePoint(pointId, { type, comment });
+	const handleSavePoint = async (pointId: string, type: Point['type'], comment: string) => {
+		await updatePoint(pointId, { type, comment });
 		showMessage('ポイントを更新しました');
 	};
 
 	// サイドバーからのコメント更新
-	const handleUpdateComment = (pointId: string, comment: string) => {
-		updatePoint(pointId, { comment });
+	const handleUpdateComment = async (pointId: string, comment: string) => {
+		await updatePoint(pointId, { comment });
 		showMessage('コメントを更新しました');
 	};
 
@@ -70,18 +84,13 @@ const App = () => {
 		const point = findPoint(pointId);
 		if (point) {
 			setMapCenter([point.lat, point.lng]);
-			setHighlightedPointId(pointId);
-			setTimeout(() => {
-				setHighlightedPointId(null);
-				setMapCenter(null);
-			}, HIGHLIGHT_TIMEOUT_MS);
+			highlightPoint(pointId);
 		}
 	};
 
 	// ポイント削除
 	const handleDeletePoint = async (pointId: string) => {
-		const newPoints = deletePoint(pointId);
-		await generateRouteFromPoints(newPoints);
+		await deletePoint(pointId);
 		showMessage('ポイントを削除しました');
 	};
 
@@ -89,16 +98,14 @@ const App = () => {
 	const handleClearPoints = () => {
 		if (window.confirm('すべてのポイントを削除しますか？')) {
 			clearPoints();
-			clearRoute();
 			showMessage('すべてのポイントをクリアしました');
 		}
 	};
 
 	// ポイントの順序を入れ替え
 	const handleMovePoint = async (pointId: string, direction: 'up' | 'down') => {
-		const newPoints = movePoint(pointId, direction);
-		if (newPoints) {
-			await generateRouteFromPoints(newPoints);
+		const moved = await movePoint(pointId, direction);
+		if (moved) {
 			showMessage('順序を入れ替えました');
 		}
 	};
@@ -129,8 +136,7 @@ const App = () => {
 		try {
 			const result = await loadRouteById(routeId);
 			if (result.success && result.data) {
-				loadPoints(result.data.points);
-				setRouteLine(result.data.routeLine);
+				loadRoute(result.data.points, result.data.routeLine);
 				showMessage('経路を読み込みました');
 			} else {
 				showMessage('経路が見つかりません', 'error');
@@ -138,11 +144,6 @@ const App = () => {
 		} catch {
 			showMessage('読み込みに失敗しました', 'error');
 		}
-	};
-
-	// メッセージ表示（Sidebarから呼び出し用）
-	const handleMessage = (msg: string, type: 'success' | 'error') => {
-		showMessage(msg, type);
 	};
 
 	return (
@@ -164,7 +165,7 @@ const App = () => {
 				onUpdateComment={handleUpdateComment}
 				highlightedPointId={highlightedPointId}
 				onLoadRoute={handleLoadRoute}
-				onMessage={handleMessage}
+				onMessage={showMessage}
 			/>
 
 			{/* 経路名入力モーダル */}
@@ -221,6 +222,16 @@ const App = () => {
 				))}
 			</MapContainer>
 		</div>
+	);
+};
+
+const App = () => {
+	return (
+		<AppProvider>
+			<PointProvider>
+				<AppContent />
+			</PointProvider>
+		</AppProvider>
 	);
 };
 

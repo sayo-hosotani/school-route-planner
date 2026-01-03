@@ -5,12 +5,8 @@
 ## 1. コードリファクタリング（優先度: 中）
 
 ### 1.1. App.tsx の改善（継続）
-App.tsxを415行→227行に削減済み。残りの改善項目：
+App.tsxを415行→227行に削減済み。Context API導入済み。残りの改善項目：
 
-- [ ] Context API の検討
-  - `PointContext`: ポイント状態と操作関数の共有
-  - `RouteContext`: 経路状態の共有
-  - Sidebarへのprops drilling（13個以上）を解消
 - [ ] エラーハンドリングの統一
   - try-catchパターンを共通関数化
   - エラー時のフォールバック処理を統一

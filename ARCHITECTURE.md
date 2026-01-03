@@ -168,6 +168,21 @@ App.tsx
 - `MESSAGE_TIMEOUT_MS`: メッセージ自動消去時間（3000ms）
 - `HIGHLIGHT_TIMEOUT_MS`: ハイライト表示時間（3000ms）
 
+### Context API
+
+| Context | 責務 |
+|---------|------|
+| `PointContext` | ポイント・経路の状態と操作関数（追加・更新・削除・移動・読み込み） |
+| `AppContext` | アプリ全体の状態（モード・メッセージ・ハイライト・地図中心） |
+
+```
+App (AppProvider)
+ └── PointProvider
+      └── AppContent
+           ├── Sidebar (useAppContext, propsで操作関数を受け取る)
+           └── MapContainer (usePointContext)
+```
+
 ## セキュリティ設計
 
 ### 認証（未実装）

@@ -170,6 +170,10 @@
 - [x] バックエンドのタイムスタンプ型改善
   - Kyselyの`Timestamp`型を`ColumnType<string, never, never>`に変更
   - DBのDEFAULT値とトリガーでタイムスタンプを管理、プログラムでは読み取りのみ
+- [x] Context API導入
+  - `contexts/PointContext.tsx`: ポイント状態・経路状態・操作関数を一元管理
+  - `contexts/AppContext.tsx`: モード・メッセージ・ハイライト・地図中心を管理
+  - App.tsxをAppProvider + PointProviderでラップ
 
 ## 実装済みコンポーネント一覧
 - `App.tsx`: メインアプリケーション（モード管理、各種カスタムフック統合）
@@ -192,3 +196,7 @@
 - `hooks/use-route-generation.ts`: Valhalla経路生成・フォールバック処理
 - `hooks/use-message.ts`: メッセージ表示・自動消去
 - `hooks/use-modal.ts`: モーダル開閉状態管理（ジェネリック対応）
+
+## 実装済みContext一覧
+- `contexts/PointContext.tsx`: ポイント・経路の状態と操作関数を提供
+- `contexts/AppContext.tsx`: アプリ全体の状態（モード・メッセージ・ハイライト）を提供
