@@ -1,4 +1,4 @@
-import { Marker, Popup } from 'react-leaflet';
+import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import type { Point } from '../types/point';
 
@@ -24,6 +24,17 @@ const getMarkerIcon = (type: Point['type']) => {
 		iconSize: [24, 24],
 		iconAnchor: [12, 12],
 	});
+};
+
+const getDisplayTitle = (point: Point): string => {
+	if (!point.comment) {
+		if (point.type === 'start') return 'スタート';
+		if (point.type === 'waypoint') return '中継地点';
+		if (point.type === 'goal') return 'ゴール';
+		return '';
+	}
+	const firstLine = point.comment.split('\n')[0];
+	return firstLine.length <= 16 ? firstLine : firstLine.substring(0, 16);
 };
 
 const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) => {
@@ -52,25 +63,31 @@ const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) 
 			}}
 		>
 			{!editMode && (
-				<Popup>
-					<div>
-						<strong>
-							{(() => {
-								if (!point.comment) {
-									return (
-										(point.type === 'start' && 'スタート') ||
-										(point.type === 'waypoint' && '中継地点') ||
-										(point.type === 'goal' && 'ゴール')
-									);
-								}
-								const firstLine = point.comment.split('\n')[0];
-								return firstLine.length <= 16 ? firstLine : firstLine.substring(0, 16);
-							})()}
+				<Tooltip
+					permanent
+					direction="top"
+					offset={[0, -12]}
+					className="point-tooltip"
+				>
+					<div style={{
+						padding: '4px 8px',
+						maxWidth: '200px',
+					}}>
+						<strong style={{ display: 'block', marginBottom: point.comment ? '4px' : '0' }}>
+							{getDisplayTitle(point)}
 						</strong>
-						<br />
-						{point.comment && <p>{point.comment}</p>}
+						{point.comment && (
+							<div style={{
+								fontSize: '12px',
+								color: '#666',
+								whiteSpace: 'pre-wrap',
+								wordBreak: 'break-word',
+							}}>
+								{point.comment}
+							</div>
+						)}
 					</div>
-				</Popup>
+				</Tooltip>
 			)}
 		</Marker>
 	);
