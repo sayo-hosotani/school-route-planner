@@ -26,105 +26,89 @@ export const usePoints = (): UsePointsReturn => {
 
 	// ポイントを追加
 	const addPoint = useCallback((lat: number, lng: number): Point[] => {
+		// 現在のpointsを使って新しい配列を計算
+		const prevPoints = points;
+		const newPoint: Point = {
+			id: `point-${Date.now()}`,
+			lat,
+			lng,
+			type: 'waypoint',
+			order: prevPoints.length,
+			comment: '',
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+		};
+
 		let newPoints: Point[];
 
-		setPoints((prevPoints) => {
-			const newPoint: Point = {
-				id: `point-${Date.now()}`,
-				lat,
-				lng,
-				type: 'waypoint',
-				order: prevPoints.length,
-				comment: '',
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			};
-
-			if (prevPoints.length === 0) {
-				// 1番目: スタート
-				newPoints = [{ ...newPoint, type: 'start', order: 0 }];
-			} else if (prevPoints.length === 1) {
-				// 2番目: ゴール
-				newPoints = [...prevPoints, { ...newPoint, type: 'goal', order: 1 }];
+		if (prevPoints.length === 0) {
+			// 1番目: スタート
+			newPoints = [{ ...newPoint, type: 'start', order: 0 }];
+		} else if (prevPoints.length === 1) {
+			// 2番目: ゴール
+			newPoints = [...prevPoints, { ...newPoint, type: 'goal', order: 1 }];
+		} else {
+			// 3番目以降: 中継地点（ゴールの直前に挿入）
+			const goalIndex = prevPoints.findIndex((p) => p.type === 'goal');
+			if (goalIndex !== -1) {
+				const updatedPoints = [...prevPoints];
+				updatedPoints.splice(goalIndex, 0, { ...newPoint, type: 'waypoint', order: goalIndex });
+				newPoints = updatedPoints.map((p, index) => ({ ...p, order: index }));
 			} else {
-				// 3番目以降: 中継地点（ゴールの直前に挿入）
-				const goalIndex = prevPoints.findIndex((p) => p.type === 'goal');
-				if (goalIndex !== -1) {
-					const updatedPoints = [...prevPoints];
-					updatedPoints.splice(goalIndex, 0, { ...newPoint, type: 'waypoint', order: goalIndex });
-					newPoints = updatedPoints.map((p, index) => ({ ...p, order: index }));
-				} else {
-					newPoints = [...prevPoints, { ...newPoint, type: 'waypoint', order: prevPoints.length }];
-				}
+				newPoints = [...prevPoints, { ...newPoint, type: 'waypoint', order: prevPoints.length }];
 			}
-			return newPoints;
-		});
+		}
 
-		// @ts-expect-error newPoints is assigned in setPoints callback
+		setPoints(newPoints);
 		return newPoints;
-	}, []);
+	}, [points]);
 
 	// ポイントを更新
 	const updatePoint = useCallback((pointId: string, updates: Partial<Point>): Point[] => {
-		let updatedPoints: Point[] = [];
-
-		setPoints((prevPoints) => {
-			updatedPoints = prevPoints.map((p) =>
-				p.id === pointId ? { ...p, ...updates, updated_at: new Date().toISOString() } : p,
-			);
-			return updatedPoints;
-		});
-
+		const updatedPoints = points.map((p) =>
+			p.id === pointId ? { ...p, ...updates, updated_at: new Date().toISOString() } : p,
+		);
+		setPoints(updatedPoints);
 		return updatedPoints;
-	}, []);
+	}, [points]);
 
 	// ポイントを削除
 	const deletePoint = useCallback((pointId: string): Point[] => {
-		let updatedPoints: Point[] = [];
-
-		setPoints((prevPoints) => {
-			const filtered = prevPoints.filter((p) => p.id !== pointId);
-			// ポイント削除後、種別を再計算
-			updatedPoints = filtered.map((p, index) => ({
-				...p,
-				type: determinePointType(index, filtered.length),
-				order: index,
-			}));
-			return updatedPoints;
-		});
-
+		const filtered = points.filter((p) => p.id !== pointId);
+		// ポイント削除後、種別を再計算
+		const updatedPoints = filtered.map((p, index) => ({
+			...p,
+			type: determinePointType(index, filtered.length),
+			order: index,
+		}));
+		setPoints(updatedPoints);
 		return updatedPoints;
-	}, []);
+	}, [points]);
 
 	// ポイントの順序を入れ替え
 	const movePoint = useCallback((pointId: string, direction: 'up' | 'down'): Point[] | null => {
-		let result: Point[] | null = null;
+		const currentIndex = points.findIndex((p) => p.id === pointId);
+		if (currentIndex === -1) return null;
 
-		setPoints((prevPoints) => {
-			const currentIndex = prevPoints.findIndex((p) => p.id === pointId);
-			if (currentIndex === -1) return prevPoints;
+		const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
-			const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+		// 範囲外チェック
+		if (newIndex < 0 || newIndex >= points.length) return null;
 
-			// 範囲外チェック
-			if (newIndex < 0 || newIndex >= prevPoints.length) return prevPoints;
+		// スタートとゴールは移動できない
+		const currentPoint = points[currentIndex];
+		const targetPoint = points[newIndex];
+		if (currentPoint.type !== 'waypoint' || targetPoint.type !== 'waypoint') return null;
 
-			// スタートとゴールは移動できない
-			const currentPoint = prevPoints[currentIndex];
-			const targetPoint = prevPoints[newIndex];
-			if (currentPoint.type !== 'waypoint' || targetPoint.type !== 'waypoint') return prevPoints;
+		// 入れ替え
+		const newPoints = [...points];
+		[newPoints[currentIndex], newPoints[newIndex]] = [newPoints[newIndex], newPoints[currentIndex]];
 
-			// 入れ替え
-			const newPoints = [...prevPoints];
-			[newPoints[currentIndex], newPoints[newIndex]] = [newPoints[newIndex], newPoints[currentIndex]];
-
-			// orderを再計算
-			result = newPoints.map((p, index) => ({ ...p, order: index }));
-			return result;
-		});
-
+		// orderを再計算
+		const result = newPoints.map((p, index) => ({ ...p, order: index }));
+		setPoints(result);
 		return result;
-	}, []);
+	}, [points]);
 
 	// 全ポイントをクリア
 	const clearPoints = useCallback(() => {

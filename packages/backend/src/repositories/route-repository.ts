@@ -22,8 +22,8 @@ export interface Route {
 	user_id: string;
 	name: string;
 	route_data: unknown;
-	created_at: Date;
-	updated_at: Date;
+	created_at: string;
+	updated_at: string;
 }
 
 export class RouteRepository {

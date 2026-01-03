@@ -151,6 +151,23 @@ App.tsx
     └── CoordinateDisplay.tsx
 ```
 
+### カスタムフック
+
+| フック | 責務 |
+|--------|------|
+| `usePoints` | ポイント状態管理（追加・更新・削除・移動・検索） |
+| `useRouteGeneration` | Valhalla経路生成、エラー時は直線接続にフォールバック |
+| `useMessage` | メッセージ表示・自動消去（3秒後） |
+| `useModal` | モーダル開閉状態管理（ジェネリック対応） |
+
+### 定数ファイル
+
+`constants/map-config.ts`:
+- `DEFAULT_MAP_CENTER`: 初期表示座標（東京・大田区付近）
+- `DEFAULT_ZOOM_LEVEL`: 初期ズームレベル（14）
+- `MESSAGE_TIMEOUT_MS`: メッセージ自動消去時間（3000ms）
+- `HIGHLIGHT_TIMEOUT_MS`: ハイライト表示時間（3000ms）
+
 ## セキュリティ設計
 
 ### 認証（未実装）

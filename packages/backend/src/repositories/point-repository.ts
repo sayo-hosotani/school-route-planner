@@ -33,8 +33,8 @@ export interface Point {
 	type: 'start' | 'waypoint' | 'goal';
 	order: number;
 	comment: string;
-	created_at: Date;
-	updated_at: Date;
+	created_at: string;
+	updated_at: string;
 }
 
 export class PointRepository {

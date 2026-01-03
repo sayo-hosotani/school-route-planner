@@ -155,9 +155,25 @@
   - Z字型の経路線（赤）+ スタート（緑）・中継地点（赤）・ゴール（青）のSVGアイコン作成
   - favicon.svgをpublicフォルダに配置、index.htmlにリンク追加
 
+## 6. コードリファクタリング ✅
+- [x] App.tsx のカスタムフック分離（415行 → 227行に削減）
+  - `hooks/use-points.ts`: ポイントCRUD操作（追加・編集・削除・移動・検索）
+  - `hooks/use-route-generation.ts`: Valhalla API経路生成、エラー時は直線接続にフォールバック
+  - `hooks/use-message.ts`: メッセージ表示・自動消去ロジック
+  - `hooks/use-modal.ts`: モーダル開閉状態管理（ジェネリック対応）
+- [x] 重複コードの解消
+  - メッセージ表示パターン（`setMessage` + `setTimeout`）→ `showMessage()`に集約
+- [x] デバッグコードの削除
+  - console.logを削除
+- [x] 定数の外部化
+  - `constants/map-config.ts`: DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL, MESSAGE_TIMEOUT_MS, HIGHLIGHT_TIMEOUT_MS
+- [x] バックエンドのタイムスタンプ型改善
+  - Kyselyの`Timestamp`型を`ColumnType<string, never, never>`に変更
+  - DBのDEFAULT値とトリガーでタイムスタンプを管理、プログラムでは読み取りのみ
+
 ## 実装済みコンポーネント一覧
-- `App.tsx`: メインアプリケーション（モード管理、ポイント操作ロジック、並び替え機能、地図移動・ハイライト）
-- `Sidebar.tsx`: モード切り替えと機能ボタン、ポイント一覧表示（並び替え、クリックで地図移動、▼ボタンでコメント展開・編集）
+- `App.tsx`: メインアプリケーション（モード管理、各種カスタムフック統合）
+- `Sidebar.tsx`: モード切り替えと機能ボタン、ポイント一覧表示
 - `PointItem.tsx`: ポイント項目のレンダリング
 - `SavedRouteList.tsx`: 保存済み経路一覧
 - `PointEditModal.tsx`: ポイント編集モーダル（種別・コメント編集）
@@ -170,3 +186,9 @@
 - `MapCenter.tsx`: 地図の中心を変更（ポイントクリック時の地図移動）
 - `MessageDisplay.tsx`: 画面中央上部のメッセージ表示
 - `route-api.ts`: 経路保存・読み込みAPI呼び出し
+
+## 実装済みカスタムフック一覧
+- `hooks/use-points.ts`: ポイント状態管理（追加・更新・削除・移動・検索）
+- `hooks/use-route-generation.ts`: Valhalla経路生成・フォールバック処理
+- `hooks/use-message.ts`: メッセージ表示・自動消去
+- `hooks/use-modal.ts`: モーダル開閉状態管理（ジェネリック対応）

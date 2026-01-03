@@ -135,7 +135,7 @@ export class ValhallaService {
 				);
 			}
 
-			const data: ValhallaRouteResponse = await response.json();
+			const data = (await response.json()) as ValhallaRouteResponse;
 
 			// レスポンスをアプリケーション形式に変換
 			return this.convertToRouteResult(data);

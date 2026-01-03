@@ -6,11 +6,18 @@
 import type { ColumnType } from 'kysely';
 
 /**
- * Timestamp型のヘルパー
- * 作成時はundefined、取得時はDate、更新時はDate
+ * 自動生成カラム型のヘルパー
+ * SELECT時: T, INSERT時: T | undefined, UPDATE時: T
  */
 export type Generated<T> = ColumnType<T, T | undefined, T>;
-export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
+/**
+ * タイムスタンプ型
+ * - SELECT時: string（ISO 8601形式）
+ * - INSERT時: never（DBのDEFAULT値を使用、プログラムから指定しない）
+ * - UPDATE時: never（DBのトリガーで自動更新、プログラムから指定しない）
+ */
+export type Timestamp = ColumnType<string, never, never>;
 
 /**
  * usersテーブル
@@ -20,8 +27,8 @@ export interface UsersTable {
 	email: string;
 	password_hash: string;
 	name: string;
-	created_at: Generated<Timestamp>;
-	updated_at: Generated<Timestamp>;
+	created_at: Timestamp;
+	updated_at: Timestamp;
 }
 
 /**
@@ -36,8 +43,8 @@ export interface PointsTable {
 	type: 'start' | 'waypoint' | 'goal';
 	order: number;
 	comment: string;
-	created_at: Generated<Timestamp>;
-	updated_at: Generated<Timestamp>;
+	created_at: Timestamp;
+	updated_at: Timestamp;
 }
 
 /**
@@ -48,8 +55,8 @@ export interface RoutesTable {
 	user_id: string;
 	name: string;
 	route_data: unknown; // JSONBカラム（Valhalla APIからの経路情報）
-	created_at: Generated<Timestamp>;
-	updated_at: Generated<Timestamp>;
+	created_at: Timestamp;
+	updated_at: Timestamp;
 }
 
 /**

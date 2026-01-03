@@ -3,7 +3,7 @@
  * Kyselyインスタンスを作成・エクスポート
  */
 
-import { Kysely, PostgresDialect } from 'kysely';
+import { Kysely, PostgresDialect, sql } from 'kysely';
 import { Pool } from 'pg';
 import type { Database } from './types';
 
@@ -39,7 +39,7 @@ export const db = new Kysely<Database>({
  */
 export async function testConnection(): Promise<boolean> {
 	try {
-		await db.selectFrom('pg_catalog.pg_tables').select('tablename').limit(1).execute();
+		await sql`SELECT 1`.execute(db);
 		console.log('✅ Database connection successful');
 		return true;
 	} catch (error) {
