@@ -13,6 +13,7 @@ import RouteNameModal from './components/RouteNameModal';
 import { saveRoute, loadRouteById } from './api/route-api';
 import { useModal } from './hooks/use-modal';
 import { PointProvider, AppProvider, usePointContext, useAppContext } from './contexts';
+import { handleAsyncOperation, handleApiResult } from './utils/error-handler';
 import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL } from './constants/map-config';
 import type { Point } from './types/point';
 
@@ -121,29 +122,30 @@ const AppContent = () => {
 
 	// 経路名入力後の保存処理
 	const handleSaveWithName = async (routeName: string) => {
-		try {
-			const result = await saveRoute({ points, routeLine }, routeName);
-			if (result.success) {
-				showMessage('経路を保存しました');
-			}
-		} catch {
-			showMessage('保存に失敗しました', 'error');
-		}
+		await handleAsyncOperation({
+			operation: () => saveRoute({ points, routeLine }, routeName),
+			successMessage: '経路を保存しました',
+			errorMessage: '保存に失敗しました',
+			showMessage,
+		});
 	};
 
 	// 特定の経路を読み込む
 	const handleLoadRoute = async (routeId: string) => {
-		try {
-			const result = await loadRouteById(routeId);
-			if (result.success && result.data) {
-				loadRoute(result.data.points, result.data.routeLine);
-				showMessage('経路を読み込みました');
-			} else {
-				showMessage('経路が見つかりません', 'error');
-			}
-		} catch {
-			showMessage('読み込みに失敗しました', 'error');
-		}
+		await handleAsyncOperation({
+			operation: () => loadRouteById(routeId),
+			errorMessage: '読み込みに失敗しました',
+			showMessage,
+			onSuccess: (result) => {
+				handleApiResult({
+					result,
+					successMessage: '経路を読み込みました',
+					notFoundMessage: '経路が見つかりません',
+					showMessage,
+					onSuccess: (data) => loadRoute(data.points, data.routeLine),
+				});
+			},
+		});
 	};
 
 	return (

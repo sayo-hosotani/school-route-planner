@@ -200,3 +200,8 @@
 ## 実装済みContext一覧
 - `contexts/PointContext.tsx`: ポイント・経路の状態と操作関数を提供
 - `contexts/AppContext.tsx`: アプリ全体の状態（モード・メッセージ・ハイライト）を提供
+
+## 実装済みユーティリティ一覧
+- `utils/error-handler.ts`: 共通エラーハンドリング関数
+  - `handleAsyncOperation`: try-catchパターンを共通化
+  - `handleApiResult`: API結果の成功/失敗処理を共通化

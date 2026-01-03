@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllRoutes, deleteRoute, type SavedRoute } from '../api/route-api';
+import { handleAsyncOperation } from '../utils/error-handler';
 
 interface SavedRouteListProps {
 	onLoadRoute: (routeId: string) => Promise<void>;
@@ -14,46 +15,49 @@ const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteLi
 	useEffect(() => {
 		const fetchRoutes = async () => {
 			setIsLoading(true);
-			try {
-				const result = await getAllRoutes();
-				if (result.success && result.data) {
-					const sortedRoutes = [...result.data].sort(
-						(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-					);
-					setSavedRoutes(sortedRoutes);
-				}
-			} catch (error) {
-				console.error('Failed to fetch routes:', error);
-			} finally {
-				setIsLoading(false);
-			}
+			await handleAsyncOperation({
+				operation: getAllRoutes,
+				errorMessage: '経路一覧の取得に失敗しました',
+				showMessage: onMessage,
+				onSuccess: (result) => {
+					if (result.success && result.data) {
+						const sortedRoutes = [...result.data].sort(
+							(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+						);
+						setSavedRoutes(sortedRoutes);
+					}
+				},
+			});
+			setIsLoading(false);
 		};
 
 		fetchRoutes();
-	}, [refreshTrigger]);
+	}, [refreshTrigger, onMessage]);
 
 	const handleDeleteRoute = async (routeId: string, routeName: string) => {
 		if (!window.confirm(`「${routeName}」を削除しますか？`)) {
 			return;
 		}
 
-		try {
-			const result = await deleteRoute(routeId);
-			if (result.success) {
-				setSavedRoutes(savedRoutes.filter((r) => r.id !== routeId));
-				onMessage('経路を削除しました', 'success');
-			}
-		} catch (error) {
-			onMessage('削除に失敗しました', 'error');
-		}
+		await handleAsyncOperation({
+			operation: () => deleteRoute(routeId),
+			successMessage: '経路を削除しました',
+			errorMessage: '削除に失敗しました',
+			showMessage: onMessage,
+			onSuccess: (result) => {
+				if (result.success) {
+					setSavedRoutes(savedRoutes.filter((r) => r.id !== routeId));
+				}
+			},
+		});
 	};
 
 	const handleLoadRoute = async (routeId: string) => {
-		try {
-			await onLoadRoute(routeId);
-		} catch (error) {
-			onMessage('読み込みに失敗しました', 'error');
-		}
+		await handleAsyncOperation({
+			operation: () => onLoadRoute(routeId),
+			errorMessage: '読み込みに失敗しました',
+			showMessage: onMessage,
+		});
 	};
 
 	return (
