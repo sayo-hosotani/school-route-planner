@@ -139,9 +139,6 @@ export async function deleteRoute(routeId: string): Promise<ApiResponse<void>> {
 	try {
 		const response = await fetch(`${API_BASE_URL}/routes/${routeId}`, {
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
