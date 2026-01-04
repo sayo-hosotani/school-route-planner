@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Point } from '../types/point';
+import { COLORS } from '../constants/colors';
 
 interface PointEditModalProps {
 	point: Point | null;
@@ -137,11 +138,12 @@ const PointEditModal = ({ point, onClose, onSave, onDelete }: PointEditModalProp
 					<button
 						type="button"
 						onClick={handleSave}
+						aria-label="ポイントを保存"
 						style={{
 							flex: 1,
 							padding: '10px 16px',
 							cursor: 'pointer',
-							backgroundColor: '#28a745',
+							backgroundColor: COLORS.SUCCESS,
 							color: 'white',
 							border: 'none',
 							borderRadius: '4px',
@@ -154,11 +156,12 @@ const PointEditModal = ({ point, onClose, onSave, onDelete }: PointEditModalProp
 					<button
 						type="button"
 						onClick={handleDelete}
+						aria-label="ポイントを削除"
 						style={{
 							flex: 1,
 							padding: '10px 16px',
 							cursor: 'pointer',
-							backgroundColor: '#dc3545',
+							backgroundColor: COLORS.DANGER,
 							color: 'white',
 							border: 'none',
 							borderRadius: '4px',
@@ -171,11 +174,12 @@ const PointEditModal = ({ point, onClose, onSave, onDelete }: PointEditModalProp
 					<button
 						type="button"
 						onClick={onClose}
+						aria-label="編集をキャンセル"
 						style={{
 							flex: 1,
 							padding: '10px 16px',
 							cursor: 'pointer',
-							backgroundColor: '#6c757d',
+							backgroundColor: COLORS.SECONDARY,
 							color: 'white',
 							border: 'none',
 							borderRadius: '4px',

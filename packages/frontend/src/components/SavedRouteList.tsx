@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAllRoutes, deleteRoute, type SavedRoute } from '../api/route-api';
 import { handleAsyncOperation } from '../utils/error-handler';
+import { COLORS } from '../constants/colors';
 
 interface SavedRouteListProps {
 	onLoadRoute: (routeId: string) => Promise<void>;
@@ -141,13 +142,14 @@ const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteLi
 							<button
 								type="button"
 								onClick={() => handleDeleteRoute(route.id, route.name)}
+								aria-label={`${route.name}を削除`}
 								style={{
 									padding: '4px 8px',
 									fontSize: '16px',
 									cursor: 'pointer',
 									backgroundColor: 'transparent',
 									border: 'none',
-									color: '#dc3545',
+									color: COLORS.DANGER,
 								}}
 								title="削除"
 							>

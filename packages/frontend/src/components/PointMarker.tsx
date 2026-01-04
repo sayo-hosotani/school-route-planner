@@ -1,6 +1,8 @@
 import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import type { Point } from '../types/point';
+import { getMarkerDisplayTitle } from '../utils/point-utils';
+import { MARKER_COLORS } from '../constants/colors';
 
 interface PointMarkerProps {
 	point: Point;
@@ -10,7 +12,7 @@ interface PointMarkerProps {
 }
 
 const getMarkerIcon = (type: Point['type']) => {
-	const color = type === 'start' ? 'green' : type === 'goal' ? 'blue' : 'red';
+	const color = type === 'start' ? MARKER_COLORS.START : type === 'goal' ? MARKER_COLORS.GOAL : MARKER_COLORS.WAYPOINT;
 	return L.divIcon({
 		className: 'custom-marker',
 		html: `<div style="
@@ -24,17 +26,6 @@ const getMarkerIcon = (type: Point['type']) => {
 		iconSize: [24, 24],
 		iconAnchor: [12, 12],
 	});
-};
-
-const getDisplayTitle = (point: Point): string => {
-	if (!point.comment) {
-		if (point.type === 'start') return 'スタート';
-		if (point.type === 'waypoint') return '中継地点';
-		if (point.type === 'goal') return 'ゴール';
-		return '';
-	}
-	const firstLine = point.comment.split('\n')[0];
-	return firstLine.length <= 16 ? firstLine : firstLine.substring(0, 16);
 };
 
 const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) => {
@@ -74,7 +65,7 @@ const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) 
 						maxWidth: '200px',
 					}}>
 						<strong style={{ display: 'block', marginBottom: point.comment ? '4px' : '0' }}>
-							{getDisplayTitle(point)}
+							{getMarkerDisplayTitle(point)}
 						</strong>
 						{point.comment && (
 							<div style={{

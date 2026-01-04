@@ -11,9 +11,9 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
 - [ ] 型定義の整理
   - ハンドラ関数の型を`types/handlers.ts`に集約
   - 共通で使用する型を`types/common.ts`に
-- [ ] ユーティリティ関数の整理
-  - 日時フォーマット関数
-  - ポイント関連のヘルパー関数
+- [x] ユーティリティ関数の整理
+  - ポイント関連のヘルパー関数を`utils/point-utils.ts`に集約済み
+  - 日時フォーマット関数（未着手）
 - [ ] APIエラーハンドリングの共通化
   - `api/`内でエラーハンドリングを統一
   - カスタムエラークラスの導入
@@ -58,13 +58,13 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
 - [ ] カスタムフックの抽出
   - `SavedRouteList`: フェッチ・削除ロジックを`useSavedRoutes`フックに
   - `PointItem`: コメント編集ロジックを`useCommentEditor`フックに
-- [ ] ユーティリティ関数の分離
-  - `getPointTypeLabel`、`getDisplayTitle`を`utils/point-utils.ts`に移動
-- [ ] 定数の共通化
-  - カラーコード（#007bff, #28a745, #dc3545等）を定数ファイルに集約
-- [ ] アクセシビリティ改善
-  - ボタンにaria-label属性を追加
-  - キーボードナビゲーション対応（Tab、Enter、Escape）
+- [x] ユーティリティ関数の分離
+  - `getPointTypeLabel`、`getDisplayTitle`を`utils/point-utils.ts`に移動済み
+- [x] 定数の共通化
+  - カラーコード（#007bff, #28a745, #dc3545等）を`constants/colors.ts`に集約済み
+- [x] アクセシビリティ改善
+  - ボタンにaria-label属性を追加済み
+  - キーボードナビゲーション対応（Tab、Enter、Escape）（未着手）
 - [ ] パフォーマンス最適化
   - `PointItem`のReact.memo化を検討
   - 不要な再レンダリングの防止

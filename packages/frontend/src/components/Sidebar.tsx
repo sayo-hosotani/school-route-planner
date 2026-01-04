@@ -1,6 +1,7 @@
 import type { Point } from '../types/point';
 import PointItem from './PointItem';
 import SavedRouteList from './SavedRouteList';
+import { COLORS } from '../constants/colors';
 
 interface SidebarProps {
 	mode: 'view' | 'edit';
@@ -60,11 +61,12 @@ const Sidebar = ({
 				<button
 					type="button"
 					onClick={() => onModeChange('view')}
+					aria-label="通常モードに切り替え"
 					style={{
 						flex: 1,
 						padding: '8px 16px',
 						cursor: 'pointer',
-						backgroundColor: mode === 'view' ? '#007bff' : '#f0f0f0',
+						backgroundColor: mode === 'view' ? COLORS.PRIMARY : '#f0f0f0',
 						color: mode === 'view' ? 'white' : 'black',
 						border: 'none',
 						borderRadius: '4px',
@@ -76,11 +78,12 @@ const Sidebar = ({
 				<button
 					type="button"
 					onClick={() => onModeChange('edit')}
+					aria-label="編集モードに切り替え"
 					style={{
 						flex: 1,
 						padding: '8px 16px',
 						cursor: 'pointer',
-						backgroundColor: mode === 'edit' ? '#007bff' : '#f0f0f0',
+						backgroundColor: mode === 'edit' ? COLORS.PRIMARY : '#f0f0f0',
 						color: mode === 'edit' ? 'white' : 'black',
 						border: 'none',
 						borderRadius: '4px',
@@ -99,10 +102,11 @@ const Sidebar = ({
 						<button
 							type="button"
 							onClick={onSave}
+							aria-label="現在の経路を保存"
 							style={{
 								padding: '8px 16px',
 								cursor: 'pointer',
-								backgroundColor: '#28a745',
+								backgroundColor: COLORS.SUCCESS,
 								color: 'white',
 								border: 'none',
 								borderRadius: '4px',
@@ -127,11 +131,12 @@ const Sidebar = ({
 					<button
 						type="button"
 						onClick={onClearPoints}
+						aria-label="全ポイントをクリア"
 						style={{
 							width: '100%',
 							padding: '8px 16px',
 							cursor: 'pointer',
-							backgroundColor: '#dc3545',
+							backgroundColor: COLORS.DANGER,
 							color: 'white',
 							border: 'none',
 							borderRadius: '4px',

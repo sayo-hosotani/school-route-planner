@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { Point } from '../types/point';
+import { getDisplayTitle } from '../utils/point-utils';
+import { COLORS } from '../constants/colors';
 
 interface PointItemProps {
 	point: Point | null;
@@ -17,32 +19,6 @@ interface PointItemProps {
 	onMovePoint: (pointId: string, direction: 'up' | 'down') => void;
 	onUpdateComment: (pointId: string, comment: string) => void;
 }
-
-const getPointTypeLabel = (type: Point['type'], waypointNumber?: number) => {
-	switch (type) {
-		case 'start':
-			return '🟢 スタート';
-		case 'waypoint':
-			return waypointNumber !== undefined ? `🔴 中継地点${waypointNumber}` : '🔴 中継地点';
-		case 'goal':
-			return '🔵 ゴール';
-	}
-};
-
-const getDisplayTitle = (
-	point: Point | null,
-	type: Point['type'],
-	waypointNumber?: number,
-) => {
-	if (!point || !point.comment) {
-		return getPointTypeLabel(type, waypointNumber);
-	}
-	const firstLine = point.comment.split('\n')[0];
-	if (firstLine.length <= 16) {
-		return firstLine;
-	}
-	return firstLine.substring(0, 16);
-};
 
 const PointItem = ({
 	point,
@@ -68,13 +44,13 @@ const PointItem = ({
 	const isWaypoint = type === 'waypoint';
 
 	const backgroundColor = isNextToAdd
-		? '#fff3cd'
+		? COLORS.BG_WARNING
 		: isHighlighted
-			? '#e3f2fd'
+			? COLORS.BG_HIGHLIGHT
 			: hasPoint
-				? '#f8f9fa'
-				: '#e9ecef';
-	const borderColor = isNextToAdd ? '#ffc107' : isHighlighted ? '#2196f3' : 'transparent';
+				? COLORS.BG_LIGHT
+				: COLORS.BG_MUTED;
+	const borderColor = isNextToAdd ? COLORS.BORDER_WARNING : isHighlighted ? COLORS.BORDER_HIGHLIGHT : 'transparent';
 
 	const handleStartEditComment = () => {
 		if (point) {
@@ -185,12 +161,13 @@ const PointItem = ({
 								<button
 									type="button"
 									onClick={handleSaveComment}
+									aria-label="コメントを保存"
 									style={{
 										flex: 1,
 										padding: '4px 8px',
 										fontSize: '12px',
 										cursor: 'pointer',
-										backgroundColor: '#28a745',
+										backgroundColor: COLORS.SUCCESS,
 										color: 'white',
 										border: 'none',
 										borderRadius: '4px',
@@ -201,12 +178,13 @@ const PointItem = ({
 								<button
 									type="button"
 									onClick={handleCancelEditComment}
+									aria-label="コメント編集をキャンセル"
 									style={{
 										flex: 1,
 										padding: '4px 8px',
 										fontSize: '12px',
 										cursor: 'pointer',
-										backgroundColor: '#6c757d',
+										backgroundColor: COLORS.SECONDARY,
 										color: 'white',
 										border: 'none',
 										borderRadius: '4px',
@@ -225,11 +203,12 @@ const PointItem = ({
 								<button
 									type="button"
 									onClick={handleStartEditComment}
+									aria-label="コメントを編集"
 									style={{
 										padding: '4px 8px',
 										fontSize: '12px',
 										cursor: 'pointer',
-										backgroundColor: '#007bff',
+										backgroundColor: COLORS.PRIMARY,
 										color: 'white',
 										border: 'none',
 										borderRadius: '4px',
@@ -253,12 +232,13 @@ const PointItem = ({
 								type="button"
 								onClick={() => onMovePoint(point.id, 'up')}
 								disabled={!canMoveUp}
+								aria-label="上に移動"
 								style={{
 									padding: '4px 8px',
 									fontSize: '12px',
 									cursor: canMoveUp ? 'pointer' : 'not-allowed',
-									backgroundColor: canMoveUp ? '#6c757d' : '#e9ecef',
-									color: canMoveUp ? 'white' : '#adb5bd',
+									backgroundColor: canMoveUp ? COLORS.SECONDARY : COLORS.DISABLED_BG,
+									color: canMoveUp ? 'white' : COLORS.DISABLED_TEXT,
 									border: 'none',
 									borderRadius: '4px',
 								}}
@@ -270,12 +250,13 @@ const PointItem = ({
 								type="button"
 								onClick={() => onMovePoint(point.id, 'down')}
 								disabled={!canMoveDown}
+								aria-label="下に移動"
 								style={{
 									padding: '4px 8px',
 									fontSize: '12px',
 									cursor: canMoveDown ? 'pointer' : 'not-allowed',
-									backgroundColor: canMoveDown ? '#6c757d' : '#e9ecef',
-									color: canMoveDown ? 'white' : '#adb5bd',
+									backgroundColor: canMoveDown ? COLORS.SECONDARY : COLORS.DISABLED_BG,
+									color: canMoveDown ? 'white' : COLORS.DISABLED_TEXT,
 									border: 'none',
 									borderRadius: '4px',
 								}}
@@ -288,12 +269,13 @@ const PointItem = ({
 					<button
 						type="button"
 						onClick={() => onEditPoint(point.id)}
+						aria-label="ポイントを編集"
 						style={{
 							flex: 1,
 							padding: '4px 8px',
 							fontSize: '12px',
 							cursor: 'pointer',
-							backgroundColor: '#007bff',
+							backgroundColor: COLORS.PRIMARY,
 							color: 'white',
 							border: 'none',
 							borderRadius: '4px',
@@ -304,12 +286,13 @@ const PointItem = ({
 					<button
 						type="button"
 						onClick={() => onDeletePoint(point.id)}
+						aria-label="ポイントを削除"
 						style={{
 							flex: 1,
 							padding: '4px 8px',
 							fontSize: '12px',
 							cursor: 'pointer',
-							backgroundColor: '#dc3545',
+							backgroundColor: COLORS.DANGER,
 							color: 'white',
 							border: 'none',
 							borderRadius: '4px',
