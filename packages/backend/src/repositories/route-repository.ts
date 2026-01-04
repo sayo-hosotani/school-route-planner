@@ -3,7 +3,7 @@
  * routesテーブルへのデータアクセス層
  */
 
-import { db } from '../database/database.js';
+import { db } from '../database/index.js';
 import type { InsertResult } from 'kysely';
 
 export interface CreateRouteInput {

@@ -21,8 +21,8 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
   - `api/`内でエラーハンドリングを統一
   - カスタムエラークラスの導入
 - [ ] スタイル設定方法の見直し
-- [ ] updateatはトリガーなのにcreatedatはトリガーじゃない。統一したい
-- [ ] databaseフォルダ内でマイグレーションコードとプロジェクトコードが一緒になってる？
+- [x] created_at/updated_atをトリガーに統一済み（001_initial_schema.sqlに統合）
+- [x] databaseフォルダ整理済み（scripts/, migrations/ を src外に分離）
 - [ ] models/routes.tsに複数クラス定義があるのは適切？
 - [ ] routes/routes.tsでルーティングしている？ルーティングしたエントリーポイントの登録と、実行する処理の中身は分けてほしい
 - [ ] modelsとroutesの双方にruotes.tsがあるが、片方は経路データで片方はルーティング登録である。どちらかの名前を変えてほしい。

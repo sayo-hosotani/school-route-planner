@@ -3,7 +3,7 @@
  * Usage: npm run db:test --workspace=@route-planner/backend
  */
 
-import { testConnection, closeConnection } from './database.js';
+import { testConnection, closeConnection } from '../src/database/index.js';
 
 async function main() {
 	const isConnected = await testConnection();

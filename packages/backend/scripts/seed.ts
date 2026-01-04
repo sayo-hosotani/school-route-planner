@@ -4,7 +4,7 @@
  * Usage: npm run seed --workspace=@route-planner/backend
  */
 
-import { db } from './database.js';
+import { db } from '../src/database/index.js';
 
 // 固定のUUID（仮ユーザー用）
 const TEMPORARY_USER_ID = '00000000-0000-0000-0000-000000000001';

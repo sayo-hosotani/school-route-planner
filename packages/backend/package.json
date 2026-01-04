@@ -8,9 +8,9 @@
 		"build": "tsc",
 		"start": "node dist/server.js",
 		"test": "vitest",
-		"migrate": "tsx src/database/migrate.ts",
-		"seed": "tsx src/database/seed.ts",
-		"db:test": "tsx src/database/test-connection.ts"
+		"migrate": "tsx scripts/migrate.ts",
+		"seed": "tsx scripts/seed.ts",
+		"db:test": "tsx scripts/test-connection.ts"
 	},
 	"dependencies": {
 		"@fastify/cors": "^10.0.1",
