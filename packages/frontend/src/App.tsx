@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MapContainer, TileLayer, ScaleControl, AttributionControl, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import CoordinateDisplay from './components/CoordinateDisplay';
@@ -47,6 +48,9 @@ const AppContent = () => {
 	// モーダル
 	const routeNameModal = useModal();
 	const pointEditModal = useModal<Point>();
+
+	// 経路一覧の更新トリガー
+	const [routeListRefreshTrigger, setRouteListRefreshTrigger] = useState(0);
 
 	// 地図クリックでポイント追加
 	const handleMapClick = async (lat: number, lng: number) => {
@@ -127,6 +131,9 @@ const AppContent = () => {
 			successMessage: '経路を保存しました',
 			errorMessage: '保存に失敗しました',
 			showMessage,
+			onSuccess: () => {
+				setRouteListRefreshTrigger((prev) => prev + 1);
+			},
 		});
 	};
 
@@ -168,6 +175,7 @@ const AppContent = () => {
 				highlightedPointId={highlightedPointId}
 				onLoadRoute={handleLoadRoute}
 				onMessage={showMessage}
+				routeListRefreshTrigger={routeListRefreshTrigger}
 			/>
 
 			{/* 経路名入力モーダル */}
