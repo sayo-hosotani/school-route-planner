@@ -11,9 +11,9 @@
 App.tsxを415行→227行に削減済み。Context API導入済み。エラーハンドリング統一済み。
 
 ### 1.2. 全体的なコード改善
-- [ ] 型定義の整理
-  - ハンドラ関数の型を`types/handlers.ts`に集約
-  - 共通で使用する型を`types/common.ts`に
+- [x] 型定義の整理
+  - ハンドラ関数の型を`types/handlers.ts`に集約済み
+  - 共通型（AppMode, MessageType）を`types/common.ts`に集約済み
 - [x] ユーティリティ関数の整理
   - ポイント関連のヘルパー関数を`utils/point-utils.ts`に集約済み
   - 日時フォーマット関数（未着手）

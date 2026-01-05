@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import type { MessageType } from '../components/MessageDisplay';
+import type { MessageType } from '../types/common';
 import { MESSAGE_TIMEOUT_MS } from '../constants/map-config';
 
 interface UseMessageReturn {

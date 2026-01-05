@@ -1,14 +1,12 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useMessage } from '../hooks/use-message';
 import { HIGHLIGHT_TIMEOUT_MS } from '../constants/map-config';
-
-type Mode = 'view' | 'edit';
-type MessageType = 'success' | 'error';
+import type { AppMode, MessageType } from '../types/common';
 
 interface AppContextValue {
 	// モード
-	mode: Mode;
-	setMode: (mode: Mode) => void;
+	mode: AppMode;
+	setMode: (mode: AppMode) => void;
 	// メッセージ
 	message: string;
 	messageType: MessageType;
@@ -36,7 +34,7 @@ interface AppProviderProps {
 }
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-	const [mode, setMode] = useState<Mode>('view');
+	const [mode, setMode] = useState<AppMode>('view');
 	const [highlightedPointId, setHighlightedPointId] = useState<string | null>(null);
 	const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
 	const { message, messageType, showMessage } = useMessage();

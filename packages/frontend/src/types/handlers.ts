@@ -1,9 +1,6 @@
 import type { Point } from './point';
 import type { MessageType } from './common';
 
-// 共通型の再エクスポート
-export type { AppMode, MessageType } from './common';
-
 // ポイント操作ハンドラ型
 export type PointClickHandler = (pointId: string) => void;
 export type PointDragEndHandler = (pointId: string, lat: number, lng: number) => void;
