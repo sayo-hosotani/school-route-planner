@@ -1,5 +1,8 @@
 import type { Point } from './point';
-import type { MessageType } from '../components/MessageDisplay';
+import type { MessageType } from './common';
+
+// 共通型の再エクスポート
+export type { AppMode, MessageType } from './common';
 
 // ポイント操作ハンドラ型
 export type PointClickHandler = (pointId: string) => void;
@@ -14,6 +17,3 @@ export type RouteSaveHandler = (routeName: string) => Promise<void>;
 
 // メッセージハンドラ型
 export type MessageHandler = (message: string, type: MessageType) => void;
-
-// アプリケーションモード
-export type AppMode = 'view' | 'edit';
