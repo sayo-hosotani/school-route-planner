@@ -14,7 +14,7 @@ import RouteNameModal from './components/RouteNameModal';
 import { saveRoute, loadRouteById } from './api/route-api';
 import { useModal } from './hooks/use-modal';
 import { PointProvider, AppProvider, usePointContext, useAppContext } from './contexts';
-import { handleAsyncOperation, handleApiResult } from './utils/error-handler';
+import { handleAsyncOperation } from './utils/error-handler';
 import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL } from './constants/map-config';
 import type { Point } from './types/point';
 
@@ -141,16 +141,11 @@ const AppContent = () => {
 	const handleLoadRoute = async (routeId: string) => {
 		await handleAsyncOperation({
 			operation: () => loadRouteById(routeId),
+			successMessage: '経路を読み込みました',
 			errorMessage: '読み込みに失敗しました',
 			showMessage,
-			onSuccess: (result) => {
-				handleApiResult({
-					result,
-					successMessage: '経路を読み込みました',
-					notFoundMessage: '経路が見つかりません',
-					showMessage,
-					onSuccess: (data) => loadRoute(data.points, data.routeLine),
-				});
+			onSuccess: (data) => {
+				loadRoute(data.points, data.routeLine);
 			},
 		});
 	};

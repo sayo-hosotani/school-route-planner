@@ -50,18 +50,13 @@ export const useRouteGeneration = (): UseRouteGenerationReturn => {
 				order: p.order,
 			}));
 
-			const response = await generateRoute(apiPoints);
+			const result = await generateRoute(apiPoints);
 
-			if (response.success && response.data) {
-				// GeoJSON形式の座標を[lat, lng]形式に変換
-				const coordinates: [number, number][] = response.data.coordinates.map(
-					([lng, lat]) => [lat, lng],
-				);
-				setRouteLine(coordinates);
-			} else {
-				// エラー時は直線接続
-				updateRouteLineStraight(pointsList);
-			}
+			// GeoJSON形式の座標を[lat, lng]形式に変換
+			const coordinates: [number, number][] = result.coordinates.map(
+				([lng, lat]: [number, number]) => [lat, lng],
+			);
+			setRouteLine(coordinates);
 		} catch {
 			// エラー時は直線接続
 			updateRouteLineStraight(pointsList);

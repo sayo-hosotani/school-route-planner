@@ -2,6 +2,8 @@
  * 共通エラーハンドリングユーティリティ
  */
 
+import { ApiError } from '../api/errors';
+
 type MessageFn = (message: string, type?: 'success' | 'error') => void;
 
 interface AsyncOperationOptions<T> {
@@ -9,7 +11,7 @@ interface AsyncOperationOptions<T> {
 	operation: () => Promise<T>;
 	/** 成功時のメッセージ */
 	successMessage?: string;
-	/** エラー時のメッセージ */
+	/** エラー時のデフォルトメッセージ */
 	errorMessage: string;
 	/** メッセージ表示関数 */
 	showMessage: MessageFn;
@@ -17,6 +19,16 @@ interface AsyncOperationOptions<T> {
 	onSuccess?: (result: T) => void;
 	/** エラー時のコールバック */
 	onError?: (error: unknown) => void;
+}
+
+/**
+ * ApiErrorからユーザー向けメッセージを生成
+ */
+function getErrorMessage(error: unknown, defaultMessage: string): string {
+	if (error instanceof ApiError) {
+		return error.message;
+	}
+	return defaultMessage;
 }
 
 /**
@@ -38,40 +50,9 @@ export async function handleAsyncOperation<T>({
 		onSuccess?.(result);
 		return result;
 	} catch (error) {
-		showMessage(errorMessage, 'error');
+		const message = getErrorMessage(error, errorMessage);
+		showMessage(message, 'error');
 		onError?.(error);
 		return null;
 	}
-}
-
-interface ApiResultOptions<T> {
-	/** API呼び出し結果 */
-	result: { success: boolean; data?: T };
-	/** 成功時のメッセージ */
-	successMessage: string;
-	/** データがない場合のエラーメッセージ */
-	notFoundMessage: string;
-	/** メッセージ表示関数 */
-	showMessage: MessageFn;
-	/** 成功時のコールバック */
-	onSuccess: (data: T) => void;
-}
-
-/**
- * API結果を処理し、成功/失敗に応じたメッセージを表示する
- */
-export function handleApiResult<T>({
-	result,
-	successMessage,
-	notFoundMessage,
-	showMessage,
-	onSuccess,
-}: ApiResultOptions<T>): boolean {
-	if (result.success && result.data) {
-		onSuccess(result.data);
-		showMessage(successMessage);
-		return true;
-	}
-	showMessage(notFoundMessage, 'error');
-	return false;
 }

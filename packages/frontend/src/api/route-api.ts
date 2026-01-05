@@ -1,12 +1,5 @@
 import type { RouteData } from '../types/route';
-
-const API_BASE_URL = 'http://localhost:3000';
-
-export interface ApiResponse<T> {
-	success: boolean;
-	message?: string;
-	data?: T;
-}
+import { del, get, post } from './client';
 
 export interface Point {
 	lat: number;
@@ -34,240 +27,95 @@ export interface SavedRoute {
 	updated_at: string;
 }
 
+interface GenerateRouteRequest {
+	points: Point[];
+}
+
+interface SaveRouteRequest {
+	name: string;
+	points: Array<{
+		lat: number;
+		lng: number;
+		type: string;
+		order: number;
+		comment: string;
+	}>;
+}
+
+interface RouteDetailResponse {
+	route: SavedRoute;
+	points: RouteData['points'];
+}
+
 /**
  * ポイントから経路を生成する（Valhalla API経由）
  */
-export async function generateRoute(points: Point[]): Promise<ApiResponse<RouteResult>> {
-	try {
-		const response = await fetch(`${API_BASE_URL}/routes/generate`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ points }),
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		return await response.json();
-	} catch (error) {
-		console.error('Failed to generate route:', error);
-		throw error;
-	}
+export async function generateRoute(points: Point[]): Promise<RouteResult> {
+	return post<RouteResult, GenerateRouteRequest>('/routes/generate', { points });
 }
 
 /**
  * 経路データを保存する
  */
-export async function saveRoute(
-	routeData: RouteData,
-	routeName: string,
-): Promise<ApiResponse<RouteData>> {
-	try {
-		// バックエンドが期待する形式に変換
-		const requestBody = {
-			name: routeName,
-			points: routeData.points.map((p) => ({
-				lat: p.lat,
-				lng: p.lng,
-				type: p.type,
-				order: p.order,
-				comment: p.comment || '',
-			})),
-		};
+export async function saveRoute(routeData: RouteData, routeName: string): Promise<void> {
+	const requestBody: SaveRouteRequest = {
+		name: routeName,
+		points: routeData.points.map((p) => ({
+			lat: p.lat,
+			lng: p.lng,
+			type: p.type,
+			order: p.order,
+			comment: p.comment || '',
+		})),
+	};
 
-		const response = await fetch(`${API_BASE_URL}/routes`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(requestBody),
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		return { success: true };
-	} catch (error) {
-		console.error('Failed to save route:', error);
-		throw error;
-	}
+	await post<unknown, SaveRouteRequest>('/routes', requestBody);
 }
 
 /**
  * すべての保存済み経路を取得
  */
-export async function getAllRoutes(): Promise<ApiResponse<SavedRoute[]>> {
-	try {
-		const response = await fetch(`${API_BASE_URL}/routes`, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		const result = await response.json();
-
-		if (result.success && result.data) {
-			return {
-				success: true,
-				data: result.data,
-			};
-		}
-
-		return {
-			success: false,
-			message: 'No saved routes found',
-		};
-	} catch (error) {
-		console.error('Failed to get all routes:', error);
-		throw error;
-	}
+export async function getAllRoutes(): Promise<SavedRoute[]> {
+	const data = await get<SavedRoute[]>('/routes');
+	return data || [];
 }
 
 /**
  * 特定の経路を削除
  */
-export async function deleteRoute(routeId: string): Promise<ApiResponse<void>> {
-	try {
-		const response = await fetch(`${API_BASE_URL}/routes/${routeId}`, {
-			method: 'DELETE',
-		});
-
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		return { success: true };
-	} catch (error) {
-		console.error('Failed to delete route:', error);
-		throw error;
-	}
+export async function deleteRoute(routeId: string): Promise<void> {
+	await del(`/routes/${routeId}`);
 }
 
 /**
  * 特定の経路を読み込む
  */
-export async function loadRouteById(routeId: string): Promise<ApiResponse<RouteData>> {
-	try {
-		const response = await fetch(`${API_BASE_URL}/routes/${routeId}`, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
+export async function loadRouteById(routeId: string): Promise<RouteData> {
+	const result = await get<RouteDetailResponse>(`/routes/${routeId}`);
 
-		if (!response.ok) {
-			if (response.status === 404) {
-				return {
-					success: false,
-					message: 'Route not found',
-				};
-			}
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		const result = await response.json();
-
-		if (result.success && result.data) {
-			const routeData: RouteData = {
-				points: result.data.points || [],
-				routeLine: result.data.route.route_data.coordinates.map(
-					([lng, lat]: [number, number]) => [lat, lng],
-				),
-				created_at: result.data.route.created_at,
-				updated_at: result.data.route.updated_at,
-			};
-
-			return {
-				success: true,
-				data: routeData,
-			};
-		}
-
-		return {
-			success: false,
-			message: 'Route not found',
-		};
-	} catch (error) {
-		console.error('Failed to load route by id:', error);
-		throw error;
-	}
+	return {
+		points: result.points || [],
+		routeLine: result.route.route_data.coordinates.map(([lng, lat]: [number, number]) => [
+			lat,
+			lng,
+		]),
+		created_at: result.route.created_at,
+		updated_at: result.route.updated_at,
+	};
 }
 
 /**
  * 保存済み経路データを読み込む（最新の1件）
  */
-export async function loadRoute(): Promise<ApiResponse<RouteData>> {
-	try {
-		const response = await fetch(`${API_BASE_URL}/routes`, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
+export async function loadRoute(): Promise<RouteData | null> {
+	const routes = await getAllRoutes();
 
-		if (!response.ok) {
-			if (response.status === 404) {
-				return {
-					success: false,
-					message: 'No saved route found',
-				};
-			}
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-
-		const result = await response.json();
-
-		// 経路のリストが返ってくるので、最新の1件を取得
-		if (result.success && result.data && result.data.length > 0) {
-			const latestRoute = result.data[result.data.length - 1];
-
-			// バックエンドのデータをフロントエンド形式に変換
-			const routeData: RouteData = {
-				points: [], // pointsは別途取得が必要
-				routeLine: latestRoute.route_data.coordinates.map(([lng, lat]: [number, number]) => [
-					lat,
-					lng,
-				]),
-				created_at: latestRoute.created_at,
-				updated_at: latestRoute.updated_at,
-			};
-
-			// 特定の経路のポイントを取得
-			const pointsResponse = await fetch(`${API_BASE_URL}/routes/${latestRoute.id}`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			});
-
-			if (pointsResponse.ok) {
-				const pointsResult = await pointsResponse.json();
-				if (pointsResult.success && pointsResult.data && pointsResult.data.points) {
-					routeData.points = pointsResult.data.points;
-				}
-			}
-
-			return {
-				success: true,
-				data: routeData,
-			};
-		}
-
-		return {
-			success: false,
-			message: 'No saved route found',
-		};
-	} catch (error) {
-		console.error('Failed to load route:', error);
-		throw error;
+	if (!routes || routes.length === 0) {
+		return null;
 	}
+
+	const latestRoute = routes[routes.length - 1];
+
+	// 特定の経路のポイントを取得
+	return loadRouteById(latestRoute.id);
 }

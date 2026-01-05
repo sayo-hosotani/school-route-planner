@@ -17,9 +17,11 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
 - [x] ユーティリティ関数の整理
   - ポイント関連のヘルパー関数を`utils/point-utils.ts`に集約済み
   - 日時フォーマット関数（未着手）
-- [ ] APIエラーハンドリングの共通化
-  - `api/`内でエラーハンドリングを統一
-  - カスタムエラークラスの導入
+- [x] APIエラーハンドリングの共通化
+  - `api/errors.ts`にカスタム`ApiError`クラスを導入
+  - `api/client.ts`に共通fetchラッパー関数を作成（get, post, del）
+  - `route-api.ts`を共通関数を使うようにリファクタリング
+  - `error-handler.ts`で`ApiError`からユーザー向けメッセージを取得するように改善
 - [ ] スタイル設定方法の見直し
 - [x] created_at/updated_atをトリガーに統一済み（001_initial_schema.sqlに統合）
 - [x] databaseフォルダ整理済み（scripts/, migrations/ を src外に分離）

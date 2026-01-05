@@ -20,13 +20,11 @@ const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteLi
 				operation: getAllRoutes,
 				errorMessage: '経路一覧の取得に失敗しました',
 				showMessage: onMessage,
-				onSuccess: (result) => {
-					if (result.success && result.data) {
-						const sortedRoutes = [...result.data].sort(
-							(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-						);
-						setSavedRoutes(sortedRoutes);
-					}
+				onSuccess: (routes) => {
+					const sortedRoutes = [...routes].sort(
+						(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+					);
+					setSavedRoutes(sortedRoutes);
 				},
 			});
 			setIsLoading(false);
@@ -45,10 +43,8 @@ const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteLi
 			successMessage: '経路を削除しました',
 			errorMessage: '削除に失敗しました',
 			showMessage: onMessage,
-			onSuccess: (result) => {
-				if (result.success) {
-					setSavedRoutes(savedRoutes.filter((r) => r.id !== routeId));
-				}
+			onSuccess: () => {
+				setSavedRoutes(savedRoutes.filter((r) => r.id !== routeId));
 			},
 		});
 	};
