@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import routesRoutes from './routes/routes';
+import routeRoutes from './routes/index.js';
 
 const fastify = Fastify({
 	logger: true,
@@ -12,7 +12,7 @@ fastify.register(cors, {
 });
 
 // ルート登録
-fastify.register(routesRoutes);
+fastify.register(routeRoutes);
 
 const start = async () => {
 	try {
