@@ -1,0 +1,37 @@
+/**
+ * 共通モーダルスタイル
+ */
+
+.overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: var(--z-modal);
+}
+
+.content {
+	background-color: var(--color-bg-white);
+	padding: var(--spacing-lg);
+	border-radius: var(--radius-md);
+	width: 400px;
+	max-width: 90%;
+	box-shadow: var(--shadow-modal);
+}
+
+.title {
+	margin: 0 0 var(--spacing-md) 0;
+	font-size: var(--font-size-xl);
+	font-weight: bold;
+}
+
+.actions {
+	display: flex;
+	gap: var(--spacing-sm);
+	margin-top: var(--spacing-md);
+}

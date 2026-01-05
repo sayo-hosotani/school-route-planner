@@ -1,0 +1,69 @@
+/**
+ * 共通カード/パネルスタイル
+ */
+
+.card {
+	padding: var(--spacing-sm);
+	background-color: var(--color-bg-light);
+	border-radius: var(--radius-sm);
+	font-size: var(--font-size-sm);
+}
+
+.cardWhite {
+	padding: var(--spacing-sm);
+	background-color: var(--color-bg-white);
+	border-radius: var(--radius-sm);
+}
+
+.highlight {
+	background-color: var(--color-bg-highlight);
+	border: 2px solid var(--color-border-highlight);
+}
+
+.warning {
+	background-color: var(--color-bg-warning);
+	border: 2px solid var(--color-border-warning);
+}
+
+.muted {
+	background-color: var(--color-bg-muted);
+	opacity: 0.6;
+}
+
+/* サイドバー/パネル */
+.panel {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: var(--z-sidebar);
+	background: white;
+	padding: var(--spacing-md);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+	width: 300px;
+	max-height: calc(100vh - 20px);
+	overflow-y: auto;
+}
+
+/* リストアイテム */
+.listItem {
+	padding: var(--spacing-sm);
+	background-color: var(--color-bg-light);
+	border-radius: var(--radius-sm);
+	margin-bottom: var(--spacing-sm);
+}
+
+.listItemActive {
+	background-color: var(--color-bg-highlight);
+	border: 2px solid var(--color-border-highlight);
+}
+
+/* セクション */
+.section {
+	margin-bottom: var(--spacing-md);
+}
+
+.sectionTitle {
+	font-weight: bold;
+	margin-bottom: var(--spacing-sm);
+}

@@ -1,0 +1,19 @@
+.tooltipContent {
+	padding: var(--spacing-xs) var(--spacing-sm);
+	max-width: 200px;
+}
+
+.tooltipTitle {
+	display: block;
+}
+
+.tooltipTitleWithComment {
+	margin-bottom: var(--spacing-xs);
+}
+
+.tooltipComment {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	white-space: pre-wrap;
+	word-break: break-word;
+}

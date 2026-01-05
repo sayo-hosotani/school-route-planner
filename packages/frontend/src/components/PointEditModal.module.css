@@ -1,0 +1,13 @@
+.title {
+	margin: 0 0 20px 0;
+	font-size: var(--font-size-2xl);
+}
+
+.section {
+	margin-bottom: 20px;
+}
+
+.actions {
+	display: flex;
+	gap: var(--spacing-sm);
+}

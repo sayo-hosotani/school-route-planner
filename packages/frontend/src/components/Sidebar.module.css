@@ -1,0 +1,40 @@
+.container {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: var(--z-sidebar);
+	background: white;
+	padding: var(--spacing-md);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+	width: 300px;
+	max-height: calc(100vh - 20px);
+	overflow-y: auto;
+}
+
+.modeButtons {
+	display: flex;
+	gap: var(--spacing-sm);
+	margin-bottom: var(--spacing-md);
+}
+
+.section {
+	margin-bottom: var(--spacing-md);
+}
+
+.sectionTitle {
+	margin: 0 0 12px 0;
+	font-size: var(--font-size-lg);
+}
+
+.buttonGroup {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+.pointList {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}

@@ -1,0 +1,95 @@
+.container {
+	padding: var(--spacing-sm);
+	border: 2px solid transparent;
+	border-radius: var(--radius-sm);
+	font-size: var(--font-size-md);
+}
+
+.containerEmpty {
+	opacity: 0.6;
+	background-color: var(--color-bg-muted);
+}
+
+.containerDefault {
+	background-color: var(--color-bg-light);
+}
+
+.containerHighlighted {
+	background-color: var(--color-bg-highlight);
+	border-color: var(--color-border-highlight);
+}
+
+.containerNextToAdd {
+	background-color: var(--color-bg-warning);
+	border-color: var(--color-border-warning);
+}
+
+/* ヘッダー行 */
+.header {
+	display: flex;
+	align-items: center;
+	margin-bottom: var(--spacing-xs);
+}
+
+.headerBold {
+	font-weight: bold;
+}
+
+.titleButton {
+	flex: 1;
+	background-color: transparent;
+	border: none;
+	text-align: left;
+	padding: 0;
+	font-size: var(--font-size-md);
+	font-weight: inherit;
+}
+
+.titleButtonClickable {
+	cursor: pointer;
+}
+
+.titleButtonDisabled {
+	cursor: default;
+}
+
+.expandButton {
+	padding: 2px 6px;
+	font-size: var(--font-size-sm);
+	cursor: pointer;
+	background-color: transparent;
+	border: none;
+	color: var(--color-text-muted);
+}
+
+/* コメントエリア */
+.commentArea {
+	margin-bottom: var(--spacing-xs);
+	padding: var(--spacing-sm);
+	background-color: var(--color-bg-white);
+	border-radius: var(--radius-sm);
+}
+
+.commentText {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-primary);
+	white-space: pre-wrap;
+}
+
+.commentTextarea {
+	width: 100%;
+	min-height: 60px;
+	padding: 6px;
+	font-size: var(--font-size-sm);
+	border: 1px solid var(--color-border-default);
+	border-radius: var(--radius-sm);
+	resize: vertical;
+	box-sizing: border-box;
+	margin-bottom: var(--spacing-xs);
+}
+
+/* 操作ボタン */
+.actions {
+	display: flex;
+	gap: var(--spacing-xs);
+}

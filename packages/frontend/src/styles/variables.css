@@ -1,0 +1,76 @@
+/**
+ * CSS変数定義
+ * colors.ts と同期した値を定義
+ */
+
+:root {
+	/* Primary (Blue) */
+	--color-primary: #007bff;
+	--color-primary-hover: #0056b3;
+
+	/* Success (Green) */
+	--color-success: #28a745;
+	--color-success-hover: #1e7e34;
+
+	/* Danger (Red) */
+	--color-danger: #dc3545;
+	--color-danger-hover: #c82333;
+
+	/* Secondary (Gray) */
+	--color-secondary: #6c757d;
+	--color-secondary-hover: #545b62;
+
+	/* Disabled */
+	--color-disabled-bg: #e9ecef;
+	--color-disabled-text: #adb5bd;
+
+	/* Background */
+	--color-bg-light: #f8f9fa;
+	--color-bg-muted: #e9ecef;
+	--color-bg-white: #ffffff;
+	--color-bg-highlight: #e3f2fd;
+	--color-bg-warning: #fff3cd;
+
+	/* Border */
+	--color-border-default: #ccc;
+	--color-border-warning: #ffc107;
+	--color-border-highlight: #2196f3;
+
+	/* Text */
+	--color-text-primary: #333;
+	--color-text-muted: #666;
+
+	/* Marker Colors */
+	--marker-start: green;
+	--marker-waypoint: red;
+	--marker-goal: blue;
+
+	/* Spacing */
+	--spacing-xs: 4px;
+	--spacing-sm: 8px;
+	--spacing-md: 16px;
+	--spacing-lg: 24px;
+
+	/* Border Radius */
+	--radius-sm: 4px;
+	--radius-md: 8px;
+
+	/* Font Size */
+	--font-size-xs: 11px;
+	--font-size-sm: 12px;
+	--font-size-md: 14px;
+	--font-size-lg: 16px;
+	--font-size-xl: 18px;
+	--font-size-2xl: 20px;
+
+	/* Z-Index */
+	--z-sidebar: 1000;
+	--z-message: 2000;
+	--z-modal: 2001;
+
+	/* Shadows */
+	--shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.3);
+	--shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
+	--shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.3);
+	--shadow-modal: 0 4px 16px rgba(0, 0, 0, 0.2);
+}

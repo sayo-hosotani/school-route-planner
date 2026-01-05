@@ -1,7 +1,9 @@
+import clsx from 'clsx';
 import type { Point } from '../types/point';
 import PointItem from './PointItem';
 import SavedRouteList from './SavedRouteList';
-import { COLORS } from '../constants/colors';
+import buttonStyles from '../styles/shared/buttons.module.css';
+import styles from './Sidebar.module.css';
 
 interface SidebarProps {
 	mode: 'view' | 'edit';
@@ -41,37 +43,20 @@ const Sidebar = ({
 	const waypoints = points.filter((p) => p.type === 'waypoint');
 
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				top: '10px',
-				left: '10px',
-				zIndex: 1000,
-				background: 'white',
-				padding: '16px',
-				borderRadius: '8px',
-				boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-				width: '300px',
-				maxHeight: 'calc(100vh - 20px)',
-				overflowY: 'auto',
-			}}
-		>
+		<div className={styles.container}>
 			{/* モード切り替えボタン */}
-			<div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+			<div className={styles.modeButtons}>
 				<button
 					type="button"
 					onClick={() => onModeChange('view')}
 					aria-label="通常モードに切り替え"
-					style={{
-						flex: 1,
-						padding: '8px 16px',
-						cursor: 'pointer',
-						backgroundColor: mode === 'view' ? COLORS.PRIMARY : '#f0f0f0',
-						color: mode === 'view' ? 'white' : 'black',
-						border: 'none',
-						borderRadius: '4px',
-						fontWeight: mode === 'view' ? 'bold' : 'normal',
-					}}
+					className={clsx(
+						buttonStyles.button,
+						buttonStyles.md,
+						buttonStyles.flex,
+						mode === 'view' ? buttonStyles.primary : buttonStyles.muted,
+						mode === 'view' && buttonStyles.active
+					)}
 				>
 					通常モード
 				</button>
@@ -79,16 +64,13 @@ const Sidebar = ({
 					type="button"
 					onClick={() => onModeChange('edit')}
 					aria-label="編集モードに切り替え"
-					style={{
-						flex: 1,
-						padding: '8px 16px',
-						cursor: 'pointer',
-						backgroundColor: mode === 'edit' ? COLORS.PRIMARY : '#f0f0f0',
-						color: mode === 'edit' ? 'white' : 'black',
-						border: 'none',
-						borderRadius: '4px',
-						fontWeight: mode === 'edit' ? 'bold' : 'normal',
-					}}
+					className={clsx(
+						buttonStyles.button,
+						buttonStyles.md,
+						buttonStyles.flex,
+						mode === 'edit' ? buttonStyles.primary : buttonStyles.muted,
+						mode === 'edit' && buttonStyles.active
+					)}
 				>
 					編集モード
 				</button>
@@ -96,21 +78,14 @@ const Sidebar = ({
 
 			{/* 通常モードの機能 */}
 			{mode === 'view' && (
-				<div style={{ marginBottom: '16px' }}>
-					<h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>通常モード</h3>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+				<div className={styles.section}>
+					<h3 className={styles.sectionTitle}>通常モード</h3>
+					<div className={styles.buttonGroup}>
 						<button
 							type="button"
 							onClick={onSave}
 							aria-label="現在の経路を保存"
-							style={{
-								padding: '8px 16px',
-								cursor: 'pointer',
-								backgroundColor: COLORS.SUCCESS,
-								color: 'white',
-								border: 'none',
-								borderRadius: '4px',
-							}}
+							className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.success)}
 						>
 							現在の経路を保存
 						</button>
@@ -126,21 +101,13 @@ const Sidebar = ({
 
 			{/* 編集モードの機能 */}
 			{mode === 'edit' && (
-				<div style={{ marginBottom: '16px' }}>
-					<h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>編集モード</h3>
+				<div className={styles.section}>
+					<h3 className={styles.sectionTitle}>編集モード</h3>
 					<button
 						type="button"
 						onClick={onClearPoints}
 						aria-label="全ポイントをクリア"
-						style={{
-							width: '100%',
-							padding: '8px 16px',
-							cursor: 'pointer',
-							backgroundColor: COLORS.DANGER,
-							color: 'white',
-							border: 'none',
-							borderRadius: '4px',
-						}}
+						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.danger, buttonStyles.full)}
 					>
 						全ポイントをクリア
 					</button>
@@ -149,10 +116,10 @@ const Sidebar = ({
 
 			{/* ポイント一覧 */}
 			<div>
-				<h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>
+				<h3 className={styles.sectionTitle}>
 					現在のポイント一覧 ({points.length})
 				</h3>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+				<div className={styles.pointList}>
 					{/* スタート地点 */}
 					<PointItem
 						point={startPoint}

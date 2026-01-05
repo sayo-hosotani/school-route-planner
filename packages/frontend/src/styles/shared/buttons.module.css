@@ -1,0 +1,126 @@
+/**
+ * 共通ボタンスタイル
+ */
+
+.button {
+	cursor: pointer;
+	border: none;
+	border-radius: var(--radius-sm);
+	font-weight: normal;
+	transition: background-color 0.2s;
+}
+
+.button:disabled {
+	cursor: not-allowed;
+	background-color: var(--color-disabled-bg);
+	color: var(--color-disabled-text);
+}
+
+/* サイズバリエーション */
+.sm {
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-sm);
+}
+
+.md {
+	padding: var(--spacing-sm) var(--spacing-md);
+	font-size: var(--font-size-md);
+}
+
+.lg {
+	padding: 10px var(--spacing-md);
+	font-size: var(--font-size-md);
+	font-weight: bold;
+}
+
+/* カラーバリエーション */
+.primary {
+	background-color: var(--color-primary);
+	color: white;
+}
+
+.primary:hover:not(:disabled) {
+	background-color: var(--color-primary-hover);
+}
+
+.success {
+	background-color: var(--color-success);
+	color: white;
+}
+
+.success:hover:not(:disabled) {
+	background-color: var(--color-success-hover);
+}
+
+.danger {
+	background-color: var(--color-danger);
+	color: white;
+}
+
+.danger:hover:not(:disabled) {
+	background-color: var(--color-danger-hover);
+}
+
+.secondary {
+	background-color: var(--color-secondary);
+	color: white;
+}
+
+.secondary:hover:not(:disabled) {
+	background-color: var(--color-secondary-hover);
+}
+
+.ghost {
+	background-color: transparent;
+	border: none;
+	color: var(--color-text-muted);
+}
+
+.ghost:hover:not(:disabled) {
+	color: var(--color-text-primary);
+}
+
+.outline {
+	background-color: white;
+	border: 1px solid var(--color-border-default);
+	color: var(--color-text-primary);
+}
+
+.outline:hover:not(:disabled) {
+	background-color: var(--color-bg-light);
+}
+
+.muted {
+	background-color: #f0f0f0;
+	color: black;
+}
+
+.muted:hover:not(:disabled) {
+	background-color: #e0e0e0;
+}
+
+/* アクティブ状態（トグルボタン用） */
+.active {
+	font-weight: bold;
+}
+
+/* レイアウト */
+.full {
+	width: 100%;
+}
+
+.flex {
+	flex: 1;
+}
+
+/* ボタングループ */
+.group {
+	display: flex;
+	gap: var(--spacing-sm);
+}
+
+.groupEnd {
+	display: flex;
+	gap: var(--spacing-sm);
+	justify-content: flex-end;
+}

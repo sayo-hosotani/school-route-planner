@@ -1,0 +1,63 @@
+/**
+ * 共通フォームスタイル
+ */
+
+.group {
+	margin-bottom: var(--spacing-md);
+}
+
+.label {
+	display: block;
+	margin-bottom: var(--spacing-sm);
+	font-size: var(--font-size-md);
+	font-weight: bold;
+}
+
+.input,
+.textarea {
+	width: 100%;
+	padding: var(--spacing-sm);
+	font-size: var(--font-size-md);
+	border: 1px solid var(--color-border-default);
+	border-radius: var(--radius-sm);
+	box-sizing: border-box;
+}
+
+.input:focus,
+.textarea:focus {
+	outline: none;
+	border-color: var(--color-primary);
+}
+
+.textarea {
+	min-height: 80px;
+	resize: vertical;
+}
+
+.textareaSm {
+	min-height: 60px;
+	font-size: var(--font-size-sm);
+	padding: 6px;
+}
+
+.radioGroup {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+}
+
+.radioLabel {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+}
+
+.radioLabel input {
+	margin-right: var(--spacing-sm);
+}
+
+.hint {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	margin-top: var(--spacing-xs);
+}

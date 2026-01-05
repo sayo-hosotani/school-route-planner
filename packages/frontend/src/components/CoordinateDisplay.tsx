@@ -14,13 +14,8 @@ const CoordinateDisplay = ({ position }: CoordinateDisplayProps) => {
 			onAdd: () => {
 				const container = L.DomUtil.create(
 					'div',
-					'leaflet-bar leaflet-control leaflet-control-custom',
+					'leaflet-bar leaflet-control coordinate-display',
 				);
-
-				container.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-				container.style.padding = '4px 8px';
-				container.style.fontSize = '12px';
-				container.style.fontFamily = 'monospace';
 
 				const updateCoordinates = () => {
 					const center = map.getCenter();

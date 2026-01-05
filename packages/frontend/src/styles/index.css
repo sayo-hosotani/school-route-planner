@@ -1,0 +1,56 @@
+/**
+ * グローバルスタイル
+ */
+
+@import './variables.css';
+
+/* リセット */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+	width: 100%;
+}
+
+/* Leaflet マーカー用グローバルスタイル */
+.custom-marker-start {
+	background-color: var(--marker-start);
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	border: 2px solid white;
+	box-shadow: var(--shadow-sm);
+}
+
+.custom-marker-waypoint {
+	background-color: var(--marker-waypoint);
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	border: 2px solid white;
+	box-shadow: var(--shadow-sm);
+}
+
+.custom-marker-goal {
+	background-color: var(--marker-goal);
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	border: 2px solid white;
+	box-shadow: var(--shadow-sm);
+}
+
+/* 座標表示コントロール用グローバルスタイル */
+.coordinate-display {
+	background-color: rgba(255, 255, 255, 0.9);
+	padding: var(--spacing-xs) var(--spacing-sm);
+	font-size: var(--font-size-sm);
+	font-family: monospace;
+	border-radius: var(--radius-sm);
+}

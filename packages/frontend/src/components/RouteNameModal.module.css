@@ -1,0 +1,11 @@
+.title {
+	margin: 0 0 var(--spacing-md) 0;
+	font-size: var(--font-size-xl);
+	font-weight: bold;
+}
+
+.actions {
+	display: flex;
+	gap: var(--spacing-sm);
+	justify-content: flex-end;
+}

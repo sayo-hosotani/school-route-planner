@@ -22,9 +22,12 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
   - `api/client.ts`に共通fetchラッパー関数を作成（get, post, del）
   - `route-api.ts`を共通関数を使うようにリファクタリング
   - `error-handler.ts`で`ApiError`からユーザー向けメッセージを取得するように改善
-- [ ] スタイル設定方法の見直し
+- [x] スタイル設定方法の見直し
+  - CSS Modules導入（全8コンポーネント移行完了）
+  - CSS変数による設計トークン管理（`styles/variables.css`）
+  - 共通スタイル（buttons, modal, forms, cards）を`styles/shared/`に集約
+  - `clsx`ライブラリで条件付きクラス結合
 - [x] created_at/updated_atをトリガーに統一済み（001_initial_schema.sqlに統合）
-- [x] databaseフォルダ整理済み（scripts/, migrations/ を src外に分離）
 - [x] models/route.tsの構成確認済み（関連する型定義のため現状維持）
 - [x] ルーティング登録と処理の分離
   - `routes/routes.ts` → `routes/index.ts`（エントリーポイント登録のみ）
@@ -34,8 +37,8 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
 ## 2. UI/UX改善（優先度: 低）
 
 ### 2.1. スタイリング
-- [ ] 左側パネルのデザイン
-- [ ] ボタンのスタイル統一
+- [x] 左側パネルのデザイン（CSS Modules化完了）
+- [x] ボタンのスタイル統一（`styles/shared/buttons.module.css`に集約）
 - [ ] レスポンシブ対応
 
 ### 2.2. エラーハンドリング・ローディング
@@ -54,10 +57,9 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
 ### 2.4. サイドバーの改善（継続）
 - [ ] 通常モードと編集モードでコンポーネントを別にすべきか検討
 - [ ] コメント表示/編集周りのUIの改善検討
-- [ ] スタイルの分離
-  - 全コンポーネントでインラインスタイルが多用されている
-  - CSS Modulesまたはスタイルファイルに分離
-  - 重複するボタンスタイルを共通コンポーネント化
+- [x] スタイルの分離
+  - 全コンポーネントをCSS Modulesに移行完了
+  - 重複するボタンスタイルを`styles/shared/buttons.module.css`に集約
 - [ ] propsの整理
   - `SidebarProps`が13個以上のpropsを持ち複雑
   - 関連するpropsをオブジェクトにグループ化（例: pointHandlers, routeHandlers）

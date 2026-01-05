@@ -1,4 +1,9 @@
+import clsx from 'clsx';
 import { useState, useEffect } from 'react';
+import buttonStyles from '../styles/shared/buttons.module.css';
+import formStyles from '../styles/shared/forms.module.css';
+import modalStyles from '../styles/shared/modal.module.css';
+import styles from './RouteNameModal.module.css';
 
 interface RouteNameModalProps {
 	isOpen: boolean;
@@ -32,39 +37,12 @@ const RouteNameModal = ({ isOpen, onSave, onClose }: RouteNameModalProps) => {
 	};
 
 	return (
-		<div
-			onClick={handleBackdropClick}
-			style={{
-				position: 'fixed',
-				top: 0,
-				left: 0,
-				right: 0,
-				bottom: 0,
-				backgroundColor: 'rgba(0, 0, 0, 0.5)',
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				zIndex: 2001,
-			}}
-		>
-			<div
-				style={{
-					backgroundColor: 'white',
-					padding: '24px',
-					borderRadius: '8px',
-					minWidth: '400px',
-					boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-				}}
-			>
-				<h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }}>
-					経路を保存
-				</h2>
+		<div onClick={handleBackdropClick} className={modalStyles.overlay}>
+			<div className={modalStyles.content}>
+				<h2 className={styles.title}>経路を保存</h2>
 
-				<div style={{ marginBottom: '16px' }}>
-					<label
-						htmlFor="routeName"
-						style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}
-					>
+				<div className={formStyles.group}>
+					<label htmlFor="routeName" className={formStyles.label}>
 						経路名:
 					</label>
 					<input
@@ -72,47 +50,24 @@ const RouteNameModal = ({ isOpen, onSave, onClose }: RouteNameModalProps) => {
 						type="text"
 						value={routeName}
 						onChange={(e) => setRouteName(e.target.value)}
-						style={{
-							width: '100%',
-							padding: '8px',
-							fontSize: '14px',
-							border: '1px solid #ccc',
-							borderRadius: '4px',
-							boxSizing: 'border-box',
-						}}
+						className={formStyles.input}
 						placeholder="経路 YYYY/MM/DD HH:mm:ss"
 						autoFocus
 					/>
 				</div>
 
-				<div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+				<div className={styles.actions}>
 					<button
 						type="button"
 						onClick={onClose}
-						style={{
-							padding: '8px 16px',
-							fontSize: '14px',
-							border: '1px solid #ccc',
-							borderRadius: '4px',
-							backgroundColor: 'white',
-							cursor: 'pointer',
-						}}
+						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.outline)}
 					>
 						キャンセル
 					</button>
 					<button
 						type="button"
 						onClick={handleSave}
-						style={{
-							padding: '8px 16px',
-							fontSize: '14px',
-							border: 'none',
-							borderRadius: '4px',
-							backgroundColor: '#4CAF50',
-							color: 'white',
-							cursor: 'pointer',
-							fontWeight: 'bold',
-						}}
+						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.success)}
 					>
 						保存
 					</button>
