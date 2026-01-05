@@ -205,3 +205,47 @@
 - `utils/error-handler.ts`: 共通エラーハンドリング関数
   - `handleAsyncOperation`: try-catchパターンを共通化
   - `handleApiResult`: API結果の成功/失敗処理を共通化
+
+## 7. コードリファクタリング（追加） ✅
+
+### 7.1. App.tsx の改善 ✅
+App.tsxを415行→227行に削減済み。Context API導入済み。エラーハンドリング統一済み。
+
+### 7.2. 全体的なコード改善 ✅
+- [x] 型定義の整理
+  - ハンドラ関数の型を`types/handlers.ts`に集約済み
+  - 共通型（AppMode, MessageType）を`types/common.ts`に集約済み
+- [x] ユーティリティ関数の整理
+  - ポイント関連のヘルパー関数を`utils/point-utils.ts`に集約済み
+- [x] APIエラーハンドリングの共通化
+  - `api/errors.ts`にカスタム`ApiError`クラスを導入
+  - `api/client.ts`に共通fetchラッパー関数を作成（get, post, del）
+  - `route-api.ts`を共通関数を使うようにリファクタリング
+  - `error-handler.ts`で`ApiError`からユーザー向けメッセージを取得するように改善
+- [x] スタイル設定方法の見直し
+  - CSS Modules導入（全8コンポーネント移行完了）
+  - CSS変数による設計トークン管理（`styles/variables.css`）
+  - 共通スタイル（buttons, modal, forms, cards）を`styles/shared/`に集約
+  - `clsx`ライブラリで条件付きクラス結合
+- [x] created_at/updated_atをトリガーに統一済み（001_initial_schema.sqlに統合）
+- [x] models/route.tsの構成確認済み（関連する型定義のため現状維持）
+- [x] ルーティング登録と処理の分離
+  - `routes/routes.ts` → `routes/index.ts`（エントリーポイント登録のみ）
+  - `controllers/route-controller.ts`を新規作成（ハンドラーロジック）
+- [x] point-service.tsを削除（未使用だったため）
+
+### 7.3. スタイリング ✅
+- [x] 左側パネルのデザイン（CSS Modules化完了）
+- [x] ボタンのスタイル統一（`styles/shared/buttons.module.css`に集約）
+- [x] レスポンシブ対応（不要と判断）
+
+### 7.4. サイドバーの改善（部分完了） ✅
+- [x] スタイルの分離
+  - 全コンポーネントをCSS Modulesに移行完了
+  - 重複するボタンスタイルを`styles/shared/buttons.module.css`に集約
+- [x] ユーティリティ関数の分離
+  - `getPointTypeLabel`、`getDisplayTitle`を`utils/point-utils.ts`に移動済み
+- [x] 定数の共通化
+  - カラーコード（#007bff, #28a745, #dc3545等）を`constants/colors.ts`に集約済み
+- [x] アクセシビリティ改善
+  - ボタンにaria-label属性を追加済み
