@@ -21,14 +21,17 @@
 - [ ] 経路上にポイントをフィットさせるボタンの追加
 
 ### 1.3. サイドバーの改善（継続）
-- [ ] 通常モードと編集モードでコンポーネントを別にすべきか検討
+- [x] 通常モードと編集モードでコンポーネントを分離
+  - `ViewModeSection.tsx`: 保存ボタン + 保存済み経路一覧
+  - `EditModeSection.tsx`: クリアボタン + ポイント一覧
+  - 通常モードではポイント一覧を非表示に変更
+- [x] propsの整理
+  - `SidebarProps`を14個→8個に削減
+  - `PointHandlers`, `RouteHandlers`型でグループ化
+- [x] カスタムフックの抽出
+  - `useSavedRoutes`: フェッチ・削除ロジック
+  - `useCommentEditor`: コメント編集ロジック
 - [ ] コメント表示/編集周りのUIの改善検討
-- [ ] propsの整理
-  - `SidebarProps`が13個以上のpropsを持ち複雑
-  - 関連するpropsをオブジェクトにグループ化（例: pointHandlers, routeHandlers）
-- [ ] カスタムフックの抽出
-  - `SavedRouteList`: フェッチ・削除ロジックを`useSavedRoutes`フックに
-  - `PointItem`: コメント編集ロジックを`useCommentEditor`フックに
 - [ ] キーボードナビゲーション対応（Tab、Enter、Escape）
 - [ ] パフォーマンス最適化
   - 不要な再レンダリングの防止
