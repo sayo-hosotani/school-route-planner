@@ -1,7 +1,8 @@
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useCallback } from 'react';
 import type { Point } from '../types/point';
 import { getDisplayTitle } from '../utils/point-utils';
+import { useCommentEditor } from '../hooks/use-comment-editor';
 import buttonStyles from '../styles/shared/buttons.module.css';
 import styles from './PointItem.module.css';
 
@@ -38,31 +39,33 @@ const PointItem = ({
 	onMovePoint,
 	onUpdateComment,
 }: PointItemProps) => {
-	const [isExpanded, setIsExpanded] = useState(false);
-	const [isEditingComment, setIsEditingComment] = useState(false);
-	const [editingCommentText, setEditingCommentText] = useState('');
+	const handleSaveComment = useCallback(
+		(comment: string) => {
+			if (point) {
+				onUpdateComment(point.id, comment);
+			}
+		},
+		[point, onUpdateComment],
+	);
+
+	const {
+		isExpanded,
+		isEditing: isEditingComment,
+		editingText: editingCommentText,
+		toggleExpanded,
+		startEditing,
+		cancelEditing: handleCancelEditComment,
+		saveComment: handleSaveCommentAndClose,
+		setEditingText: setEditingCommentText,
+	} = useCommentEditor({ onSave: handleSaveComment });
 
 	const hasPoint = !!point;
 	const isWaypoint = type === 'waypoint';
 
 	const handleStartEditComment = () => {
 		if (point) {
-			setIsEditingComment(true);
-			setEditingCommentText(point.comment);
+			startEditing(point.comment);
 		}
-	};
-
-	const handleSaveComment = () => {
-		if (point) {
-			onUpdateComment(point.id, editingCommentText);
-			setIsEditingComment(false);
-			setEditingCommentText('');
-		}
-	};
-
-	const handleCancelEditComment = () => {
-		setIsEditingComment(false);
-		setEditingCommentText('');
 	};
 
 	const containerClassName = clsx(
@@ -92,7 +95,7 @@ const PointItem = ({
 				{hasPoint && (
 					<button
 						type="button"
-						onClick={() => setIsExpanded(!isExpanded)}
+						onClick={toggleExpanded}
 						className={styles.expandButton}
 						title={isExpanded ? 'コメントを閉じる' : 'コメントを表示'}
 					>
@@ -115,7 +118,7 @@ const PointItem = ({
 							<div className={styles.actions}>
 								<button
 									type="button"
-									onClick={handleSaveComment}
+									onClick={handleSaveCommentAndClose}
 									aria-label="コメントを保存"
 									className={clsx(buttonStyles.button, buttonStyles.sm, buttonStyles.success, buttonStyles.flex)}
 								>

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { getAllRoutes, deleteRoute, type SavedRoute } from '../api/route-api';
+import { useSavedRoutes } from '../hooks/use-saved-routes';
 import { handleAsyncOperation } from '../utils/error-handler';
 import styles from './SavedRouteList.module.css';
 
@@ -10,44 +9,10 @@ interface SavedRouteListProps {
 }
 
 const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteListProps) => {
-	const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-
-	useEffect(() => {
-		const fetchRoutes = async () => {
-			setIsLoading(true);
-			await handleAsyncOperation({
-				operation: getAllRoutes,
-				errorMessage: '経路一覧の取得に失敗しました',
-				showMessage: onMessage,
-				onSuccess: (routes) => {
-					const sortedRoutes = [...routes].sort(
-						(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-					);
-					setSavedRoutes(sortedRoutes);
-				},
-			});
-			setIsLoading(false);
-		};
-
-		fetchRoutes();
-	}, [refreshTrigger, onMessage]);
-
-	const handleDeleteRoute = async (routeId: string, routeName: string) => {
-		if (!window.confirm(`「${routeName}」を削除しますか？`)) {
-			return;
-		}
-
-		await handleAsyncOperation({
-			operation: () => deleteRoute(routeId),
-			successMessage: '経路を削除しました',
-			errorMessage: '削除に失敗しました',
-			showMessage: onMessage,
-			onSuccess: () => {
-				setSavedRoutes(savedRoutes.filter((r) => r.id !== routeId));
-			},
-		});
-	};
+	const { savedRoutes, isLoading, handleDeleteRoute } = useSavedRoutes({
+		onMessage,
+		refreshTrigger,
+	});
 
 	const handleLoadRoute = async (routeId: string) => {
 		await handleAsyncOperation({
