@@ -160,15 +160,19 @@ const AppContent = () => {
 				mode={mode}
 				onModeChange={setMode}
 				points={points}
-				onSave={handleSave}
-				onClearPoints={handleClearPoints}
-				onEditPoint={handleEditPoint}
-				onDeletePoint={handleDeletePoint}
-				onMovePoint={handleMovePoint}
-				onPointClick={handlePointClick}
-				onUpdateComment={handleUpdateComment}
 				highlightedPointId={highlightedPointId}
-				onLoadRoute={handleLoadRoute}
+				pointHandlers={{
+					onEditPoint: handleEditPoint,
+					onDeletePoint: handleDeletePoint,
+					onMovePoint: handleMovePoint,
+					onPointClick: handlePointClick,
+					onUpdateComment: handleUpdateComment,
+				}}
+				routeHandlers={{
+					onSave: handleSave,
+					onClearPoints: handleClearPoints,
+					onLoadRoute: handleLoadRoute,
+				}}
 				onMessage={showMessage}
 				routeListRefreshTrigger={routeListRefreshTrigger}
 			/>

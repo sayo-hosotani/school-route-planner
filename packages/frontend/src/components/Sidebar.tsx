@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import type { Point } from '../types/point';
+import type { PointHandlers, RouteHandlers } from '../types/handlers';
 import PointItem from './PointItem';
 import SavedRouteList from './SavedRouteList';
 import buttonStyles from '../styles/shared/buttons.module.css';
@@ -9,15 +10,9 @@ interface SidebarProps {
 	mode: 'view' | 'edit';
 	onModeChange: (mode: 'view' | 'edit') => void;
 	points: Point[];
-	onSave: () => void;
-	onClearPoints: () => void;
-	onEditPoint: (pointId: string) => void;
-	onDeletePoint: (pointId: string) => void;
-	onMovePoint: (pointId: string, direction: 'up' | 'down') => void;
-	onPointClick: (pointId: string) => void;
-	onUpdateComment: (pointId: string, comment: string) => void;
 	highlightedPointId: string | null;
-	onLoadRoute: (routeId: string) => Promise<void>;
+	pointHandlers: PointHandlers;
+	routeHandlers: RouteHandlers;
 	onMessage: (message: string, type?: 'success' | 'error') => void;
 	routeListRefreshTrigger?: number;
 }
@@ -26,15 +21,9 @@ const Sidebar = ({
 	mode,
 	onModeChange,
 	points,
-	onSave,
-	onClearPoints,
-	onEditPoint,
-	onDeletePoint,
-	onMovePoint,
-	onPointClick,
-	onUpdateComment,
 	highlightedPointId,
-	onLoadRoute,
+	pointHandlers,
+	routeHandlers,
 	onMessage,
 	routeListRefreshTrigger,
 }: SidebarProps) => {
@@ -83,7 +72,7 @@ const Sidebar = ({
 					<div className={styles.buttonGroup}>
 						<button
 							type="button"
-							onClick={onSave}
+							onClick={routeHandlers.onSave}
 							aria-label="現在の経路を保存"
 							className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.success)}
 						>
@@ -92,7 +81,7 @@ const Sidebar = ({
 					</div>
 
 					<SavedRouteList
-						onLoadRoute={onLoadRoute}
+						onLoadRoute={routeHandlers.onLoadRoute}
 						onMessage={onMessage}
 						refreshTrigger={routeListRefreshTrigger}
 					/>
@@ -105,7 +94,7 @@ const Sidebar = ({
 					<h3 className={styles.sectionTitle}>編集モード</h3>
 					<button
 						type="button"
-						onClick={onClearPoints}
+						onClick={routeHandlers.onClearPoints}
 						aria-label="全ポイントをクリア"
 						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.danger, buttonStyles.full)}
 					>
@@ -128,11 +117,7 @@ const Sidebar = ({
 						isNextToAdd={points.length === 0}
 						mode={mode}
 						isHighlighted={startPoint?.id === highlightedPointId}
-						onPointClick={onPointClick}
-						onEditPoint={onEditPoint}
-						onDeletePoint={onDeletePoint}
-						onMovePoint={onMovePoint}
-						onUpdateComment={onUpdateComment}
+						{...pointHandlers}
 					/>
 
 					{/* 中継地点 */}
@@ -148,11 +133,7 @@ const Sidebar = ({
 							canMoveDown={waypointIndex < waypoints.length - 1}
 							mode={mode}
 							isHighlighted={point.id === highlightedPointId}
-							onPointClick={onPointClick}
-							onEditPoint={onEditPoint}
-							onDeletePoint={onDeletePoint}
-							onMovePoint={onMovePoint}
-							onUpdateComment={onUpdateComment}
+							{...pointHandlers}
 						/>
 					))}
 
@@ -166,11 +147,7 @@ const Sidebar = ({
 							waypointNumber={waypoints.length + 1}
 							mode={mode}
 							isHighlighted={false}
-							onPointClick={onPointClick}
-							onEditPoint={onEditPoint}
-							onDeletePoint={onDeletePoint}
-							onMovePoint={onMovePoint}
-							onUpdateComment={onUpdateComment}
+							{...pointHandlers}
 						/>
 					)}
 
@@ -182,11 +159,7 @@ const Sidebar = ({
 						isNextToAdd={points.length === 1}
 						mode={mode}
 						isHighlighted={goalPoint?.id === highlightedPointId}
-						onPointClick={onPointClick}
-						onEditPoint={onEditPoint}
-						onDeletePoint={onDeletePoint}
-						onMovePoint={onMovePoint}
-						onUpdateComment={onUpdateComment}
+						{...pointHandlers}
 					/>
 				</div>
 			</div>

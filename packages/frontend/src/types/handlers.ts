@@ -14,3 +14,19 @@ export type RouteSaveHandler = (routeName: string) => Promise<void>;
 
 // メッセージハンドラ型
 export type MessageHandler = (message: string, type: MessageType) => void;
+
+// グループ化されたポイントハンドラ
+export interface PointHandlers {
+	onEditPoint: PointClickHandler;
+	onDeletePoint: PointClickHandler;
+	onMovePoint: PointMoveHandler;
+	onPointClick: PointClickHandler;
+	onUpdateComment: CommentUpdateHandler;
+}
+
+// グループ化された経路ハンドラ
+export interface RouteHandlers {
+	onSave: () => void;
+	onClearPoints: () => void;
+	onLoadRoute: RouteLoadHandler;
+}
