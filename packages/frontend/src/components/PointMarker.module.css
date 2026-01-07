@@ -14,4 +14,7 @@
 .tooltipComment {
 	font-size: var(--font-size-md);
 	color: var(--color-text-primary);
+	word-break: keep-all;
+	overflow-wrap: break-word;
+	white-space: normal;
 }
