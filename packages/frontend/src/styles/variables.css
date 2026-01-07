@@ -46,10 +46,10 @@
 	--marker-goal: blue;
 
 	/* Spacing */
-	--spacing-xs: 4px;
-	--spacing-sm: 8px;
-	--spacing-md: 16px;
-	--spacing-lg: 24px;
+	--spacing-xs: 2px;
+	--spacing-sm: 4px;
+	--spacing-md: 8px;
+	--spacing-lg: 16px;
 
 	/* Border Radius */
 	--radius-sm: 4px;

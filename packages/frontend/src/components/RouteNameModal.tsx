@@ -59,17 +59,17 @@ const RouteNameModal = ({ isOpen, onSave, onClose }: RouteNameModalProps) => {
 				<div className={styles.actions}>
 					<button
 						type="button"
-						onClick={onClose}
-						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.outline)}
-					>
-						キャンセル
-					</button>
-					<button
-						type="button"
 						onClick={handleSave}
 						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.success)}
 					>
 						保存
+					</button>
+					<button
+						type="button"
+						onClick={onClose}
+						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.outline)}
+					>
+						キャンセル
 					</button>
 				</div>
 			</div>

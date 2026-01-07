@@ -10,10 +10,9 @@ interface PointEditModalProps {
 	point: Point | null;
 	onClose: () => void;
 	onSave: (pointId: string, type: Point['type'], comment: string) => void;
-	onDelete: (pointId: string) => void;
 }
 
-const PointEditModal = ({ point, onClose, onSave, onDelete }: PointEditModalProps) => {
+const PointEditModal = ({ point, onClose, onSave }: PointEditModalProps) => {
 	const [type, setType] = useState<Point['type']>('waypoint');
 	const [comment, setComment] = useState('');
 
@@ -33,55 +32,9 @@ const PointEditModal = ({ point, onClose, onSave, onDelete }: PointEditModalProp
 		onClose();
 	};
 
-	const handleDelete = () => {
-		if (window.confirm('このポイントを削除しますか？')) {
-			onDelete(point.id);
-			onClose();
-		}
-	};
-
 	return (
 		<div className={modalStyles.overlay} onClick={onClose}>
 			<div className={modalStyles.content} onClick={(e) => e.stopPropagation()}>
-				<h2 className={styles.title}>ポイント編集</h2>
-
-				{/* 種別選択 */}
-				<div className={styles.section}>
-					<label className={formStyles.label}>種別:</label>
-					<div className={formStyles.radioGroup}>
-						<label className={formStyles.radioLabel}>
-							<input
-								type="radio"
-								name="type"
-								value="start"
-								checked={type === 'start'}
-								onChange={(e) => setType(e.target.value as Point['type'])}
-							/>
-							スタート
-						</label>
-						<label className={formStyles.radioLabel}>
-							<input
-								type="radio"
-								name="type"
-								value="waypoint"
-								checked={type === 'waypoint'}
-								onChange={(e) => setType(e.target.value as Point['type'])}
-							/>
-							中継地点
-						</label>
-						<label className={formStyles.radioLabel}>
-							<input
-								type="radio"
-								name="type"
-								value="goal"
-								checked={type === 'goal'}
-								onChange={(e) => setType(e.target.value as Point['type'])}
-							/>
-							ゴール
-						</label>
-					</div>
-				</div>
-
 				{/* コメント入力 */}
 				<div className={styles.section}>
 					<label htmlFor="comment" className={formStyles.label}>
@@ -105,14 +58,6 @@ const PointEditModal = ({ point, onClose, onSave, onDelete }: PointEditModalProp
 						className={clsx(buttonStyles.button, buttonStyles.lg, buttonStyles.success, buttonStyles.flex)}
 					>
 						保存
-					</button>
-					<button
-						type="button"
-						onClick={handleDelete}
-						aria-label="ポイントを削除"
-						className={clsx(buttonStyles.button, buttonStyles.lg, buttonStyles.danger, buttonStyles.flex)}
-					>
-						削除
 					</button>
 					<button
 						type="button"

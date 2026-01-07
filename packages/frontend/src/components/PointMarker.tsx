@@ -1,8 +1,6 @@
-import clsx from 'clsx';
 import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import type { Point } from '../types/point';
-import { getMarkerDisplayTitle } from '../utils/point-utils';
 import styles from './PointMarker.module.css';
 
 interface PointMarkerProps {
@@ -66,14 +64,6 @@ const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) 
 					className="point-tooltip"
 				>
 					<div className={styles.tooltipContent}>
-						<strong
-							className={clsx(
-								styles.tooltipTitle,
-								point.comment && styles.tooltipTitleWithComment
-							)}
-						>
-							{getMarkerDisplayTitle(point)}
-						</strong>
 						{point.comment && (
 							<div className={styles.tooltipComment}>{point.comment}</div>
 						)}

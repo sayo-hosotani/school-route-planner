@@ -189,7 +189,6 @@ const AppContent = () => {
 				point={pointEditModal.data}
 				onClose={pointEditModal.close}
 				onSave={handleSavePoint}
-				onDelete={handleDeletePoint}
 			/>
 
 			{/* 地図 */}

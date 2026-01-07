@@ -48,7 +48,6 @@ const EditModeSection = ({
 						type="start"
 						displayIndex={1}
 						isNextToAdd={points.length === 0}
-						mode="edit"
 						isHighlighted={startPoint?.id === highlightedPointId}
 						{...pointHandlers}
 					/>
@@ -64,7 +63,6 @@ const EditModeSection = ({
 							waypointNumber={waypointIndex + 1}
 							canMoveUp={waypointIndex > 0}
 							canMoveDown={waypointIndex < waypoints.length - 1}
-							mode="edit"
 							isHighlighted={point.id === highlightedPointId}
 							{...pointHandlers}
 						/>
@@ -78,7 +76,6 @@ const EditModeSection = ({
 							displayIndex={points.length}
 							isNextToAdd={true}
 							waypointNumber={waypoints.length + 1}
-							mode="edit"
 							isHighlighted={false}
 							{...pointHandlers}
 						/>
@@ -90,7 +87,6 @@ const EditModeSection = ({
 						type="goal"
 						displayIndex={points.length >= 2 ? points.length + 1 : 2}
 						isNextToAdd={points.length === 1}
-						mode="edit"
 						isHighlighted={goalPoint?.id === highlightedPointId}
 						{...pointHandlers}
 					/>
