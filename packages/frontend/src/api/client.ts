@@ -56,12 +56,15 @@ export async function apiClient<TResponse, TRequest = unknown>(
 	const requestInit: RequestInit = {
 		method,
 		headers: {
-			'Content-Type': 'application/json',
 			...headers,
 		},
 	};
 
 	if (body !== undefined) {
+		requestInit.headers = {
+			'Content-Type': 'application/json',
+			...requestInit.headers,
+		};
 		requestInit.body = JSON.stringify(body);
 	}
 
