@@ -108,7 +108,7 @@ export class ValhallaService {
 
 		const requestBody: ValhallaRouteRequest = {
 			locations,
-			costing: 'auto', // 自動車ルート
+			costing: 'pedestrian', // 徒歩
 			directions_options: {
 				language: 'ja-JP', // 日本語
 				units: 'kilometers',
