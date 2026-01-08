@@ -1,6 +1,7 @@
 import { createContext, useContext, useCallback, type ReactNode } from 'react';
 import { usePoints } from '../hooks/use-points';
 import { useRouteGeneration } from '../hooks/use-route-generation';
+import { useAppContext } from './AppContext';
 import type { Point } from '../types/point';
 
 interface PointContextValue {
@@ -36,6 +37,8 @@ interface PointProviderProps {
 }
 
 export const PointProvider = ({ children }: PointProviderProps) => {
+	const { setLoading, showMessage } = useAppContext();
+
 	const {
 		points,
 		addPoint: addPointBase,
@@ -48,15 +51,30 @@ export const PointProvider = ({ children }: PointProviderProps) => {
 		loadPoints,
 	} = usePoints();
 
-	const { routeLine, generateRouteFromPoints, setRouteLine, clearRoute } = useRouteGeneration();
+	// 経路生成エラー時のコールバック
+	const handleRouteError = useCallback(
+		(message: string) => {
+			showMessage(message, 'error');
+		},
+		[showMessage],
+	);
+
+	const { routeLine, generateRouteFromPoints, setRouteLine, clearRoute } = useRouteGeneration({
+		onError: handleRouteError,
+	});
 
 	// ポイント追加（経路も自動更新）
 	const addPoint = useCallback(
 		async (lat: number, lng: number) => {
 			const newPoints = addPointBase(lat, lng);
-			await generateRouteFromPoints(newPoints);
+			setLoading(true, '経路を計算中...');
+			try {
+				await generateRouteFromPoints(newPoints);
+			} finally {
+				setLoading(false);
+			}
 		},
-		[addPointBase, generateRouteFromPoints],
+		[addPointBase, generateRouteFromPoints, setLoading],
 	);
 
 	// ポイント更新（経路も自動更新）
@@ -65,19 +83,29 @@ export const PointProvider = ({ children }: PointProviderProps) => {
 			const updatedPoints = updatePointBase(pointId, updates);
 			// 座標が変更された場合のみ経路を再生成
 			if ('lat' in updates || 'lng' in updates) {
-				await generateRouteFromPoints(updatedPoints);
+				setLoading(true, '経路を計算中...');
+				try {
+					await generateRouteFromPoints(updatedPoints);
+				} finally {
+					setLoading(false);
+				}
 			}
 		},
-		[updatePointBase, generateRouteFromPoints],
+		[updatePointBase, generateRouteFromPoints, setLoading],
 	);
 
 	// ポイント削除（経路も自動更新）
 	const deletePoint = useCallback(
 		async (pointId: string) => {
 			const newPoints = deletePointBase(pointId);
-			await generateRouteFromPoints(newPoints);
+			setLoading(true, '経路を計算中...');
+			try {
+				await generateRouteFromPoints(newPoints);
+			} finally {
+				setLoading(false);
+			}
 		},
-		[deletePointBase, generateRouteFromPoints],
+		[deletePointBase, generateRouteFromPoints, setLoading],
 	);
 
 	// ポイント移動（経路も自動更新）
@@ -85,12 +113,17 @@ export const PointProvider = ({ children }: PointProviderProps) => {
 		async (pointId: string, direction: 'up' | 'down'): Promise<boolean> => {
 			const newPoints = movePointBase(pointId, direction);
 			if (newPoints) {
-				await generateRouteFromPoints(newPoints);
+				setLoading(true, '経路を計算中...');
+				try {
+					await generateRouteFromPoints(newPoints);
+				} finally {
+					setLoading(false);
+				}
 				return true;
 			}
 			return false;
 		},
-		[movePointBase, generateRouteFromPoints],
+		[movePointBase, generateRouteFromPoints, setLoading],
 	);
 
 	// 全ポイントクリア

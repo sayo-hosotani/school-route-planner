@@ -249,3 +249,21 @@ App.tsxを415行→227行に削減済み。Context API導入済み。エラー�
   - カラーコード（#007bff, #28a745, #dc3545等）を`constants/colors.ts`に集約済み
 - [x] アクセシビリティ改善
   - ボタンにaria-label属性を追加済み
+
+## 8. エラーハンドリング・ローディング ✅
+- [x] API呼び出しエラー時の表示
+  - `use-route-generation.ts`にエラーコールバック追加
+  - 経路生成失敗時にエラーメッセージを表示
+- [x] バリデーションエラーの表示
+  - 既存の`showMessage`を活用（スタート・ゴール必須等）
+- [x] 経路生成中のインジケーター
+  - `LoadingOverlay.tsx`コンポーネント新規作成
+  - スピナーアニメーション＋メッセージ表示
+  - `AppContext`にローディング状態（`isLoading`, `loadingMessage`, `setLoading`）を追加
+  - `PointContext`の各操作で経路計算中にローディング表示
+- [x] データ読み込み中のスケルトン表示
+  - `SavedRouteList`の「読み込み中...」表示（既存）
+  - 経路計算時は`LoadingOverlay`で対応
+- [x] `use-points.ts`の戻り値バグ修正
+  - `setPoints`のコールバック内で設定した値が同期的に返されない問題を修正
+  - 現在の`points`状態を直接参照して新しい配列を計算するように変更

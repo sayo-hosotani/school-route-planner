@@ -11,6 +11,10 @@ interface AppContextValue {
 	message: string;
 	messageType: MessageType;
 	showMessage: (msg: string, type?: MessageType) => void;
+	// ローディング
+	isLoading: boolean;
+	loadingMessage: string;
+	setLoading: (loading: boolean, message?: string) => void;
 	// ハイライト
 	highlightedPointId: string | null;
 	highlightPoint: (pointId: string) => void;
@@ -37,7 +41,15 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 	const [mode, setMode] = useState<AppMode>('view');
 	const [highlightedPointId, setHighlightedPointId] = useState<string | null>(null);
 	const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [loadingMessage, setLoadingMessage] = useState('');
 	const { message, messageType, showMessage } = useMessage();
+
+	// ローディング状態を設定
+	const setLoading = useCallback((loading: boolean, loadingMsg = '') => {
+		setIsLoading(loading);
+		setLoadingMessage(loadingMsg);
+	}, []);
 
 	// ポイントをハイライト（一定時間後に解除）
 	const highlightPoint = useCallback((pointId: string) => {
@@ -54,6 +66,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 		message,
 		messageType,
 		showMessage,
+		isLoading,
+		loadingMessage,
+		setLoading,
 		highlightedPointId,
 		highlightPoint,
 		mapCenter,

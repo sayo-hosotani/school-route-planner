@@ -1,6 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Point } from '../types/point';
 import { generateRoute } from '../api/route-api';
+
+interface UseRouteGenerationOptions {
+	onError?: (message: string) => void;
+}
 
 interface UseRouteGenerationReturn {
 	routeLine: [number, number][];
@@ -9,8 +13,17 @@ interface UseRouteGenerationReturn {
 	clearRoute: () => void;
 }
 
-export const useRouteGeneration = (): UseRouteGenerationReturn => {
+export const useRouteGeneration = (
+	options: UseRouteGenerationOptions = {},
+): UseRouteGenerationReturn => {
+	const { onError } = options;
 	const [routeLine, setRouteLine] = useState<[number, number][]>([]);
+
+	// onErrorの最新の参照を保持（useCallbackの依存配列から除外するため）
+	const onErrorRef = useRef(onError);
+	useEffect(() => {
+		onErrorRef.current = onError;
+	}, [onError]);
 
 	// ポイントを直線で接続して経路ラインを更新（フォールバック用）
 	const updateRouteLineStraight = useCallback((pointsList: Point[]) => {
@@ -58,7 +71,8 @@ export const useRouteGeneration = (): UseRouteGenerationReturn => {
 			);
 			setRouteLine(coordinates);
 		} catch {
-			// エラー時は直線接続
+			// エラー時は直線接続にフォールバックし、エラーを通知
+			onErrorRef.current?.('経路の生成に失敗しました。直線で接続します。');
 			updateRouteLineStraight(pointsList);
 		}
 	}, [updateRouteLineStraight]);

@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import PointEditModal from './components/PointEditModal';
 import MapClickHandler from './components/MapClickHandler';
 import MessageDisplay from './components/MessageDisplay';
+import LoadingOverlay from './components/LoadingOverlay';
 import MapCenter from './components/MapCenter';
 import RouteNameModal from './components/RouteNameModal';
 import { saveRoute, loadRouteById } from './api/route-api';
@@ -39,6 +40,8 @@ const AppContent = () => {
 		message,
 		messageType,
 		showMessage,
+		isLoading,
+		loadingMessage,
 		highlightedPointId,
 		highlightPoint,
 		mapCenter,
@@ -154,6 +157,9 @@ const AppContent = () => {
 		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
 			{/* メッセージ表示 */}
 			<MessageDisplay message={message} type={messageType} />
+
+			{/* ローディングオーバーレイ */}
+			<LoadingOverlay isLoading={isLoading} message={loadingMessage} />
 
 			{/* サイドバー */}
 			<Sidebar
