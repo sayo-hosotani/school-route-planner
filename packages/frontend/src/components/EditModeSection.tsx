@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import clsx from 'clsx';
 import type { Point } from '../types/point';
 import type { PointHandlers, RouteHandlers } from '../types/handlers';
@@ -12,7 +13,7 @@ interface EditModeSectionProps {
 	routeHandlers: RouteHandlers;
 }
 
-const EditModeSection = ({
+const EditModeSection = memo(({
 	points,
 	highlightedPointId,
 	pointHandlers,
@@ -94,6 +95,8 @@ const EditModeSection = ({
 			</div>
 		</>
 	);
-};
+});
+
+EditModeSection.displayName = 'EditModeSection';
 
 export default EditModeSection;

@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import clsx from 'clsx';
 import type { Point } from '../types/point';
 import type { PointHandlers, RouteHandlers } from '../types/handlers';
@@ -17,7 +18,7 @@ interface SidebarProps {
 	routeListRefreshTrigger?: number;
 }
 
-const Sidebar = ({
+const Sidebar = memo(({
 	mode,
 	onModeChange,
 	points,
@@ -27,13 +28,13 @@ const Sidebar = ({
 	onMessage,
 	routeListRefreshTrigger,
 }: SidebarProps) => {
-	const handleModeKeyDown = (e: React.KeyboardEvent, targetMode: 'view' | 'edit') => {
+	const handleModeKeyDown = useCallback((e: React.KeyboardEvent) => {
 		if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
 			e.preventDefault();
 			const newMode = e.key === 'ArrowLeft' ? 'view' : 'edit';
 			onModeChange(newMode);
 		}
-	};
+	}, [onModeChange]);
 
 	return (
 		<div className={styles.container}>
@@ -45,7 +46,7 @@ const Sidebar = ({
 					aria-selected={mode === 'view'}
 					aria-controls="mode-content"
 					onClick={() => onModeChange('view')}
-					onKeyDown={(e) => handleModeKeyDown(e, 'view')}
+					onKeyDown={handleModeKeyDown}
 					aria-label="通常モードに切り替え"
 					className={clsx(
 						buttonStyles.button,
@@ -63,7 +64,7 @@ const Sidebar = ({
 					aria-selected={mode === 'edit'}
 					aria-controls="mode-content"
 					onClick={() => onModeChange('edit')}
-					onKeyDown={(e) => handleModeKeyDown(e, 'edit')}
+					onKeyDown={handleModeKeyDown}
 					aria-label="編集モードに切り替え"
 					className={clsx(
 						buttonStyles.button,
@@ -95,6 +96,8 @@ const Sidebar = ({
 			</div>
 		</div>
 	);
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

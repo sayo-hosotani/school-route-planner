@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import clsx from 'clsx';
 import type { Point } from '../types/point';
 import { getDisplayTitle } from '../utils/point-utils';
@@ -20,7 +21,7 @@ interface PointItemProps {
 	onUpdateComment: (pointId: string, comment: string) => void;
 }
 
-const PointItem = ({
+const PointItem = memo(({
 	point,
 	type,
 	displayIndex,
@@ -157,6 +158,8 @@ const PointItem = ({
 			)}
 		</li>
 	);
-};
+});
+
+PointItem.displayName = 'PointItem';
 
 export default PointItem;

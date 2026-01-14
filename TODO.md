@@ -20,7 +20,7 @@
   - leaflet-imageやhtml2canvasなどのライブラリを検討
 - [ ] 経路上にポイントをフィットさせるボタンの追加
 
-### 1.3. サイドバーの改善（継続）
+### 1.3. サイドバーの改善 ✅
 - [x] 通常モードと編集モードでコンポーネントを分離
   - `ViewModeSection.tsx`: 保存ボタン + 保存済み経路一覧
   - `EditModeSection.tsx`: クリアボタン + ポイント一覧
@@ -39,8 +39,10 @@
   - モード切り替え: 矢印キー（←→）対応、WAI-ARIAタブパネル実装
   - ポイント一覧: Enter（ハイライト）、E（編集）、Delete（削除）、↑↓（中継地点移動）
   - 保存済み経路: Tab/Enterでフォーカス・読み込み
-- [ ] パフォーマンス最適化
-  - 不要な再レンダリングの防止
+- [x] パフォーマンス最適化
+  - React.memoでコンポーネントをメモ化（PointItem, PointMarker, SavedRouteList, Sidebar, ViewModeSection, EditModeSection）
+  - useCallbackでハンドラー関数をメモ化（App.tsx内の全ハンドラー）
+  - useMemoでpointHandlers/routeHandlersオブジェクトをメモ化
 
 ## 2. 認証機能（優先度: 低）
 - [ ] ユーザー登録・ログイン画面

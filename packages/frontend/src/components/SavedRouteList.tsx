@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { useSavedRoutes } from '../hooks/use-saved-routes';
 import { handleAsyncOperation } from '../utils/error-handler';
 import styles from './SavedRouteList.module.css';
@@ -8,19 +9,19 @@ interface SavedRouteListProps {
 	refreshTrigger?: number;
 }
 
-const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteListProps) => {
+const SavedRouteList = memo(({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteListProps) => {
 	const { savedRoutes, isLoading, handleDeleteRoute } = useSavedRoutes({
 		onMessage,
 		refreshTrigger,
 	});
 
-	const handleLoadRoute = async (routeId: string) => {
+	const handleLoadRoute = useCallback(async (routeId: string) => {
 		await handleAsyncOperation({
 			operation: () => onLoadRoute(routeId),
 			errorMessage: '読み込みに失敗しました',
 			showMessage: onMessage,
 		});
-	};
+	}, [onLoadRoute, onMessage]);
 
 	return (
 		<div className={styles.container}>
@@ -66,6 +67,8 @@ const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteLi
 			)}
 		</div>
 	);
-};
+});
+
+SavedRouteList.displayName = 'SavedRouteList';
 
 export default SavedRouteList;

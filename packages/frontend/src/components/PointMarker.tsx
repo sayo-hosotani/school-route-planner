@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import type { Point } from '../types/point';
@@ -31,7 +32,7 @@ const getMarkerIcon = (type: Point['type']) => {
 	});
 };
 
-const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) => {
+const PointMarker = memo(({ point, editMode, onDragEnd, onClick }: PointMarkerProps) => {
 	const handleDragEnd = (e: L.DragEndEvent) => {
 		const marker = e.target;
 		const position = marker.getLatLng();
@@ -70,6 +71,8 @@ const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) 
 			)}
 		</Marker>
 	);
-};
+});
+
+PointMarker.displayName = 'PointMarker';
 
 export default PointMarker;

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import clsx from 'clsx';
 import type { RouteHandlers } from '../types/handlers';
 import SavedRouteList from './SavedRouteList';
@@ -10,7 +11,7 @@ interface ViewModeSectionProps {
 	routeListRefreshTrigger?: number;
 }
 
-const ViewModeSection = ({
+const ViewModeSection = memo(({
 	routeHandlers,
 	onMessage,
 	routeListRefreshTrigger,
@@ -36,6 +37,8 @@ const ViewModeSection = ({
 			/>
 		</div>
 	);
-};
+});
+
+ViewModeSection.displayName = 'ViewModeSection';
 
 export default ViewModeSection;

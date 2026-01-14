@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, ScaleControl, AttributionControl, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import CoordinateDisplay from './components/CoordinateDisplay';
@@ -56,79 +56,79 @@ const AppContent = () => {
 	const [routeListRefreshTrigger, setRouteListRefreshTrigger] = useState(0);
 
 	// 地図クリックでポイント追加
-	const handleMapClick = async (lat: number, lng: number) => {
+	const handleMapClick = useCallback(async (lat: number, lng: number) => {
 		await addPoint(lat, lng);
 		showMessage('ポイントを追加しました');
-	};
+	}, [addPoint, showMessage]);
 
 	// ポイントのドラッグ移動
-	const handlePointDragEnd = async (pointId: string, lat: number, lng: number) => {
+	const handlePointDragEnd = useCallback(async (pointId: string, lat: number, lng: number) => {
 		await updatePoint(pointId, { lat, lng });
 		showMessage('ポイントを移動しました');
-	};
+	}, [updatePoint, showMessage]);
 
 	// ポイント編集モーダルを開く
-	const handleEditPoint = (pointId: string) => {
+	const handleEditPoint = useCallback((pointId: string) => {
 		const point = findPoint(pointId);
 		if (point) {
 			pointEditModal.open(point);
 		}
-	};
+	}, [findPoint, pointEditModal]);
 
 	// ポイント編集を保存
-	const handleSavePoint = async (pointId: string, type: Point['type'], comment: string) => {
+	const handleSavePoint = useCallback(async (pointId: string, type: Point['type'], comment: string) => {
 		await updatePoint(pointId, { type, comment });
 		showMessage('ポイントを更新しました');
-	};
+	}, [updatePoint, showMessage]);
 
 	// サイドバーからのコメント更新
-	const handleUpdateComment = async (pointId: string, comment: string) => {
+	const handleUpdateComment = useCallback(async (pointId: string, comment: string) => {
 		await updatePoint(pointId, { comment });
 		showMessage('コメントを更新しました');
-	};
+	}, [updatePoint, showMessage]);
 
 	// ポイントクリック時の処理（地図中央に移動＋ハイライト）
-	const handlePointClick = (pointId: string) => {
+	const handlePointClick = useCallback((pointId: string) => {
 		const point = findPoint(pointId);
 		if (point) {
 			setMapCenter([point.lat, point.lng]);
 			highlightPoint(pointId);
 		}
-	};
+	}, [findPoint, setMapCenter, highlightPoint]);
 
 	// ポイント削除
-	const handleDeletePoint = async (pointId: string) => {
+	const handleDeletePoint = useCallback(async (pointId: string) => {
 		await deletePoint(pointId);
 		showMessage('ポイントを削除しました');
-	};
+	}, [deletePoint, showMessage]);
 
 	// 全ポイントをクリア
-	const handleClearPoints = () => {
+	const handleClearPoints = useCallback(() => {
 		if (window.confirm('すべてのポイントを削除しますか？')) {
 			clearPoints();
 			showMessage('すべてのポイントをクリアしました');
 		}
-	};
+	}, [clearPoints, showMessage]);
 
 	// ポイントの順序を入れ替え
-	const handleMovePoint = async (pointId: string, direction: 'up' | 'down') => {
+	const handleMovePoint = useCallback(async (pointId: string, direction: 'up' | 'down') => {
 		const moved = await movePoint(pointId, direction);
 		if (moved) {
 			showMessage('順序を入れ替えました');
 		}
-	};
+	}, [movePoint, showMessage]);
 
 	// 経路保存（モーダル表示）
-	const handleSave = () => {
+	const handleSave = useCallback(() => {
 		if (!hasStartAndGoal()) {
 			showMessage('経路を保存するには、スタートとゴールの両方が必要です', 'error');
 			return;
 		}
 		routeNameModal.open();
-	};
+	}, [hasStartAndGoal, showMessage, routeNameModal]);
 
 	// 経路名入力後の保存処理
-	const handleSaveWithName = async (routeName: string) => {
+	const handleSaveWithName = useCallback(async (routeName: string) => {
 		await handleAsyncOperation({
 			operation: () => saveRoute({ points, routeLine }, routeName),
 			successMessage: '経路を保存しました',
@@ -138,10 +138,10 @@ const AppContent = () => {
 				setRouteListRefreshTrigger((prev) => prev + 1);
 			},
 		});
-	};
+	}, [points, routeLine, showMessage]);
 
 	// 特定の経路を読み込む
-	const handleLoadRoute = async (routeId: string) => {
+	const handleLoadRoute = useCallback(async (routeId: string) => {
 		await handleAsyncOperation({
 			operation: () => loadRouteById(routeId),
 			successMessage: '経路を読み込みました',
@@ -151,7 +151,22 @@ const AppContent = () => {
 				loadRoute(data.points, data.routeLine);
 			},
 		});
-	};
+	}, [showMessage, loadRoute]);
+
+	// ハンドラーオブジェクトをメモ化
+	const pointHandlers = useMemo(() => ({
+		onEditPoint: handleEditPoint,
+		onDeletePoint: handleDeletePoint,
+		onMovePoint: handleMovePoint,
+		onPointClick: handlePointClick,
+		onUpdateComment: handleUpdateComment,
+	}), [handleEditPoint, handleDeletePoint, handleMovePoint, handlePointClick, handleUpdateComment]);
+
+	const routeHandlers = useMemo(() => ({
+		onSave: handleSave,
+		onClearPoints: handleClearPoints,
+		onLoadRoute: handleLoadRoute,
+	}), [handleSave, handleClearPoints, handleLoadRoute]);
 
 	return (
 		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
@@ -167,18 +182,8 @@ const AppContent = () => {
 				onModeChange={setMode}
 				points={points}
 				highlightedPointId={highlightedPointId}
-				pointHandlers={{
-					onEditPoint: handleEditPoint,
-					onDeletePoint: handleDeletePoint,
-					onMovePoint: handleMovePoint,
-					onPointClick: handlePointClick,
-					onUpdateComment: handleUpdateComment,
-				}}
-				routeHandlers={{
-					onSave: handleSave,
-					onClearPoints: handleClearPoints,
-					onLoadRoute: handleLoadRoute,
-				}}
+				pointHandlers={pointHandlers}
+				routeHandlers={routeHandlers}
 				onMessage={showMessage}
 				routeListRefreshTrigger={routeListRefreshTrigger}
 			/>
