@@ -38,6 +38,40 @@ const PointItem = ({
 	const hasPoint = !!point;
 	const isWaypoint = type === 'waypoint';
 
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (!hasPoint) return;
+
+		// Enter: ポイントをクリック（地図上でハイライト）
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			onPointClick(point.id);
+		}
+
+		// e: 編集
+		if (e.key === 'e' && !e.ctrlKey && !e.metaKey) {
+			e.preventDefault();
+			onEditPoint(point.id);
+		}
+
+		// Delete: 削除
+		if (e.key === 'Delete') {
+			e.preventDefault();
+			onDeletePoint(point.id);
+		}
+
+		// 中継地点の移動
+		if (isWaypoint) {
+			if (e.key === 'ArrowUp' && canMoveUp) {
+				e.preventDefault();
+				onMovePoint(point.id, 'up');
+			}
+			if (e.key === 'ArrowDown' && canMoveDown) {
+				e.preventDefault();
+				onMovePoint(point.id, 'down');
+			}
+		}
+	};
+
 	const containerClassName = clsx(
 		styles.container,
 		!hasPoint && styles.containerEmpty,
@@ -47,13 +81,19 @@ const PointItem = ({
 	);
 
 	return (
-		<div className={containerClassName}>
+		<li
+			className={containerClassName}
+			tabIndex={hasPoint ? 0 : -1}
+			onKeyDown={handleKeyDown}
+			aria-label={hasPoint ? `${displayIndex}. ${getDisplayTitle(point, type, waypointNumber)}` : undefined}
+		>
 			{/* ヘッダー行 */}
 			<div className={clsx(styles.header, (isNextToAdd || isHighlighted) && styles.headerBold)}>
 				<button
 					type="button"
 					onClick={() => hasPoint && onPointClick(point.id)}
 					disabled={!hasPoint}
+					tabIndex={-1}
 					className={clsx(
 						styles.titleButton,
 						hasPoint ? styles.titleButtonClickable : styles.titleButtonDisabled
@@ -73,9 +113,10 @@ const PointItem = ({
 								type="button"
 								onClick={() => onMovePoint(point.id, 'up')}
 								disabled={!canMoveUp}
-								aria-label="上に移動"
+								tabIndex={-1}
+								aria-label="上に移動（矢印キー↑でも操作可）"
 								className={clsx(buttonStyles.button, buttonStyles.sm, buttonStyles.secondary)}
-								title="上に移動"
+								title="上に移動（矢印キー↑）"
 							>
 								↑
 							</button>
@@ -83,9 +124,10 @@ const PointItem = ({
 								type="button"
 								onClick={() => onMovePoint(point.id, 'down')}
 								disabled={!canMoveDown}
-								aria-label="下に移動"
+								tabIndex={-1}
+								aria-label="下に移動（矢印キー↓でも操作可）"
 								className={clsx(buttonStyles.button, buttonStyles.sm, buttonStyles.secondary)}
-								title="下に移動"
+								title="下に移動（矢印キー↓）"
 							>
 								↓
 							</button>
@@ -94,22 +136,26 @@ const PointItem = ({
 					<button
 						type="button"
 						onClick={() => onEditPoint(point.id)}
-						aria-label="ポイントを編集"
+						tabIndex={-1}
+						aria-label="ポイントを編集（Eキーでも操作可）"
 						className={clsx(buttonStyles.button, buttonStyles.sm, buttonStyles.primary, buttonStyles.flex)}
+						title="編集（Eキー）"
 					>
 						編集
 					</button>
 					<button
 						type="button"
 						onClick={() => onDeletePoint(point.id)}
-						aria-label="ポイントを削除"
+						tabIndex={-1}
+						aria-label="ポイントを削除（Deleteキーでも操作可）"
 						className={clsx(buttonStyles.button, buttonStyles.sm, buttonStyles.danger, buttonStyles.flex)}
+						title="削除（Deleteキー）"
 					>
 						削除
 					</button>
 				</div>
 			)}
-		</div>
+		</li>
 	);
 };
 

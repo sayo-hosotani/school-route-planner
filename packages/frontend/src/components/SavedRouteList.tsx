@@ -30,14 +30,15 @@ const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteLi
 			) : savedRoutes.length === 0 ? (
 				<div className={styles.emptyState}>保存済みの経路がありません</div>
 			) : (
-				<div className={styles.list}>
+				<ul className={styles.list} aria-label="保存済み経路一覧">
 					{savedRoutes.map((route) => (
-						<div key={route.id} className={styles.item}>
+						<li key={route.id} className={styles.item}>
 							<button
 								type="button"
 								onClick={() => handleLoadRoute(route.id)}
 								className={styles.loadButton}
 								title="クリックして読み込む"
+								aria-label={`${route.name}を読み込む - ${new Date(route.created_at).toLocaleString('ja-JP')}`}
 							>
 								<div className={styles.routeName}>{route.name}</div>
 								<div className={styles.routeDate}>
@@ -59,9 +60,9 @@ const SavedRouteList = ({ onLoadRoute, onMessage, refreshTrigger }: SavedRouteLi
 							>
 								🗑
 							</button>
-						</div>
+						</li>
 					))}
-				</div>
+				</ul>
 			)}
 		</div>
 	);

@@ -41,7 +41,7 @@ const EditModeSection = ({
 				<h3 className={styles.sectionTitle}>
 					現在のポイント一覧 ({points.length})
 				</h3>
-				<div className={styles.pointList}>
+				<ul className={styles.pointList} aria-label="ポイント一覧">
 					{/* スタート地点 */}
 					<PointItem
 						point={startPoint}
@@ -90,7 +90,7 @@ const EditModeSection = ({
 						isHighlighted={goalPoint?.id === highlightedPointId}
 						{...pointHandlers}
 					/>
-				</div>
+				</ul>
 			</div>
 		</>
 	);

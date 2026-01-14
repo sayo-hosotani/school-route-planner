@@ -27,13 +27,25 @@ const Sidebar = ({
 	onMessage,
 	routeListRefreshTrigger,
 }: SidebarProps) => {
+	const handleModeKeyDown = (e: React.KeyboardEvent, targetMode: 'view' | 'edit') => {
+		if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+			e.preventDefault();
+			const newMode = e.key === 'ArrowLeft' ? 'view' : 'edit';
+			onModeChange(newMode);
+		}
+	};
+
 	return (
 		<div className={styles.container}>
 			{/* モード切り替えボタン */}
-			<div className={styles.modeButtons}>
+			<div className={styles.modeButtons} role="tablist" aria-label="モード切り替え">
 				<button
 					type="button"
+					role="tab"
+					aria-selected={mode === 'view'}
+					aria-controls="mode-content"
 					onClick={() => onModeChange('view')}
+					onKeyDown={(e) => handleModeKeyDown(e, 'view')}
 					aria-label="通常モードに切り替え"
 					className={clsx(
 						buttonStyles.button,
@@ -47,7 +59,11 @@ const Sidebar = ({
 				</button>
 				<button
 					type="button"
+					role="tab"
+					aria-selected={mode === 'edit'}
+					aria-controls="mode-content"
 					onClick={() => onModeChange('edit')}
+					onKeyDown={(e) => handleModeKeyDown(e, 'edit')}
 					aria-label="編集モードに切り替え"
 					className={clsx(
 						buttonStyles.button,
@@ -61,20 +77,22 @@ const Sidebar = ({
 				</button>
 			</div>
 
-			{mode === 'view' ? (
-				<ViewModeSection
-					routeHandlers={routeHandlers}
-					onMessage={onMessage}
-					routeListRefreshTrigger={routeListRefreshTrigger}
-				/>
-			) : (
-				<EditModeSection
-					points={points}
-					highlightedPointId={highlightedPointId}
-					pointHandlers={pointHandlers}
-					routeHandlers={routeHandlers}
-				/>
-			)}
+			<div id="mode-content" role="tabpanel">
+				{mode === 'view' ? (
+					<ViewModeSection
+						routeHandlers={routeHandlers}
+						onMessage={onMessage}
+						routeListRefreshTrigger={routeListRefreshTrigger}
+					/>
+				) : (
+					<EditModeSection
+						points={points}
+						highlightedPointId={highlightedPointId}
+						pointHandlers={pointHandlers}
+						routeHandlers={routeHandlers}
+					/>
+				)}
+			</div>
 		</div>
 	);
 };
