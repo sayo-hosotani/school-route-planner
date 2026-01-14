@@ -5,6 +5,7 @@
 
 .tooltipComment {
 	font-size: var(--font-size-md);
+	font-weight: 600;
 	color: var(--color-text-primary);
 	word-break: keep-all;
 	overflow-wrap: break-word;
