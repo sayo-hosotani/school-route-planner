@@ -53,41 +53,6 @@
 	cursor: default;
 }
 
-.expandButton {
-	padding: 2px 6px;
-	font-size: var(--font-size-sm);
-	cursor: pointer;
-	background-color: transparent;
-	border: none;
-	color: var(--color-text-muted);
-}
-
-/* コメントエリア */
-.commentArea {
-	margin-bottom: var(--spacing-xs);
-	padding: var(--spacing-sm);
-	background-color: var(--color-bg-white);
-	border-radius: var(--radius-sm);
-}
-
-.commentText {
-	font-size: var(--font-size-sm);
-	color: var(--color-text-primary);
-	white-space: pre-wrap;
-}
-
-.commentTextarea {
-	width: 100%;
-	min-height: 60px;
-	padding: 6px;
-	font-size: var(--font-size-sm);
-	border: 1px solid var(--color-border-default);
-	border-radius: var(--radius-sm);
-	resize: vertical;
-	box-sizing: border-box;
-	margin-bottom: var(--spacing-xs);
-}
-
 /* 操作ボタン */
 .actions {
 	display: flex;

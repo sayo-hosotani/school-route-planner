@@ -3,14 +3,6 @@
 	max-width: 200px;
 }
 
-.tooltipTitle {
-	display: block;
-}
-
-.tooltipTitleWithComment {
-	margin-bottom: var(--spacing-xs);
-}
-
 .tooltipComment {
 	font-size: var(--font-size-md);
 	color: var(--color-text-primary);
