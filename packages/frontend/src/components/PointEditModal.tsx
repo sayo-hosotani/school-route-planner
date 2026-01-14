@@ -53,21 +53,9 @@ const PointEditModal = ({ point, onClose, onSave }: PointEditModalProps) => {
 		return null;
 	}
 
-	const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
-		// Enterキーでオーバーレイがクリックされないようにする
-		if (e.key === 'Enter') {
-			e.stopPropagation();
-		}
-	};
-
 	return (
-		<div
-			className={modalStyles.overlay}
-			onClick={onClose}
-			onKeyDown={handleOverlayKeyDown}
-			role="presentation"
-		>
-			<div className={modalStyles.content} onClick={(e) => e.stopPropagation()}>
+		<div className={modalStyles.overlay} role="presentation">
+			<div className={modalStyles.content}>
 				{/* コメント入力 */}
 				<div className={styles.section}>
 					<label htmlFor="comment" className={formStyles.label}>
