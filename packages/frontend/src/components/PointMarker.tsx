@@ -56,7 +56,7 @@ const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) 
 				click: handleClick,
 			}}
 		>
-			{!editMode && (
+			{!editMode && point.comment && (
 				<Tooltip
 					permanent
 					direction="top"
@@ -64,9 +64,7 @@ const PointMarker = ({ point, editMode, onDragEnd, onClick }: PointMarkerProps) 
 					className="point-tooltip"
 				>
 					<div className={styles.tooltipContent}>
-						{point.comment && (
-							<div className={styles.tooltipComment}>{point.comment}</div>
-						)}
+						<div className={styles.tooltipComment}>{point.comment}</div>
 					</div>
 				</Tooltip>
 			)}

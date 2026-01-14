@@ -30,8 +30,10 @@
   - `PointHandlers`, `RouteHandlers`型でグループ化
 - [x] カスタムフックの抽出
   - `useSavedRoutes`: フェッチ・削除ロジック
-  - `useCommentEditor`: コメント編集ロジック
-- [ ] コメント表示/編集周りのUIの改善検討
+- [x] コメント表示/編集周りのUIの改善
+  - 未使用コードの削除（`use-comment-editor.ts`、未使用CSSクラス）
+  - 編集モーダルのキーボード対応（Escape: 閉じる、Ctrl+S: 保存）
+  - 空Tooltipの改善（コメントがない場合は非表示）
 - [x] キーボードナビゲーション対応（Tab、Enter、Delete、矢印キー）
   - モード切り替え: 矢印キー（←→）対応、WAI-ARIAタブパネル実装
   - ポイント一覧: Enter（ハイライト）、E（編集）、Delete（削除）、↑↓（中継地点移動）
