@@ -5,44 +5,12 @@
 ## 作業方針
 - **タスクは1つずつ進める**: 完了するごとにユーザーが確認してコミットするため、複数タスクを一気に進めない
 
-## 1. UI/UX改善（優先度: 低）
-
-### 1.1. エラーハンドリング・ローディング ✅
-- [x] API呼び出しエラー時の表示
-- [x] バリデーションエラーの表示
-- [x] 経路生成中のインジケーター
-- [x] データ読み込み中のスケルトン表示
-
 ### 1.2. 新機能
 - [ ] 地図画像ダウンロード機能
   - 表示中の経路をPNG画像としてダウンロード
   - Scale以外のコントロール（Zoom、Coordinate、Attribution等）を非表示にして画像化
   - leaflet-imageやhtml2canvasなどのライブラリを検討
 - [ ] 経路上にポイントをフィットさせるボタンの追加
-
-### 1.3. サイドバーの改善 ✅
-- [x] 通常モードと編集モードでコンポーネントを分離
-  - `ViewModeSection.tsx`: 保存ボタン + 保存済み経路一覧
-  - `EditModeSection.tsx`: クリアボタン + ポイント一覧
-  - 通常モードではポイント一覧を非表示に変更
-- [x] propsの整理
-  - `SidebarProps`を14個→8個に削減
-  - `PointHandlers`, `RouteHandlers`型でグループ化
-- [x] カスタムフックの抽出
-  - `useSavedRoutes`: フェッチ・削除ロジック
-- [x] コメント表示/編集周りのUIの改善
-  - 未使用コードの削除（`use-comment-editor.ts`、未使用CSSクラス）
-  - 編集モーダルのキーボード対応（Escape: 閉じる、Ctrl+S: 保存）
-  - 空Tooltipの改善（コメントがない場合は非表示）
-  - モーダル外クリックでの誤閉じ防止
-- [x] キーボードナビゲーション対応（Tab、Enter、Delete、矢印キー）
-  - モード切り替え: 矢印キー（←→）対応、WAI-ARIAタブパネル実装
-  - ポイント一覧: Enter（ハイライト）、E（編集）、Delete（削除）、↑↓（中継地点移動）
-  - 保存済み経路: Tab/Enterでフォーカス・読み込み
-- [x] パフォーマンス最適化
-  - React.memoでコンポーネントをメモ化（PointItem, PointMarker, SavedRouteList, Sidebar, ViewModeSection, EditModeSection）
-  - useCallbackでハンドラー関数をメモ化（App.tsx内の全ハンドラー）
-  - useMemoでpointHandlers/routeHandlersオブジェクトをメモ化
 
 ## 2. 認証機能（優先度: 低）
 - [ ] ユーザー登録・ログイン画面

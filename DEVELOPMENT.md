@@ -75,8 +75,9 @@ npm run format                 # Biomeフォーマット
 2. `models/` に型を定義
 3. `repositories/` にデータアクセス層を実装
 4. `services/` にビジネスロジックを実装
-5. `routes/` にエンドポイントを定義
-6. `tests/` にテストを作成
+5. `controllers/` にハンドラーロジックを実装
+6. `routes/` にエンドポイント登録を追加
+7. `tests/` にテストを作成
 
 ### データベースマイグレーション
 
@@ -117,6 +118,59 @@ curl http://localhost:8002/status
 | 経路生成されない | `docker-compose up -d valhalla` で起動確認 |
 | 座標範囲外エラー | 関東地方の座標か確認 |
 | タイムアウト | Valhallaコンテナのリソース確認 |
+
+## フロントエンド構成
+
+### 主なコンポーネント
+
+| コンポーネント | 責務 |
+|--------------|------|
+| `App.tsx` | メインアプリケーション（モード管理、各種カスタムフック統合） |
+| `Sidebar.tsx` | モード切り替えと機能ボタン |
+| `ViewModeSection.tsx` | 通常モード用セクション（保存ボタン + 保存済み経路一覧） |
+| `EditModeSection.tsx` | 編集モード用セクション（クリアボタン + ポイント一覧） |
+| `PointItem.tsx` | ポイント項目のレンダリング |
+| `SavedRouteList.tsx` | 保存済み経路一覧 |
+| `PointEditModal.tsx` | ポイント編集モーダル（種別・コメント編集） |
+| `RouteNameModal.tsx` | 経路名入力モーダル |
+| `LoadingOverlay.tsx` | ローディングインジケーター |
+| `MessageDisplay.tsx` | 画面中央上部のメッセージ表示 |
+| `MapClickHandler.tsx` | 地図クリックイベント処理（編集モード時のみ） |
+| `PointMarker.tsx` | 地図上のポイントマーカー（ドラッグ・クリック対応） |
+| `RouteLine.tsx` | 経路ライン表示 |
+| `CoordinateDisplay.tsx` | 座標・ズーム表示 |
+| `FitBounds.tsx` | 経路全体を画面に収める |
+| `MapCenter.tsx` | 地図の中心を変更 |
+
+### カスタムフック
+
+| フック | 責務 |
+|--------|------|
+| `usePoints` | ポイント状態管理（追加・更新・削除・移動・検索） |
+| `useRouteGeneration` | Valhalla経路生成・フォールバック処理 |
+| `useMessage` | メッセージ表示・自動消去 |
+| `useModal` | モーダル開閉状態管理（ジェネリック対応） |
+| `useSavedRoutes` | 保存済み経路のフェッチ・削除ロジック |
+
+### Context
+
+| Context | 責務 |
+|---------|------|
+| `PointContext` | ポイント・経路の状態と操作関数 |
+| `AppContext` | アプリ全体の状態（モード・メッセージ・ハイライト・地図中心・ローディング） |
+
+### ユーティリティ・定数
+
+| ファイル | 内容 |
+|----------|------|
+| `utils/error-handler.ts` | 共通エラーハンドリング関数 |
+| `utils/point-utils.ts` | ポイント関連ヘルパー関数 |
+| `api/errors.ts` | カスタムApiErrorクラス |
+| `api/client.ts` | 共通fetchラッパー |
+| `constants/map-config.ts` | 地図設定定数 |
+| `constants/colors.ts` | カラーコード定数 |
+| `types/handlers.ts` | ハンドラ関数の型定義 |
+| `types/common.ts` | 共通型（AppMode, MessageType） |
 
 ## コーディング規約詳細
 

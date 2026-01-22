@@ -17,23 +17,29 @@ OpenStreetMap上で経路を作成・保存できるWebアプリケーション�
 ```
 packages/
 ├── backend/src/
-│   ├── routes/        # APIエンドポイント
+│   ├── routes/        # ルーティング登録
+│   ├── controllers/   # リクエスト/レスポンス処理
 │   ├── services/      # ビジネスロジック
 │   ├── repositories/  # データアクセス層
 │   └── database/      # DB設定・マイグレーション
 └── frontend/src/
     ├── components/    # Reactコンポーネント
+    ├── contexts/      # Context API
     ├── hooks/         # カスタムフック
-    └── api/           # APIクライアント
+    ├── api/           # APIクライアント
+    ├── utils/         # ユーティリティ関数
+    ├── constants/     # 定数
+    ├── types/         # 型定義
+    └── styles/        # 共通スタイル（CSS Modules）
 ```
 
-## アーキテクチャ（3層構造）
+## アーキテクチャ（4層構造）
 
 ```
-Routes → Services → Repositories → PostgreSQL
+Routes → Controllers → Services → Repositories → PostgreSQL
 ```
 
-**ルール**: 依存は一方向のみ。RouteでDB直接アクセス禁止。
+**ルール**: 依存は一方向のみ。ControllerでDB直接アクセス禁止。
 
 ## コーディング規約
 
@@ -93,7 +99,7 @@ interface Point {
 
 ## 開発時の注意
 
-1. **レイヤー分離厳守**: Routes→Services→Repositories
+1. **レイヤー分離厳守**: Routes→Controllers→Services→Repositories
 2. **型安全**: Kyselyの型推論活用、スキーマバリデーション必須
 3. **座標バリデーション**: 緯度 -90〜90、経度 -180〜180
 4. **エラーハンドリング**: 全async処理でtry-catch

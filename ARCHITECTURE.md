@@ -1,14 +1,16 @@
 # アーキテクチャ詳細
 
-## レイヤードアーキテクチャ（3層構造）
+## レイヤードアーキテクチャ（4層構造）
 
 ```
 ┌─────────────────────────────────────┐
-│  Presentation Layer (Routes)        │  ← HTTPリクエスト/レスポンス処理
+│  Routes (index.ts)                  │  ← ルーティング登録のみ
 ├─────────────────────────────────────┤
-│  Business Logic Layer (Services)    │  ← ビジネスロジック
+│  Controllers (route-controller.ts)  │  ← HTTPリクエスト/レスポンス処理
 ├─────────────────────────────────────┤
-│  Data Access Layer (Repositories)   │  ← データベースアクセス
+│  Services                           │  ← ビジネスロジック
+├─────────────────────────────────────┤
+│  Repositories                       │  ← データベースアクセス
 └─────────────────────────────────────┘
            ↓
       PostgreSQL
@@ -16,7 +18,11 @@
 
 ### 各層の責務
 
-#### Routes（プレゼンテーション層）
+#### Routes（ルーティング層）
+- エンドポイントの登録のみ
+- Controllerへの委譲
+
+#### Controllers（プレゼンテーション層）
 - HTTPリクエストの受け取りとバリデーション
 - レスポンスの整形と返却
 - 認証・認可のチェック
@@ -35,7 +41,7 @@
 - **禁止**: ビジネスロジック
 
 ### 依存関係ルール
-- Routes → Services → Repositories の一方向のみ
+- Routes → Controllers → Services → Repositories の一方向のみ
 - 下位層が上位層に依存してはいけない
 - 同じ層同士の依存は最小限に
 
@@ -136,9 +142,12 @@ interface Route {
 
 ```
 App.tsx
+├── LoadingOverlay.tsx
 ├── Sidebar.tsx
-│   ├── PointItem.tsx
-│   └── SavedRouteList.tsx
+│   ├── ViewModeSection.tsx
+│   │   └── SavedRouteList.tsx
+│   ├── EditModeSection.tsx
+│   │   └── PointItem.tsx
 ├── PointEditModal.tsx
 ├── RouteNameModal.tsx
 ├── MessageDisplay.tsx
@@ -159,6 +168,7 @@ App.tsx
 | `useRouteGeneration` | Valhalla経路生成、エラー時は直線接続にフォールバック |
 | `useMessage` | メッセージ表示・自動消去（3秒後） |
 | `useModal` | モーダル開閉状態管理（ジェネリック対応） |
+| `useSavedRoutes` | 保存済み経路のフェッチ・削除ロジック |
 
 ### 定数ファイル
 
@@ -173,7 +183,7 @@ App.tsx
 | Context | 責務 |
 |---------|------|
 | `PointContext` | ポイント・経路の状態と操作関数（追加・更新・削除・移動・読み込み） |
-| `AppContext` | アプリ全体の状態（モード・メッセージ・ハイライト・地図中心） |
+| `AppContext` | アプリ全体の状態（モード・メッセージ・ハイライト・地図中心・ローディング） |
 
 ```
 App (AppProvider)
@@ -182,6 +192,38 @@ App (AppProvider)
            ├── Sidebar (useAppContext, propsで操作関数を受け取る)
            └── MapContainer (usePointContext)
 ```
+
+### ユーティリティ
+
+| ファイル | 責務 |
+|----------|------|
+| `utils/error-handler.ts` | 共通エラーハンドリング（handleAsyncOperation, handleApiResult） |
+| `utils/point-utils.ts` | ポイント関連ヘルパー（getPointTypeLabel, getDisplayTitle） |
+| `api/errors.ts` | カスタムApiErrorクラス |
+| `api/client.ts` | 共通fetchラッパー（get, post, del） |
+
+### 定数
+
+| ファイル | 内容 |
+|----------|------|
+| `constants/map-config.ts` | 地図設定（DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL, MESSAGE_TIMEOUT_MS, HIGHLIGHT_TIMEOUT_MS） |
+| `constants/colors.ts` | カラーコード定数 |
+
+### スタイリング
+
+CSS Modulesを採用。設計トークンはCSS変数で管理。
+
+```
+styles/
+├── variables.css          # 設計トークン（色、スペーシング等）
+└── shared/
+    ├── buttons.module.css # ボタン共通スタイル
+    ├── modal.module.css   # モーダル共通スタイル
+    ├── forms.module.css   # フォーム共通スタイル
+    └── cards.module.css   # カード共通スタイル
+```
+
+- 条件付きクラス結合: `clsx`ライブラリを使用
 
 ## セキュリティ設計
 
