@@ -12,13 +12,6 @@
 - [ ] Docker Compose からPostgreSQL削除
   - `docker-compose.yml` 更新（Valhallaのみ残す）
 
-### 1.2. フロントエンドの経路保存機能変更
-- [ ] DB保存機能を削除
-  - `api/route-api.ts` のDB関連API呼び出し削除
-  - `SavedRouteList.tsx` 削除または改修
-  - `useSavedRoutes` フック削除
-- [ ] 経路一覧のすべての経路をJSONファイルとしてエクスポート/インポートする機能を追加（インポートは追加インポート。インポート時に既に経路一覧に経路があったら、追加済み経路の後ろか前に入れる）
-
 ## 2. UI/UX改善（優先度: 低）
 
 ### 2.1. 新機能

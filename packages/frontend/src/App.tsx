@@ -55,6 +55,11 @@ const AppContent = () => {
 	// 経路一覧の更新トリガー
 	const [routeListRefreshTrigger, setRouteListRefreshTrigger] = useState(0);
 
+	// 経路一覧を更新
+	const handleRefreshRouteList = useCallback(() => {
+		setRouteListRefreshTrigger((prev) => prev + 1);
+	}, []);
+
 	// 地図クリックでポイント追加
 	const handleMapClick = useCallback(async (lat: number, lng: number) => {
 		await addPoint(lat, lng);
@@ -186,6 +191,7 @@ const AppContent = () => {
 				routeHandlers={routeHandlers}
 				onMessage={showMessage}
 				routeListRefreshTrigger={routeListRefreshTrigger}
+				onRefreshRouteList={handleRefreshRouteList}
 			/>
 
 			{/* 経路名入力モーダル */}

@@ -16,6 +16,7 @@ interface SidebarProps {
 	routeHandlers: RouteHandlers;
 	onMessage: (message: string, type?: 'success' | 'error') => void;
 	routeListRefreshTrigger?: number;
+	onRefreshRouteList: () => void;
 }
 
 const Sidebar = memo(({
@@ -27,6 +28,7 @@ const Sidebar = memo(({
 	routeHandlers,
 	onMessage,
 	routeListRefreshTrigger,
+	onRefreshRouteList,
 }: SidebarProps) => {
 	const handleModeKeyDown = useCallback((e: React.KeyboardEvent) => {
 		if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -84,6 +86,7 @@ const Sidebar = memo(({
 						routeHandlers={routeHandlers}
 						onMessage={onMessage}
 						routeListRefreshTrigger={routeListRefreshTrigger}
+						onRefreshRouteList={onRefreshRouteList}
 					/>
 				) : (
 					<EditModeSection

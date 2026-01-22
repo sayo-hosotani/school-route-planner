@@ -1,5 +1,4 @@
 import type { RouteData } from '../types/route';
-import { del, get, post } from './client';
 import {
 	generateRoute as valhallaGenerateRoute,
 	type Point,
@@ -8,29 +7,16 @@ import {
 
 export type { Point, RouteResult };
 
+// ローカルストレージのキー
+const STORAGE_KEY = 'route-planner-saved-routes';
+
 export interface SavedRoute {
 	id: string;
-	user_id: string;
 	name: string;
-	route_data: RouteResult;
+	routeLine: [number, number][]; // [lat, lng] 形式で保存
+	points: RouteData['points'];
 	created_at: string;
 	updated_at: string;
-}
-
-interface SaveRouteRequest {
-	name: string;
-	points: Array<{
-		lat: number;
-		lng: number;
-		type: string;
-		order: number;
-		comment: string;
-	}>;
-}
-
-interface RouteDetailResponse {
-	route: SavedRoute;
-	points: RouteData['points'];
 }
 
 /**
@@ -41,52 +27,77 @@ export async function generateRoute(points: Point[]): Promise<RouteResult> {
 }
 
 /**
+ * ローカルストレージから全経路を取得
+ */
+function getStoredRoutes(): SavedRoute[] {
+	try {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		if (!stored) return [];
+		return JSON.parse(stored) as SavedRoute[];
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * ローカルストレージに経路を保存
+ */
+function setStoredRoutes(routes: SavedRoute[]): void {
+	localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+}
+
+/**
  * 経路データを保存する
  */
 export async function saveRoute(routeData: RouteData, routeName: string): Promise<void> {
-	const requestBody: SaveRouteRequest = {
+	const routes = getStoredRoutes();
+	const now = new Date().toISOString();
+
+	const newRoute: SavedRoute = {
+		id: crypto.randomUUID(),
 		name: routeName,
-		points: routeData.points.map((p) => ({
-			lat: p.lat,
-			lng: p.lng,
-			type: p.type,
-			order: p.order,
-			comment: p.comment || '',
-		})),
+		routeLine: routeData.routeLine,
+		points: routeData.points,
+		created_at: now,
+		updated_at: now,
 	};
 
-	await post<unknown, SaveRouteRequest>('/routes', requestBody);
+	routes.push(newRoute);
+	setStoredRoutes(routes);
 }
 
 /**
  * すべての保存済み経路を取得
  */
 export async function getAllRoutes(): Promise<SavedRoute[]> {
-	const data = await get<SavedRoute[]>('/routes');
-	return data || [];
+	return getStoredRoutes();
 }
 
 /**
  * 特定の経路を削除
  */
 export async function deleteRoute(routeId: string): Promise<void> {
-	await del(`/routes/${routeId}`);
+	const routes = getStoredRoutes();
+	const filtered = routes.filter((r) => r.id !== routeId);
+	setStoredRoutes(filtered);
 }
 
 /**
  * 特定の経路を読み込む
  */
 export async function loadRouteById(routeId: string): Promise<RouteData> {
-	const result = await get<RouteDetailResponse>(`/routes/${routeId}`);
+	const routes = getStoredRoutes();
+	const route = routes.find((r) => r.id === routeId);
+
+	if (!route) {
+		throw new Error('経路が見つかりません');
+	}
 
 	return {
-		points: result.points || [],
-		routeLine: result.route.route_data.coordinates.map(([lng, lat]: [number, number]) => [
-			lat,
-			lng,
-		]),
-		created_at: result.route.created_at,
-		updated_at: result.route.updated_at,
+		points: route.points,
+		routeLine: route.routeLine,
+		created_at: route.created_at,
+		updated_at: route.updated_at,
 	};
 }
 
@@ -102,6 +113,42 @@ export async function loadRoute(): Promise<RouteData | null> {
 
 	const latestRoute = routes[routes.length - 1];
 
-	// 特定の経路のポイントを取得
 	return loadRouteById(latestRoute.id);
+}
+
+/**
+ * 経路をJSONファイルとしてエクスポート
+ */
+export function exportRoutesToJson(): string {
+	const routes = getStoredRoutes();
+	return JSON.stringify(routes, null, 2);
+}
+
+/**
+ * JSONファイルから経路をインポート（既存経路の後ろに追加）
+ */
+export function importRoutesFromJson(jsonString: string, position: 'before' | 'after' = 'after'): number {
+	const importedRoutes = JSON.parse(jsonString) as SavedRoute[];
+
+	if (!Array.isArray(importedRoutes)) {
+		throw new Error('無効なJSONフォーマットです');
+	}
+
+	// IDを再生成して重複を防ぐ
+	const now = new Date().toISOString();
+	const routesWithNewIds = importedRoutes.map((route) => ({
+		...route,
+		id: crypto.randomUUID(),
+		updated_at: now,
+	}));
+
+	const existingRoutes = getStoredRoutes();
+
+	const mergedRoutes = position === 'before'
+		? [...routesWithNewIds, ...existingRoutes]
+		: [...existingRoutes, ...routesWithNewIds];
+
+	setStoredRoutes(mergedRoutes);
+
+	return routesWithNewIds.length;
 }

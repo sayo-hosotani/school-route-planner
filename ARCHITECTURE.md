@@ -22,7 +22,8 @@
 - バックエンドサーバーなし
 - データベースなし
 - ユーザー認証なし
-- 経路データはブラウザ内で管理（将来的にローカルストレージやファイルエクスポート対応可能）
+- 経路データはブラウザのローカルストレージで管理
+- JSONファイルによる経路のエクスポート/インポート機能
 
 ## フロントエンド設計
 
@@ -98,6 +99,7 @@ App (AppProvider)
 | `utils/error-handler.ts` | 共通エラーハンドリング（handleAsyncOperation, handleApiResult） |
 | `utils/point-utils.ts` | ポイント関連ヘルパー（getPointTypeLabel, getDisplayTitle） |
 | `api/valhalla-client.ts` | Valhalla API呼び出し |
+| `api/route-api.ts` | 経路データ管理（ローカルストレージ、エクスポート/インポート） |
 
 ### 定数
 
@@ -160,7 +162,27 @@ interface Point {
   order: number;
   comment: string;
 }
+
+interface SavedRoute {
+  id: string;
+  name: string;
+  routeLine: [number, number][]; // [lat, lng] 形式
+  points: Point[];
+  created_at: string;
+  updated_at: string;
+}
 ```
+
+## 経路データ管理
+
+### ローカルストレージ
+- キー: `route-planner-saved-routes`
+- 形式: `SavedRoute[]` のJSON文字列
+
+### エクスポート/インポート
+- **エクスポート**: 保存済み経路一覧をJSONファイルとしてダウンロード
+- **インポート**: JSONファイルを読み込み、既存経路の後ろに追加
+  - インポート時はIDが再生成されるため、同じファイルを複数回インポート可能
 
 ## エラーハンドリング
 
