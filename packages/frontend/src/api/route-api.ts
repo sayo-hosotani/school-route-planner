@@ -1,22 +1,12 @@
 import type { RouteData } from '../types/route';
 import { del, get, post } from './client';
+import {
+	generateRoute as valhallaGenerateRoute,
+	type Point,
+	type RouteResult,
+} from './valhalla-client';
 
-export interface Point {
-	lat: number;
-	lng: number;
-	order: number;
-}
-
-export interface RouteResult {
-	coordinates: Array<[number, number]>; // [lng, lat] の配列（GeoJSON形式）
-	distance: number; // キロメートル
-	duration: number; // 秒
-	summary: {
-		has_toll: boolean;
-		has_highway: boolean;
-		has_ferry: boolean;
-	};
-}
+export type { Point, RouteResult };
 
 export interface SavedRoute {
 	id: string;
@@ -25,10 +15,6 @@ export interface SavedRoute {
 	route_data: RouteResult;
 	created_at: string;
 	updated_at: string;
-}
-
-interface GenerateRouteRequest {
-	points: Point[];
 }
 
 interface SaveRouteRequest {
@@ -48,10 +34,10 @@ interface RouteDetailResponse {
 }
 
 /**
- * ポイントから経路を生成する（Valhalla API経由）
+ * ポイントから経路を生成する（Valhalla APIを直接呼び出し）
  */
 export async function generateRoute(points: Point[]): Promise<RouteResult> {
-	return post<RouteResult, GenerateRouteRequest>('/routes/generate', { points });
+	return valhallaGenerateRoute(points);
 }
 
 /**
