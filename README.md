@@ -155,7 +155,7 @@ npm install
 ### 3. アプリケーションの起動
 
 ```bash
-npm run dev --workspace=@route-planner/frontend
+npm run dev
 ```
 
 - **フロントエンド**: http://localhost:5173
@@ -164,8 +164,8 @@ npm run dev --workspace=@route-planner/frontend
 ## 開発コマンド
 
 ```bash
-# フロントエンド起動
-npm run dev --workspace=@route-planner/frontend
+# 開発サーバー起動
+npm run dev
 
 # テスト実行
 npm run test

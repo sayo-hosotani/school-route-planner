@@ -17,7 +17,7 @@ npm install
 docker-compose up -d valhalla
 
 # 開発サーバー起動
-npm run dev --workspace=@route-planner/frontend
+npm run dev
 ```
 
 ### 開発用URL
@@ -29,7 +29,7 @@ npm run dev --workspace=@route-planner/frontend
 ### 開発
 
 ```bash
-npm run dev --workspace=@route-planner/frontend    # フロントエンド起動
+npm run dev    # 開発サーバー起動
 ```
 
 ### Docker

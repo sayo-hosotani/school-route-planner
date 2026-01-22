@@ -14,16 +14,15 @@ OpenStreetMap上で経路を作成できるWebアプリケーション（フロ�
 ## プロジェクト構成
 
 ```
-packages/
-└── frontend/src/
-    ├── components/    # Reactコンポーネント
-    ├── contexts/      # Context API
-    ├── hooks/         # カスタムフック
-    ├── api/           # APIクライアント（Valhalla）
-    ├── utils/         # ユーティリティ関数
-    ├── constants/     # 定数
-    ├── types/         # 型定義
-    └── styles/        # 共通スタイル（CSS Modules）
+src/
+├── components/    # Reactコンポーネント
+├── contexts/      # Context API
+├── hooks/         # カスタムフック
+├── api/           # APIクライアント（Valhalla）
+├── utils/         # ユーティリティ関数
+├── constants/     # 定数
+├── types/         # 型定義
+└── styles/        # 共通スタイル（CSS Modules）
 ```
 
 ## アーキテクチャ
@@ -61,7 +60,7 @@ React App → Valhalla API (Docker)
 
 ```bash
 # 開発
-npm run dev --workspace=@route-planner/frontend    # フロントエンド起動
+npm run dev    # 開発サーバー起動
 
 # Docker
 docker-compose up -d valhalla  # Valhalla起動
