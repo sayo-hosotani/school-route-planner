@@ -1,127 +1,28 @@
 # アーキテクチャ詳細
 
-## レイヤードアーキテクチャ（4層構造）
+## システム構成
+
+フロントエンドのみの構成。経路計算はValhalla APIに直接リクエスト。
 
 ```
 ┌─────────────────────────────────────┐
-│  Routes (index.ts)                  │  ← ルーティング登録のみ
-├─────────────────────────────────────┤
-│  Controllers (route-controller.ts)  │  ← HTTPリクエスト/レスポンス処理
-├─────────────────────────────────────┤
-│  Services                           │  ← ビジネスロジック
-├─────────────────────────────────────┤
-│  Repositories                       │  ← データベースアクセス
+│  React App (Frontend)               │
+│  - 地図表示・操作                    │
+│  - ポイント管理                      │
+│  - 経路表示                          │
 └─────────────────────────────────────┘
-           ↓
-      PostgreSQL
+           ↓ HTTP
+┌─────────────────────────────────────┐
+│  Valhalla API (Docker)              │
+│  - 経路計算                          │
+└─────────────────────────────────────┘
 ```
 
-### 各層の責務
-
-#### Routes（ルーティング層）
-- エンドポイントの登録のみ
-- Controllerへの委譲
-
-#### Controllers（プレゼンテーション層）
-- HTTPリクエストの受け取りとバリデーション
-- レスポンスの整形と返却
-- 認証・認可のチェック
-- **禁止**: ビジネスロジックやDB直接アクセス
-
-#### Services（ビジネスロジック層）
-- ビジネスルールの実装
-- トランザクション管理
-- 複数Repositoryの組み合わせ
-- 外部API連携（Valhalla等）
-- **禁止**: HTTP依存のコード
-
-#### Repositories（データアクセス層）
-- Kyselyを使ったDBクエリ
-- CRUD操作
-- **禁止**: ビジネスロジック
-
-### 依存関係ルール
-- Routes → Controllers → Services → Repositories の一方向のみ
-- 下位層が上位層に依存してはいけない
-- 同じ層同士の依存は最小限に
-
-### データフロー例
-
-```typescript
-// 1. Route: リクエストを受け取る
-app.post('/users', async (request, reply) => {
-  const userData = request.body;
-  const user = await userService.createUser(userData);
-  return reply.status(201).send(user);
-});
-
-// 2. Service: ビジネスロジックを実行
-async function createUser(userData: CreateUserDto) {
-  const hashedPassword = await hash(userData.password);
-  return await userRepository.insert({ ...userData, password: hashedPassword });
-}
-
-// 3. Repository: データベースアクセス
-async function insert(user: User) {
-  return await db.insertInto('users').values(user).returningAll().executeTakeFirst();
-}
-```
-
-## データベース設計
-
-### テーブル構成
-
-```
-users
-├── id (UUID, PK)
-├── email
-├── password_hash
-├── created_at
-└── updated_at
-
-routes
-├── id (UUID, PK)
-├── user_id (FK → users)
-├── name
-├── route_data (JSONB)
-├── created_at
-└── updated_at
-
-points
-├── id (UUID, PK)
-├── route_id (FK → routes)
-├── lat
-├── lng
-├── type ('start' | 'waypoint' | 'goal')
-├── order
-├── comment
-├── created_at
-└── updated_at
-```
-
-### 型定義
-
-```typescript
-interface Point {
-  id: string;
-  lat: number;
-  lng: number;
-  type: 'start' | 'waypoint' | 'goal';
-  order: number;
-  comment: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Route {
-  id: string;
-  user_id: string;
-  name: string;
-  route_data: object;
-  created_at: string;
-  updated_at: string;
-}
-```
+### 特徴
+- バックエンドサーバーなし
+- データベースなし
+- ユーザー認証なし
+- 経路データはブラウザ内で管理（将来的にローカルストレージやファイルエクスポート対応可能）
 
 ## フロントエンド設計
 
@@ -129,7 +30,7 @@ interface Route {
 
 | モード | 目的 | 主な機能 |
 |--------|------|---------|
-| 通常モード | 経路閲覧 | 地図閲覧、ポイント表示、経路読み込み・保存 |
+| 通常モード | 経路閲覧 | 地図閲覧、ポイント表示 |
 | 編集モード | 経路編集 | ポイント追加・移動・削除、自動経路生成 |
 
 ### ポイント種別の自動判定
@@ -145,11 +46,9 @@ App.tsx
 ├── LoadingOverlay.tsx
 ├── Sidebar.tsx
 │   ├── ViewModeSection.tsx
-│   │   └── SavedRouteList.tsx
 │   ├── EditModeSection.tsx
 │   │   └── PointItem.tsx
 ├── PointEditModal.tsx
-├── RouteNameModal.tsx
 ├── MessageDisplay.tsx
 └── MapContainer
     ├── MapClickHandler.tsx
@@ -168,7 +67,6 @@ App.tsx
 | `useRouteGeneration` | Valhalla経路生成、エラー時は直線接続にフォールバック |
 | `useMessage` | メッセージ表示・自動消去（3秒後） |
 | `useModal` | モーダル開閉状態管理（ジェネリック対応） |
-| `useSavedRoutes` | 保存済み経路のフェッチ・削除ロジック |
 
 ### 定数ファイル
 
@@ -182,7 +80,7 @@ App.tsx
 
 | Context | 責務 |
 |---------|------|
-| `PointContext` | ポイント・経路の状態と操作関数（追加・更新・削除・移動・読み込み） |
+| `PointContext` | ポイント・経路の状態と操作関数（追加・更新・削除・移動） |
 | `AppContext` | アプリ全体の状態（モード・メッセージ・ハイライト・地図中心・ローディング） |
 
 ```
@@ -199,8 +97,7 @@ App (AppProvider)
 |----------|------|
 | `utils/error-handler.ts` | 共通エラーハンドリング（handleAsyncOperation, handleApiResult） |
 | `utils/point-utils.ts` | ポイント関連ヘルパー（getPointTypeLabel, getDisplayTitle） |
-| `api/errors.ts` | カスタムApiErrorクラス |
-| `api/client.ts` | 共通fetchラッパー（get, post, del） |
+| `api/valhalla-client.ts` | Valhalla API呼び出し |
 
 ### 定数
 
@@ -225,37 +122,49 @@ styles/
 
 - 条件付きクラス結合: `clsx`ライブラリを使用
 
-## セキュリティ設計
+## Valhalla API連携
 
-### 認証（未実装）
-- 将来: JWT認証を実装予定
-- 現状: 仮ユーザーID（`TEMPORARY_USER_ID`）を使用
+### 基本情報
+- エンドポイント: `http://localhost:8002`
+- データ: 関東地方のOSMデータ
+- フロントエンドから直接呼び出し
 
-### 認可
-- Repository層で必ず`user_id`でフィルタリング
-- ユーザーは自分のデータのみアクセス可能
-
-### バリデーション
-- Fastifyスキーマバリデーション使用
-- 座標: 緯度 -90〜90、経度 -180〜180
-- SQLインジェクション対策: Kyselyパラメータバインディング
-- XSS対策: Reactの自動エスケープ
-
-## エラーハンドリング
-
-### レスポンス形式
+### リクエスト例
 
 ```typescript
-{
-  error: {
-    message: "ユーザーフレンドリーなメッセージ",
-    code: "ERROR_CODE",
-    statusCode: 400
-  }
+// フロントエンドからの呼び出し
+const response = await fetch('http://localhost:8002/route', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    locations: [
+      { lat: 35.681236, lon: 139.767125 },
+      { lat: 35.689729, lon: 139.700294 }
+    ],
+    costing: 'auto'
+  })
+});
+```
+
+### エラー時のフォールバック
+- Valhalla APIが利用できない場合、ポイント間を直線で接続
+
+## データ型定義
+
+```typescript
+interface Point {
+  id: string;
+  lat: number;
+  lng: number;
+  type: 'start' | 'waypoint' | 'goal';
+  order: number;
+  comment: string;
 }
 ```
 
+## エラーハンドリング
+
 ### ルール
-- 400系: クライアントエラー（詳細を返す）
-- 500系: サーバーエラー（詳細は隠す）
 - 全async処理でtry-catch必須
+- Valhalla APIエラー時は直線接続にフォールバック
+- ユーザーにはメッセージ表示で通知

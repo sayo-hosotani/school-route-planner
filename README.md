@@ -1,27 +1,25 @@
 # Route Planner
 
-OpenStreetMapを使った経路プランニングアプリケーション。
+OpenStreetMapを使った経路プランニングアプリケーション（フロントエンドのみ）。
 
 ## 特徴
 
 - スタート・ゴール・中継地点を地図上に配置
-- Valhalla APIによる道路沿い経路の自動生成
+- Valhalla APIによる道路沿い経路の自動生成（フロントエンドから直接呼び出し）
 - ポイントごとのコメント追加機能
-- 経路の保存・読み込み機能
+- バックエンド不要のシンプルな構成
 
 ## 画面モード
 
 ### 通常モード（View Mode）
 
-**目的**: 経路の閲覧と保存済みデータの管理
+**目的**: 経路の閲覧
 
 | 機能 | 説明 |
 |------|------|
 | 地図閲覧 | 移動・ズーム |
 | ポイント表示 | コメントを吹き出し（Tooltip）で常時表示 |
 | サイドバー操作 | ポイントクリック→地図中心に移動＋ハイライト（3秒間） |
-| 経路保存 | 経路名入力モーダル→DB保存 |
-| 経路管理 | 一覧表示、読み込み、削除 |
 
 ### 編集モード（Edit Mode）
 
@@ -61,28 +59,6 @@ OpenStreetMapを使った経路プランニングアプリケーション。
 
 ## コメント機能
 
-### タイトル自動生成
-
-ポイントには`comment`フィールドのみがあり、タイトルは自動生成される：
-
-| 条件 | タイトル |
-|------|---------|
-| コメントに改行あり | 1行目 |
-| 改行なし | 最初の16文字 |
-| コメント空 | デフォルトラベル（スタート、中継地点n、ゴール） |
-
-**推奨形式:**
-```
-タイトル部分（16文字以内）
-詳細な説明や補足情報
-```
-
-**例:**
-```
-自宅
-スタート地点です
-```
-
 ### 表示箇所
 - サイドバーのポイント一覧
 - 地図上の吹き出し（通常モード）
@@ -94,10 +70,6 @@ OpenStreetMapを使った経路プランニングアプリケーション。
 ```
 ┌─────────────────────────────────────┐
 │ [通常モード] [編集モード]           │
-├─────────────────────────────────────┤
-│ 【通常モード時】                    │
-│ ・現在の経路を保存                  │
-│ ・保存済み経路一覧（読み込み/削除） │
 ├─────────────────────────────────────┤
 │ 【編集モード時】                    │
 │ ・全ポイントをクリア                │
@@ -130,14 +102,12 @@ OpenStreetMapを使った経路プランニングアプリケーション。
 4. ドラッグで位置調整（終了時に経路再生成）
 5. ↑↓ボタンで中継地点の順序変更
 6. 通常モードに戻る
-7. 「現在の経路を保存」で保存
 
 ### 経路閲覧（通常モード）
 
 1. 通常モードで起動
-2. 保存済み経路一覧から選択
-3. 地図にポイントと経路が表示
-4. ポイント上にコメントが吹き出しで表示
+2. 地図にポイントと経路が表示
+3. ポイント上にコメントが吹き出しで表示
 
 ## 経路生成の条件
 
@@ -158,27 +128,17 @@ OpenStreetMapを使った経路プランニングアプリケーション。
 ## 技術スタック
 
 - **フロントエンド**: React + TypeScript + Vite + React Leaflet
-- **バックエンド**: Fastify + TypeScript
-- **データベース**: PostgreSQL + Kysely
-- **経路計算**: Valhalla (Docker)
+- **経路計算**: Valhalla (Docker) - フロントエンドから直接呼び出し
 - **地図タイル**: 国土地理院 地理院タイル
 
 ## セットアップ
 
-### 1. 環境変数の設定
+### 1. Docker環境の起動
 
-`.env.example`をコピーして`.env`を作成:
-
-```bash
-cp .env.example .env
-```
-
-### 2. Docker環境の起動
-
-PostgreSQLとValhallaをDockerで起動:
+Valhallaを起動:
 
 ```bash
-docker-compose up -d
+docker-compose up -d valhalla
 ```
 
 **初回起動時の注意:**
@@ -186,34 +146,26 @@ docker-compose up -d
 - 関東地方のデータで約10-20分かかります
 - `docker-compose logs -f valhalla`でログを確認できます
 
-### 3. 依存パッケージのインストール
+### 2. 依存パッケージのインストール
 
 ```bash
 npm install
 ```
 
-### 4. データベースセットアップ
+### 3. アプリケーションの起動
 
 ```bash
-npm run migrate --workspace=@route-planner/backend
-npm run seed --workspace=@route-planner/backend
-```
-
-### 5. アプリケーションの起動
-
-```bash
-npm run dev:all
+npm run dev --workspace=@route-planner/frontend
 ```
 
 - **フロントエンド**: http://localhost:5173
-- **バックエンド**: http://localhost:3000
 - **Valhalla API**: http://localhost:8002
 
 ## 開発コマンド
 
 ```bash
-# フロントエンドとバックエンドを同時起動
-npm run dev:all
+# フロントエンド起動
+npm run dev --workspace=@route-planner/frontend
 
 # テスト実行
 npm run test
@@ -231,7 +183,6 @@ npm run format
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | アーキテクチャ詳細 |
 | [DEVELOPMENT.md](./DEVELOPMENT.md) | 開発ガイド |
 | [TODO.md](./TODO.md) | 未完了タスク |
-| [DONE.md](./DONE.md) | 完了済みタスク |
 
 ## トラブルシューティング
 
@@ -239,10 +190,16 @@ npm run format
 
 1. ログを確認: `docker-compose logs -f valhalla`
 2. ディスク容量を確認（最低5GB以上の空き容量が必要）
-3. ボリュームを削除して再起動: `docker-compose down -v && docker-compose up -d`
+3. ボリュームを削除して再起動: `docker-compose down -v && docker-compose up -d valhalla`
 
 ### 経路生成がエラーになる
 
 1. Valhallaのステータス確認: `curl http://localhost:8002/status`
 2. タイル生成が完了しているか確認
 3. 指定した座標が地図データの範囲内か確認（関東地方外の場合はエラー）
+
+### CORSエラーが発生する
+
+フロントエンドからValhallaへの直接リクエストでCORSエラーが発生する場合:
+1. Valhallaの設定でCORSを許可
+2. または開発時はViteのプロキシ設定を使用

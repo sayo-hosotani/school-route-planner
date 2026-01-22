@@ -1,88 +1,71 @@
 # Route Planner
 
-OpenStreetMap上で経路を作成・保存できるWebアプリケーション。
+OpenStreetMap上で経路を作成できるWebアプリケーション（フロントエンドのみ）。
 
 > 詳細: [ARCHITECTURE.md](./ARCHITECTURE.md) | [DEVELOPMENT.md](./DEVELOPMENT.md)
 
 ## 技術スタック
 
 - **言語**: TypeScript
-- **バックエンド**: Fastify, Kysely, PostgreSQL
 - **フロントエンド**: React, Vite, React Leaflet
-- **経路計算**: Valhalla (Docker)
+- **経路計算**: Valhalla (Docker) - フロントエンドから直接呼び出し
 - **ツール**: Biome, Vitest
 
 ## プロジェクト構成
 
 ```
 packages/
-├── backend/src/
-│   ├── routes/        # ルーティング登録
-│   ├── controllers/   # リクエスト/レスポンス処理
-│   ├── services/      # ビジネスロジック
-│   ├── repositories/  # データアクセス層
-│   └── database/      # DB設定・マイグレーション
 └── frontend/src/
     ├── components/    # Reactコンポーネント
     ├── contexts/      # Context API
     ├── hooks/         # カスタムフック
-    ├── api/           # APIクライアント
+    ├── api/           # APIクライアント（Valhalla）
     ├── utils/         # ユーティリティ関数
     ├── constants/     # 定数
     ├── types/         # 型定義
     └── styles/        # 共通スタイル（CSS Modules）
 ```
 
-## アーキテクチャ（4層構造）
+## アーキテクチャ
+
+フロントエンドのみの構成。経路計算はValhallaに直接リクエスト。
 
 ```
-Routes → Controllers → Services → Repositories → PostgreSQL
+React App → Valhalla API (Docker)
 ```
 
-**ルール**: 依存は一方向のみ。ControllerでDB直接アクセス禁止。
+**特徴**:
+- バックエンドなし
+- データベースなし（経路はローカルストレージまたはファイルで管理）
+- ユーザー認証なし
 
 ## コーディング規約
 
 | 対象 | 規則 | 例 |
 |------|------|-----|
-| ファイル（TS） | kebab-case | `user-service.ts` |
+| ファイル（TS） | kebab-case | `valhalla-service.ts` |
 | ファイル（React） | PascalCase | `UserProfile.tsx` |
-| 変数・関数 | camelCase | `getUserById` |
-| 定数 | UPPER_SNAKE_CASE | `API_BASE_URL` |
-| 型・クラス | PascalCase | `User` |
+| 変数・関数 | camelCase | `generateRoute` |
+| 定数 | UPPER_SNAKE_CASE | `VALHALLA_API_URL` |
+| 型・クラス | PascalCase | `Point` |
 
 - インデント: タブ、セミコロン: 必須、クォート: シングル
-- `any`型禁止、`SELECT *`禁止
+- `any`型禁止
 
 ## セキュリティ
 
-- **現状**: 認証未実装。仮ユーザーID使用（`TEMPORARY_USER_ID`）
-- **必須**: Repository層で必ず`user_id`フィルタリング
-- **禁止**: 生SQL、dangerouslySetInnerHTML、パスワード平文保存
+- **認証**: 実装しない（ローカル利用前提）
+- **禁止**: dangerouslySetInnerHTML
 
 ## よく使うコマンド
 
 ```bash
 # 開発
-npm run dev:all              # 全体起動
-
-# バックエンド
-npm run migrate --workspace=@route-planner/backend
-npm run seed --workspace=@route-planner/backend
+npm run dev --workspace=@route-planner/frontend    # フロントエンド起動
 
 # Docker
-docker-compose up -d         # PostgreSQL + Valhalla起動
+docker-compose up -d valhalla  # Valhalla起動
 ```
-
-## API エンドポイント
-
-| メソッド | パス | 説明 |
-|---------|------|------|
-| POST | `/routes/generate` | Valhalla経路生成 |
-| POST | `/routes` | 経路保存 |
-| GET | `/routes` | 経路一覧 |
-| GET | `/routes/:id` | 経路取得 |
-| DELETE | `/routes/:id` | 経路削除 |
 
 ## データ型
 
@@ -99,12 +82,11 @@ interface Point {
 
 ## 開発時の注意
 
-1. **レイヤー分離厳守**: Routes→Controllers→Services→Repositories
-2. **型安全**: Kyselyの型推論活用、スキーマバリデーション必須
-3. **座標バリデーション**: 緯度 -90〜90、経度 -180〜180
-4. **エラーハンドリング**: 全async処理でtry-catch
+1. **座標バリデーション**: 緯度 -90〜90、経度 -180〜180
+2. **エラーハンドリング**: 全async処理でtry-catch
+3. **Valhalla API**: CORSに注意（開発時はプロキシ設定が必要な場合あり）
 
 ## 参考リンク
 
-- [Fastify](https://fastify.dev/) | [Kysely](https://kysely.dev/) | [React Leaflet](https://react-leaflet.js.org/)
+- [React Leaflet](https://react-leaflet.js.org/)
 - [Valhalla API](https://valhalla.github.io/valhalla/api/)

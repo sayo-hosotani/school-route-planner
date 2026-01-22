@@ -13,22 +13,15 @@
 # 依存関係インストール
 npm install
 
-# Docker起動（PostgreSQL + Valhalla）
-docker-compose up -d
-
-# DBマイグレーション
-npm run migrate --workspace=@route-planner/backend
-
-# シードデータ作成
-npm run seed --workspace=@route-planner/backend
+# Docker起動（Valhalla）
+docker-compose up -d valhalla
 
 # 開発サーバー起動
-npm run dev:all
+npm run dev --workspace=@route-planner/frontend
 ```
 
 ### 開発用URL
 - フロントエンド: http://localhost:5173
-- バックエンドAPI: http://localhost:3000
 - Valhalla API: http://localhost:8002
 
 ## コマンド一覧
@@ -36,25 +29,13 @@ npm run dev:all
 ### 開発
 
 ```bash
-npm run dev:all                                    # 全体起動
-npm run dev --workspace=@route-planner/frontend    # フロントエンドのみ
-npm run dev --workspace=@route-planner/backend     # バックエンドのみ
-```
-
-### データベース
-
-```bash
-npm run migrate --workspace=@route-planner/backend  # マイグレーション実行
-npm run seed --workspace=@route-planner/backend     # シードデータ作成
-npm run db:test --workspace=@route-planner/backend  # DB接続テスト
+npm run dev --workspace=@route-planner/frontend    # フロントエンド起動
 ```
 
 ### Docker
 
 ```bash
-docker-compose up -d           # 全サービス起動
-docker-compose up -d postgres  # PostgreSQLのみ
-docker-compose up -d valhalla  # Valhallaのみ
+docker-compose up -d valhalla  # Valhalla起動
 docker-compose down            # 停止
 docker-compose build valhalla  # Valhallaリビルド（初回10-20分）
 ```
@@ -67,30 +48,12 @@ npm run lint                   # Biomeリント
 npm run format                 # Biomeフォーマット
 ```
 
-## よくあるタスク
-
-### 新しいAPIエンドポイントの追加
-
-1. `schemas/` にバリデーションスキーマを作成
-2. `models/` に型を定義
-3. `repositories/` にデータアクセス層を実装
-4. `services/` にビジネスロジックを実装
-5. `controllers/` にハンドラーロジックを実装
-6. `routes/` にエンドポイント登録を追加
-7. `tests/` にテストを作成
-
-### データベースマイグレーション
-
-1. `database/migrations/` にSQLファイル作成（例: `002_add_column.sql`）
-2. `database/types.ts` の型を更新
-3. `npm run migrate --workspace=@route-planner/backend`
-4. 確認: `docker exec -it route-planner-postgres psql -U postgres -d route_planner -c "\dt"`
-
 ## Valhalla API連携
 
 ### 基本情報
 - エンドポイント: `http://localhost:8002`
 - データ: 関東地方のOSMデータ
+- フロントエンドから直接呼び出し
 
 ### リクエスト例
 
@@ -118,6 +81,7 @@ curl http://localhost:8002/status
 | 経路生成されない | `docker-compose up -d valhalla` で起動確認 |
 | 座標範囲外エラー | 関東地方の座標か確認 |
 | タイムアウト | Valhallaコンテナのリソース確認 |
+| CORSエラー | Valhalla設定またはプロキシ設定を確認 |
 
 ## フロントエンド構成
 
@@ -127,12 +91,10 @@ curl http://localhost:8002/status
 |--------------|------|
 | `App.tsx` | メインアプリケーション（モード管理、各種カスタムフック統合） |
 | `Sidebar.tsx` | モード切り替えと機能ボタン |
-| `ViewModeSection.tsx` | 通常モード用セクション（保存ボタン + 保存済み経路一覧） |
+| `ViewModeSection.tsx` | 通常モード用セクション |
 | `EditModeSection.tsx` | 編集モード用セクション（クリアボタン + ポイント一覧） |
 | `PointItem.tsx` | ポイント項目のレンダリング |
-| `SavedRouteList.tsx` | 保存済み経路一覧 |
 | `PointEditModal.tsx` | ポイント編集モーダル（種別・コメント編集） |
-| `RouteNameModal.tsx` | 経路名入力モーダル |
 | `LoadingOverlay.tsx` | ローディングインジケーター |
 | `MessageDisplay.tsx` | 画面中央上部のメッセージ表示 |
 | `MapClickHandler.tsx` | 地図クリックイベント処理（編集モード時のみ） |
@@ -150,7 +112,6 @@ curl http://localhost:8002/status
 | `useRouteGeneration` | Valhalla経路生成・フォールバック処理 |
 | `useMessage` | メッセージ表示・自動消去 |
 | `useModal` | モーダル開閉状態管理（ジェネリック対応） |
-| `useSavedRoutes` | 保存済み経路のフェッチ・削除ロジック |
 
 ### Context
 
@@ -165,8 +126,7 @@ curl http://localhost:8002/status
 |----------|------|
 | `utils/error-handler.ts` | 共通エラーハンドリング関数 |
 | `utils/point-utils.ts` | ポイント関連ヘルパー関数 |
-| `api/errors.ts` | カスタムApiErrorクラス |
-| `api/client.ts` | 共通fetchラッパー |
+| `api/valhalla-client.ts` | Valhalla API呼び出し |
 | `constants/map-config.ts` | 地図設定定数 |
 | `constants/colors.ts` | カラーコード定数 |
 | `types/handlers.ts` | ハンドラ関数の型定義 |
@@ -178,24 +138,22 @@ curl http://localhost:8002/status
 
 | 種類 | 規則 | 例 |
 |------|------|-----|
-| TypeScript | kebab-case | `user-service.ts` |
+| TypeScript | kebab-case | `valhalla-client.ts` |
 | React | PascalCase | `UserProfile.tsx` |
-| テスト | *.test.ts(x) | `user-service.test.ts` |
-| 型定義 | *.types.ts | `user.types.ts` |
+| テスト | *.test.ts(x) | `valhalla-client.test.ts` |
+| 型定義 | *.types.ts | `point.types.ts` |
 
 ### Import順序
 
 ```typescript
-// 1. Node.js組み込み
-import { readFile } from 'node:fs/promises';
-// 2. 外部ライブラリ
-import Fastify from 'fastify';
-// 3. 内部モジュール（絶対パス）
-import { db } from '@/database';
-// 4. 相対パス
-import { userService } from './user-service';
-// 5. 型
-import type { User } from './types';
+// 1. 外部ライブラリ
+import { useState } from 'react';
+// 2. 内部モジュール（絶対パス）
+import { useAppContext } from '@/contexts';
+// 3. 相対パス
+import { generateRoute } from './valhalla-client';
+// 4. 型
+import type { Point } from './types';
 ```
 
 ### TypeScriptルール
@@ -205,20 +163,16 @@ import type { User } from './types';
 
 ## コードレビューチェックリスト
 
-### セキュリティ
-- [ ] 認証チェック実装済み
-- [ ] user_idでフィルタリング
-- [ ] 入力バリデーション実装
+### フロントエンド
+- [ ] コンポーネントの責務が明確
+- [ ] 不要な再レンダリングがない
+- [ ] エラーハンドリング実装
 
-### アーキテクチャ
-- [ ] レイヤー分離を遵守
-- [ ] 依存関係が一方向
-
-### データベース
-- [ ] Kyselyパラメータバインディング使用
-- [ ] 必要カラムのみSELECT
-- [ ] N+1問題なし
+### Valhalla連携
+- [ ] エラー時のフォールバック（直線接続）
+- [ ] ローディング表示
+- [ ] 座標バリデーション
 
 ### エラーハンドリング
 - [ ] 全async処理でtry-catch
-- [ ] エラーレスポンス形式統一
+- [ ] ユーザーへのフィードバック
