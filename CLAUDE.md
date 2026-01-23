@@ -83,7 +83,7 @@ interface Point {
 
 1. **座標バリデーション**: 緯度 -90〜90、経度 -180〜180
 2. **エラーハンドリング**: 全async処理でtry-catch
-3. **Valhalla API**: CORSに注意（開発時はプロキシ設定が必要な場合あり）
+3. **Valhalla API**: 開発時はViteプロキシ経由（`/api/valhalla` → `localhost:8002`）
 
 ## 参考リンク
 

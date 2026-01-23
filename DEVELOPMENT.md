@@ -51,14 +51,26 @@ npm run format                 # Biomeフォーマット
 ## Valhalla API連携
 
 ### 基本情報
-- エンドポイント: `http://localhost:8002`
+- Valhallaエンドポイント: `http://localhost:8002`
+- 開発時: Viteプロキシ経由（`/api/valhalla` → `localhost:8002`）
 - データ: 関東地方のOSMデータ
-- フロントエンドから直接呼び出し
+
+### プロキシ設定
+`vite.config.ts`でCORS回避用のプロキシを設定済み:
+```typescript
+proxy: {
+  '/api/valhalla': {
+    target: 'http://localhost:8002',
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/api\/valhalla/, ''),
+  },
+}
+```
 
 ### リクエスト例
 
 ```json
-POST http://localhost:8002/route
+POST /api/valhalla/route
 {
   "locations": [
     {"lat": 35.681236, "lon": 139.767125},
@@ -81,7 +93,7 @@ curl http://localhost:8002/status
 | 経路生成されない | `docker-compose up -d valhalla` で起動確認 |
 | 座標範囲外エラー | 関東地方の座標か確認 |
 | タイムアウト | Valhallaコンテナのリソース確認 |
-| CORSエラー | Valhalla設定またはプロキシ設定を確認 |
+| CORSエラー | Viteプロキシ設定を確認（`/api/valhalla`経由か） |
 
 ## フロントエンド構成
 

@@ -6,5 +6,12 @@ export default defineConfig({
 	server: {
 		port: 5173,
 		host: true,
+		proxy: {
+			'/api/valhalla': {
+				target: 'http://localhost:8002',
+				changeOrigin: true,
+				rewrite: (path) => path.replace(/^\/api\/valhalla/, ''),
+			},
+		},
 	},
 });

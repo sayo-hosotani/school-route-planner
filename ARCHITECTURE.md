@@ -127,15 +127,15 @@ styles/
 ## Valhalla API連携
 
 ### 基本情報
-- エンドポイント: `http://localhost:8002`
+- Valhallaエンドポイント: `http://localhost:8002`
+- 開発時: Viteプロキシ経由（`/api/valhalla` → `localhost:8002`）でCORS回避
 - データ: 関東地方のOSMデータ
-- フロントエンドから直接呼び出し
 
 ### リクエスト例
 
 ```typescript
-// フロントエンドからの呼び出し
-const response = await fetch('http://localhost:8002/route', {
+// フロントエンドからの呼び出し（プロキシ経由）
+const response = await fetch('/api/valhalla/route', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({

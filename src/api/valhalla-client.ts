@@ -3,7 +3,7 @@
  * フロントエンドからValhalla経路計算APIを直接呼び出すクライアント
  */
 
-const VALHALLA_API_URL = import.meta.env.VITE_VALHALLA_URL || 'http://localhost:8002';
+const VALHALLA_API_URL = import.meta.env.VITE_VALHALLA_URL || '/api/valhalla';
 const VALHALLA_TIMEOUT = 30000;
 
 interface ValhallaLocation {
