@@ -8,7 +8,7 @@ import {
 export type { Point, RouteResult };
 
 // ローカルストレージのキー
-const STORAGE_KEY = 'route-planner-saved-routes';
+const STORAGE_KEY = 'school-route-planner-saved-routes';
 
 export interface SavedRoute {
 	id: string;

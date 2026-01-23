@@ -176,7 +176,7 @@ interface SavedRoute {
 ## 経路データ管理
 
 ### ローカルストレージ
-- キー: `route-planner-saved-routes`
+- キー: `school-route-planner-saved-routes`
 - 形式: `SavedRoute[]` のJSON文字列
 
 ### エクスポート/インポート

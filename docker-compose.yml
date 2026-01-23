@@ -4,13 +4,13 @@ services:
     build:
       context: ./docker/valhalla
       dockerfile: Dockerfile
-    container_name: route-planner-valhalla
+    container_name: school-route-planner-valhalla
     ports:
       - "${VALHALLA_PORT:-8002}:8002"
     networks:
-      - route-planner-network
+      - school-route-planner-network
     restart: unless-stopped
 
 networks:
-  route-planner-network:
+  school-route-planner-network:
     driver: bridge

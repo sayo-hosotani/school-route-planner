@@ -26,4 +26,4 @@
 - CLAUDE.mdに設計が詳しく記載されている
 - フロントエンド: http://localhost:5173
 - Valhalla API: http://localhost:8002
-- 開発時の起動: `npm run dev --workspace=@route-planner/frontend`
+- 開発時の起動: `npm run dev

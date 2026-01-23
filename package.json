@@ -1,5 +1,5 @@
 {
-	"name": "route-planner",
+	"name": "school-route-planner",
 	"version": "1.0.0",
 	"private": true,
 	"description": "OpenStreetMapを使った経路生成Webアプリケーション",
