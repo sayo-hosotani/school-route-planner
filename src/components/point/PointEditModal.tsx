@@ -1,9 +1,9 @@
 import clsx from 'clsx';
 import { useState, useEffect, useCallback } from 'react';
-import type { Point } from '../types/point';
-import buttonStyles from '../styles/shared/buttons.module.css';
-import formStyles from '../styles/shared/forms.module.css';
-import modalStyles from '../styles/shared/modal.module.css';
+import type { Point } from '../../types/point';
+import buttonStyles from '../../styles/shared/buttons.module.css';
+import formStyles from '../../styles/shared/forms.module.css';
+import modalStyles from '../../styles/shared/modal.module.css';
 import styles from './PointEditModal.module.css';
 
 interface PointEditModalProps {

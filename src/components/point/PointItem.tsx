@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import clsx from 'clsx';
-import type { Point } from '../types/point';
-import { getDisplayTitle } from '../utils/point-utils';
-import buttonStyles from '../styles/shared/buttons.module.css';
+import type { Point } from '../../types/point';
+import { getDisplayTitle } from '../../utils/point-utils';
+import buttonStyles from '../../styles/shared/buttons.module.css';
 import styles from './PointItem.module.css';
 
 interface PointItemProps {

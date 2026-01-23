@@ -1,10 +1,10 @@
 import { memo, useCallback } from 'react';
 import clsx from 'clsx';
-import type { Point } from '../types/point';
-import type { PointHandlers, RouteHandlers } from '../types/handlers';
+import type { Point } from '../../types/point';
+import type { PointHandlers, RouteHandlers } from '../../types/handlers';
 import ViewModeSection from './ViewModeSection';
 import EditModeSection from './EditModeSection';
-import buttonStyles from '../styles/shared/buttons.module.css';
+import buttonStyles from '../../styles/shared/buttons.module.css';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {

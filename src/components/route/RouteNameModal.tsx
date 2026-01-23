@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import { useState, useEffect } from 'react';
-import buttonStyles from '../styles/shared/buttons.module.css';
-import formStyles from '../styles/shared/forms.module.css';
-import modalStyles from '../styles/shared/modal.module.css';
+import buttonStyles from '../../styles/shared/buttons.module.css';
+import formStyles from '../../styles/shared/forms.module.css';
+import modalStyles from '../../styles/shared/modal.module.css';
 import styles from './RouteNameModal.module.css';
 
 interface RouteNameModalProps {

@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import type { MessageType } from '../types/common';
+import type { MessageType } from '../../types/common';
 import styles from './MessageDisplay.module.css';
 
 interface MessageDisplayProps {

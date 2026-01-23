@@ -1,9 +1,9 @@
 import { memo, useCallback, useRef } from 'react';
 import clsx from 'clsx';
-import type { RouteHandlers } from '../types/handlers';
-import { exportRoutesToJson, importRoutesFromJson } from '../api/route-api';
-import SavedRouteList from './SavedRouteList';
-import buttonStyles from '../styles/shared/buttons.module.css';
+import type { RouteHandlers } from '../../types/handlers';
+import { exportRoutesToJson, importRoutesFromJson } from '../../api/route-api';
+import SavedRouteList from '../route/SavedRouteList';
+import buttonStyles from '../../styles/shared/buttons.module.css';
 import styles from './Sidebar.module.css';
 
 interface ViewModeSectionProps {

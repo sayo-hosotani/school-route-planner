@@ -1,9 +1,9 @@
 import { memo } from 'react';
 import clsx from 'clsx';
-import type { Point } from '../types/point';
-import type { PointHandlers, RouteHandlers } from '../types/handlers';
-import PointItem from './PointItem';
-import buttonStyles from '../styles/shared/buttons.module.css';
+import type { Point } from '../../types/point';
+import type { PointHandlers, RouteHandlers } from '../../types/handlers';
+import PointItem from '../point/PointItem';
+import buttonStyles from '../../styles/shared/buttons.module.css';
 import styles from './Sidebar.module.css';
 
 interface EditModeSectionProps {

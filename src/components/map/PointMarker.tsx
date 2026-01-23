@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
-import type { Point } from '../types/point';
+import type { Point } from '../../types/point';
 import styles from './PointMarker.module.css';
 
 interface PointMarkerProps {
