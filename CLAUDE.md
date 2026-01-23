@@ -25,12 +25,17 @@ src/
 └── styles/        # 共通スタイル（CSS Modules）
 ```
 
+## デプロイ
+
+- **フロントエンド**: GitHub Pages
+- **Valhalla API**: Fly.io
+
 ## アーキテクチャ
 
 フロントエンドのみの構成。経路計算はValhallaに直接リクエスト。
 
 ```
-React App → Valhalla API (Docker)
+React App (GitHub Pages) → Valhalla API (Fly.io)
 ```
 
 **特徴**:

@@ -24,6 +24,10 @@ npm run dev
 - フロントエンド: http://localhost:5173
 - Valhalla API: http://localhost:8002
 
+### 本番環境
+- フロントエンド: GitHub Pages
+- Valhalla API: Fly.io
+
 ## コマンド一覧
 
 ### 開発
