@@ -30,13 +30,6 @@
 
 ## フロントエンド設計
 
-### 画面モード
-
-| モード | 目的 | 主な機能 |
-|--------|------|---------|
-| 通常モード | 経路閲覧 | 地図閲覧、ポイント表示 |
-| 編集モード | 経路編集 | ポイント追加・移動・削除、自動経路生成 |
-
 ### ポイント種別の自動判定
 
 1. 1番目のポイント → スタート
@@ -48,11 +41,12 @@
 ```
 App.tsx
 ├── LoadingOverlay.tsx
-├── Sidebar.tsx
-│   ├── ViewModeSection.tsx
-│   ├── EditModeSection.tsx
-│   │   └── PointItem.tsx
+├── HamburgerMenu.tsx          # ハンバーガーメニュー
+├── RouteListModal.tsx         # 通学路一覧モーダル
+├── PointListPanel.tsx         # ポイント一覧パネル（画面左下）
+│   └── PointItem.tsx
 ├── PointEditModal.tsx
+├── RouteNameModal.tsx
 ├── MessageDisplay.tsx
 └── MapContainer
     ├── MapClickHandler.tsx
@@ -85,13 +79,15 @@ App.tsx
 | Context | 責務 |
 |---------|------|
 | `PointContext` | ポイント・経路の状態と操作関数（追加・更新・削除・移動） |
-| `AppContext` | アプリ全体の状態（モード・メッセージ・ハイライト・地図中心・ローディング） |
+| `AppContext` | アプリ全体の状態（メッセージ・ハイライト・地図中心・ローディング） |
 
 ```
 App (AppProvider)
  └── PointProvider
       └── AppContent
-           ├── Sidebar (useAppContext, propsで操作関数を受け取る)
+           ├── HamburgerMenu
+           ├── RouteListModal
+           ├── PointListPanel
            └── MapContainer (usePointContext)
 ```
 

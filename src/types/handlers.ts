@@ -23,10 +23,3 @@ export interface PointHandlers {
 	onPointClick: PointClickHandler;
 	onUpdateComment: CommentUpdateHandler;
 }
-
-// グループ化された経路ハンドラ
-export interface RouteHandlers {
-	onSave: () => void;
-	onClearPoints: () => void;
-	onLoadRoute: RouteLoadHandler;
-}

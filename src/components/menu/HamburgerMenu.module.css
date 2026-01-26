@@ -1,0 +1,125 @@
+/**
+ * ハンバーガーメニュー スタイル
+ */
+
+/* ハンバーガーボタン */
+.hamburgerButton {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: var(--z-sidebar);
+	width: 44px;
+	height: 44px;
+	background: white;
+	border: none;
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	transition: background-color 0.2s;
+}
+
+.hamburgerButton:hover {
+	background-color: var(--color-bg-light);
+}
+
+.hamburgerLine {
+	width: 24px;
+	height: 3px;
+	background-color: var(--color-text-primary);
+	border-radius: 2px;
+	transition: transform 0.3s, opacity 0.3s;
+}
+
+/* メニューが開いている時のハンバーガーアイコン（×アイコンに変形） */
+.hamburgerButton.open .hamburgerLine:nth-child(1) {
+	transform: translateY(8px) rotate(45deg);
+}
+
+.hamburgerButton.open .hamburgerLine:nth-child(2) {
+	opacity: 0;
+}
+
+.hamburgerButton.open .hamburgerLine:nth-child(3) {
+	transform: translateY(-8px) rotate(-45deg);
+}
+
+/* メニューパネル */
+.menuPanel {
+	position: absolute;
+	top: 64px;
+	left: 10px;
+	z-index: var(--z-sidebar);
+	background: white;
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+	min-width: 200px;
+	padding: var(--spacing-md) 0;
+	animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* メニュー項目 */
+.menuItem {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-md);
+	width: 100%;
+	padding: var(--spacing-md) var(--spacing-lg);
+	background: none;
+	border: none;
+	text-align: left;
+	font-size: var(--font-size-md);
+	color: var(--color-text-primary);
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.menuItem:hover {
+	background-color: var(--color-bg-light);
+}
+
+.menuItem:disabled {
+	color: var(--color-disabled-text);
+	cursor: not-allowed;
+}
+
+.menuIcon {
+	width: 20px;
+	text-align: center;
+	font-size: var(--font-size-lg);
+}
+
+/* セパレーター */
+.separator {
+	height: 1px;
+	background-color: var(--color-border-default);
+	margin: var(--spacing-sm) 0;
+}
+
+/* オーバーレイ（メニュー外クリックで閉じるため） */
+.overlay {
+	position: fixed;
+	inset: 0;
+	z-index: calc(var(--z-sidebar) - 1);
+	background: transparent;
+}
+
+/* 隠し入力（インポート用） */
+.hiddenInput {
+	display: none;
+}

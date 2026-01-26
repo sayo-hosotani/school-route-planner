@@ -105,15 +105,16 @@ curl http://localhost:8002/status
 
 | コンポーネント | 責務 |
 |--------------|------|
-| `App.tsx` | メインアプリケーション（モード管理、各種カスタムフック統合） |
-| `Sidebar.tsx` | モード切り替えと機能ボタン |
-| `ViewModeSection.tsx` | 通常モード用セクション |
-| `EditModeSection.tsx` | 編集モード用セクション（クリアボタン + ポイント一覧） |
+| `App.tsx` | メインアプリケーション（各種カスタムフック統合） |
+| `HamburgerMenu.tsx` | ハンバーガーメニュー（新規作成、保存、一覧、エクスポート/インポート） |
+| `RouteListModal.tsx` | 通学路一覧モーダル（表示/編集/削除） |
+| `PointListPanel.tsx` | ポイント一覧パネル（順序入れ替え、コメント編集、削除） |
 | `PointItem.tsx` | ポイント項目のレンダリング |
 | `PointEditModal.tsx` | ポイント編集モーダル（種別・コメント編集） |
+| `RouteNameModal.tsx` | 経路名入力モーダル |
 | `LoadingOverlay.tsx` | ローディングインジケーター |
 | `MessageDisplay.tsx` | 画面中央上部のメッセージ表示 |
-| `MapClickHandler.tsx` | 地図クリックイベント処理（編集モード時のみ） |
+| `MapClickHandler.tsx` | 地図クリックイベント処理 |
 | `PointMarker.tsx` | 地図上のポイントマーカー（ドラッグ・クリック対応） |
 | `RouteLine.tsx` | 経路ライン表示 |
 | `CoordinateDisplay.tsx` | 座標・ズーム表示 |
@@ -134,7 +135,7 @@ curl http://localhost:8002/status
 | Context | 責務 |
 |---------|------|
 | `PointContext` | ポイント・経路の状態と操作関数 |
-| `AppContext` | アプリ全体の状態（モード・メッセージ・ハイライト・地図中心・ローディング） |
+| `AppContext` | アプリ全体の状態（メッセージ・ハイライト・地図中心・ローディング） |
 
 ### ユーティリティ・定数
 
@@ -146,7 +147,7 @@ curl http://localhost:8002/status
 | `constants/map-config.ts` | 地図設定定数 |
 | `constants/colors.ts` | カラーコード定数 |
 | `types/handlers.ts` | ハンドラ関数の型定義 |
-| `types/common.ts` | 共通型（AppMode, MessageType） |
+| `types/common.ts` | 共通型（MessageType） |
 
 ## コーディング規約詳細
 

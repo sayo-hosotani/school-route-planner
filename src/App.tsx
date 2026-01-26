@@ -8,8 +8,10 @@ import FitBounds from './components/map/FitBounds';
 import MapClickHandler from './components/map/MapClickHandler';
 import MapCenter from './components/map/MapCenter';
 import PointEditModal from './components/point/PointEditModal';
+import PointListPanel from './components/point/PointListPanel';
 import RouteNameModal from './components/route/RouteNameModal';
-import Sidebar from './components/sidebar/Sidebar';
+import RouteListModal from './components/route/RouteListModal';
+import HamburgerMenu from './components/menu/HamburgerMenu';
 import MessageDisplay from './components/ui/MessageDisplay';
 import LoadingOverlay from './components/ui/LoadingOverlay';
 import { saveRoute, loadRouteById } from './api/route-api';
@@ -35,8 +37,6 @@ const AppContent = () => {
 	} = usePointContext();
 
 	const {
-		mode,
-		setMode,
 		message,
 		messageType,
 		showMessage,
@@ -48,9 +48,11 @@ const AppContent = () => {
 		setMapCenter,
 	} = useAppContext();
 
-	// モーダル
+	// モーダル・パネル
 	const routeNameModal = useModal();
 	const pointEditModal = useModal<Point>();
+	const [isRouteListOpen, setIsRouteListOpen] = useState(false);
+	const [isPointListOpen, setIsPointListOpen] = useState(false);
 
 	// 経路一覧の更新トリガー
 	const [routeListRefreshTrigger, setRouteListRefreshTrigger] = useState(0);
@@ -107,14 +109,6 @@ const AppContent = () => {
 		showMessage('ポイントを削除しました');
 	}, [deletePoint, showMessage]);
 
-	// 全ポイントをクリア
-	const handleClearPoints = useCallback(() => {
-		if (window.confirm('すべてのポイントを削除しますか？')) {
-			clearPoints();
-			showMessage('すべてのポイントをクリアしました');
-		}
-	}, [clearPoints, showMessage]);
-
 	// ポイントの順序を入れ替え
 	const handleMovePoint = useCallback(async (pointId: string, direction: 'up' | 'down') => {
 		const moved = await movePoint(pointId, direction);
@@ -167,11 +161,23 @@ const AppContent = () => {
 		onUpdateComment: handleUpdateComment,
 	}), [handleEditPoint, handleDeletePoint, handleMovePoint, handlePointClick, handleUpdateComment]);
 
-	const routeHandlers = useMemo(() => ({
-		onSave: handleSave,
-		onClearPoints: handleClearPoints,
-		onLoadRoute: handleLoadRoute,
-	}), [handleSave, handleClearPoints, handleLoadRoute]);
+	// 通学路の新規作成
+	const handleNewRoute = useCallback(() => {
+		if (points.length === 0 || window.confirm('現在のポイントをすべてクリアして新規作成しますか？')) {
+			clearPoints();
+			showMessage('新規作成しました');
+		}
+	}, [points.length, clearPoints, showMessage]);
+
+	// 通学路一覧を開く
+	const handleOpenRouteList = useCallback(() => {
+		setIsRouteListOpen(true);
+	}, []);
+
+	// ポイント一覧を開く
+	const handleOpenPointList = useCallback(() => {
+		setIsPointListOpen(true);
+	}, []);
 
 	return (
 		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
@@ -181,17 +187,34 @@ const AppContent = () => {
 			{/* ローディングオーバーレイ */}
 			<LoadingOverlay isLoading={isLoading} message={loadingMessage} />
 
-			{/* サイドバー */}
-			<Sidebar
-				mode={mode}
-				onModeChange={setMode}
+			{/* ハンバーガーメニュー */}
+			<HamburgerMenu
+				onNewRoute={handleNewRoute}
+				onSaveRoute={handleSave}
+				onOpenRouteList={handleOpenRouteList}
+				onOpenPointList={handleOpenPointList}
+				onMessage={showMessage}
+				onRefreshRouteList={handleRefreshRouteList}
+				hasPoints={points.length > 0}
+			/>
+
+			{/* 通学路一覧モーダル */}
+			<RouteListModal
+				isOpen={isRouteListOpen}
+				onClose={() => setIsRouteListOpen(false)}
+				onViewRoute={handleLoadRoute}
+				onEditRoute={handleLoadRoute}
+				onMessage={showMessage}
+				refreshTrigger={routeListRefreshTrigger}
+			/>
+
+			{/* ポイント一覧パネル */}
+			<PointListPanel
+				isOpen={isPointListOpen}
+				onClose={() => setIsPointListOpen(false)}
 				points={points}
 				highlightedPointId={highlightedPointId}
 				pointHandlers={pointHandlers}
-				routeHandlers={routeHandlers}
-				onMessage={showMessage}
-				routeListRefreshTrigger={routeListRefreshTrigger}
-				onRefreshRouteList={handleRefreshRouteList}
 			/>
 
 			{/* 経路名入力モーダル */}
@@ -225,8 +248,8 @@ const AppContent = () => {
 				<CoordinateDisplay position="bottomright" />
 				<ScaleControl position="bottomright" imperial={false} />
 
-				{/* 地図クリックハンドラー（編集モード時のみ有効） */}
-				<MapClickHandler enabled={mode === 'edit'} onMapClick={handleMapClick} />
+				{/* 地図クリックハンドラー（常に有効） */}
+				<MapClickHandler enabled={true} onMapClick={handleMapClick} />
 
 				{/* 地図の中心を変更 */}
 				<MapCenter center={mapCenter} />
@@ -240,7 +263,7 @@ const AppContent = () => {
 					<PointMarker
 						key={point.id}
 						point={point}
-						editMode={mode === 'edit'}
+						editMode={true}
 						onDragEnd={handlePointDragEnd}
 						onClick={handleEditPoint}
 					/>
