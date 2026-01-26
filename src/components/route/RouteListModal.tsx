@@ -25,12 +25,6 @@ const RouteListModal = memo(({
 		refreshTrigger,
 	});
 
-	const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-		if (e.target === e.currentTarget) {
-			onClose();
-		}
-	}, [onClose]);
-
 	const handleView = useCallback((routeId: string) => {
 		onViewRoute(routeId);
 		onClose();
@@ -48,7 +42,7 @@ const RouteListModal = memo(({
 	if (!isOpen) return null;
 
 	return (
-		<div onClick={handleBackdropClick} className={modalStyles.overlay}>
+		<div className={modalStyles.overlay}>
 			<div className={styles.content}>
 				<div className={styles.header}>
 					<h2 className={styles.title}>通学路の一覧</h2>

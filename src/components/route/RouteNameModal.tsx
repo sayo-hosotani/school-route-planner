@@ -30,14 +30,8 @@ const RouteNameModal = ({ isOpen, onSave, onClose }: RouteNameModalProps) => {
 		onClose();
 	};
 
-	const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-		if (e.target === e.currentTarget) {
-			onClose();
-		}
-	};
-
 	return (
-		<div onClick={handleBackdropClick} className={modalStyles.overlay}>
+		<div className={modalStyles.overlay}>
 			<div className={modalStyles.content}>
 				<h2 className={styles.title}>経路を保存</h2>
 
