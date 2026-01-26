@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { useState, useEffect, useCallback } from 'react';
 import type { Point } from '../../types/point';
+import type { PointClickHandler, PointMoveHandler } from '../../types/handlers';
 import buttonStyles from '../../styles/shared/buttons.module.css';
 import formStyles from '../../styles/shared/forms.module.css';
 import modalStyles from '../../styles/shared/modal.module.css';
@@ -10,9 +11,11 @@ interface PointEditModalProps {
 	point: Point | null;
 	onClose: () => void;
 	onSave: (pointId: string, type: Point['type'], comment: string) => void;
+	onDeletePoint: PointClickHandler;
+	onMovePoint?: PointMoveHandler;
 }
 
-const PointEditModal = ({ point, onClose, onSave }: PointEditModalProps) => {
+const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: PointEditModalProps) => {
 	const [type, setType] = useState<Point['type']>('waypoint');
 	const [comment, setComment] = useState('');
 
@@ -28,6 +31,20 @@ const PointEditModal = ({ point, onClose, onSave }: PointEditModalProps) => {
 		onSave(point.id, type, comment);
 		onClose();
 	}, [point, type, comment, onSave, onClose]);
+
+	const handleDelete = useCallback(() => {
+		if (!point) return;
+		onDeletePoint(point.id);
+		onClose();
+	}, [point, onDeletePoint, onClose]);
+
+	const handleMove = useCallback((direction: 'up' | 'down') => {
+		if (!point || !onMovePoint) return;
+		onMovePoint(point.id, direction);
+	}, [point, onMovePoint]);
+
+	// waypointのみ入れ替え可能
+	const canSwap = point?.type === 'waypoint' && onMovePoint;
 
 	// キーボードイベント: Escapeで閉じる
 	useEffect(() => {
@@ -55,40 +72,74 @@ const PointEditModal = ({ point, onClose, onSave }: PointEditModalProps) => {
 
 	return (
 		<div className={modalStyles.overlay} role="presentation">
-			<div className={modalStyles.content}>
-				{/* コメント入力 */}
-				<div className={styles.section}>
-					<label htmlFor="comment" className={formStyles.label}>
+			<div className={clsx(modalStyles.content, styles.container)}>
+				{/* 閉じるボタン */}
+				<button
+					type="button"
+					onClick={onClose}
+					aria-label="閉じる（Escapeでも操作可）"
+					title="閉じる（Escape）"
+					className={styles.closeButton}
+				>
+					×
+				</button>
+
+				<div className={clsx(styles.body, canSwap && styles.bodyWithSwap)}>
+					{/* ラベル行 */}
+					<span className={clsx(formStyles.label, styles.pointLabel)}>ポイント:</span>
+					<label htmlFor="comment" className={clsx(formStyles.label, styles.commentLabel)}>
 						コメント:
 					</label>
+
+					{/* 入れ替えボタン（waypointのみ表示） */}
+					{canSwap && (
+						<>
+							<button
+								type="button"
+								onClick={() => handleMove('up')}
+								aria-label="前へ"
+								className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.secondary, styles.moveUpButton)}
+							>
+								▲前へ
+							</button>
+							<button
+								type="button"
+								onClick={() => handleMove('down')}
+								aria-label="後へ"
+								className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.secondary, styles.moveDownButton)}
+							>
+								▼後へ
+							</button>
+						</>
+					)}
+
+					{/* テキストエリア */}
 					<textarea
 						id="comment"
 						value={comment}
 						onChange={(e) => setComment(e.target.value)}
 						placeholder="コメントを入力してください（任意）&#13;&#10;1行目または最初の16文字が地図上のタイトルになります"
-						className={formStyles.textarea}
+						className={clsx(formStyles.textarea, styles.commentTextarea)}
 					/>
-				</div>
 
-				{/* ボタン */}
-				<div className={styles.actions}>
+					{/* 下部ボタン */}
 					<button
 						type="button"
-						onClick={handleSave}
-						aria-label="ポイントを保存（Ctrl+Sでも操作可）"
-						title="保存（Ctrl+S）"
-						className={clsx(buttonStyles.button, buttonStyles.lg, buttonStyles.success, buttonStyles.flex)}
+						onClick={handleDelete}
+						aria-label="ポイントを削除"
+						title="削除"
+						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.danger, styles.deleteButton)}
 					>
-						保存
+						削除
 					</button>
 					<button
 						type="button"
-						onClick={onClose}
-						aria-label="編集をキャンセル（Escapeでも操作可）"
-						title="キャンセル（Escape）"
-						className={clsx(buttonStyles.button, buttonStyles.lg, buttonStyles.secondary, buttonStyles.flex)}
+						onClick={handleSave}
+						aria-label="コメントを保存（Ctrl+Sでも操作可）"
+						title="保存（Ctrl+S）"
+						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.success, styles.saveButton)}
 					>
-						キャンセル
+						保存
 					</button>
 				</div>
 			</div>

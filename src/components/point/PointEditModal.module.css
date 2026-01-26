@@ -1,13 +1,87 @@
-.title {
-	margin: 0 0 20px 0;
-	font-size: var(--font-size-2xl);
+.container {
+	position: relative;
 }
 
-.section {
-	margin-bottom: 20px;
-}
-
-.actions {
+.closeButton {
+	position: absolute;
+	top: var(--spacing-md);
+	right: var(--spacing-md);
+	width: 36px;
+	height: 36px;
+	background: var(--color-bg-light);
+	border: none;
+	border-radius: var(--radius-md);
+	font-size: 20px;
+	cursor: pointer;
+	color: var(--color-text-secondary);
 	display: flex;
-	gap: var(--spacing-sm);
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+	background-color: var(--color-border);
+	color: var(--color-text-primary);
+}
+
+/* canSwapがない場合のグリッド (2行) */
+.body {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-rows: auto 1fr auto;
+	gap: var(--spacing-sm) var(--spacing-lg);
+}
+
+/* canSwapがある場合のグリッド (4行) */
+.bodyWithSwap {
+	grid-template-rows: auto 1fr 1fr auto;
+}
+
+/* ラベル行 */
+.pointLabel {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.commentLabel {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+/* 入れ替えボタン */
+.moveUpButton {
+	grid-column: 1;
+	grid-row: 2;
+	align-self: start;
+}
+
+.moveDownButton {
+	grid-column: 1;
+	grid-row: 3;
+	align-self: end;
+}
+
+/* テキストエリア - canSwapがある場合は行2-3、ない場合は行2 */
+.commentTextarea {
+	grid-column: 2;
+	grid-row: 2 / 4;
+	min-height: 80px;
+	resize: vertical;
+}
+
+.bodyWithSwap .commentTextarea {
+	grid-row: 2 / 4;
+}
+
+/* 下部ボタン */
+.deleteButton {
+	grid-column: 1;
+	grid-row: -2;
+}
+
+.saveButton {
+	grid-column: 2;
+	grid-row: -2;
+	width: 100%;
 }
