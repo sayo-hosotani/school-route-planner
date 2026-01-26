@@ -43,8 +43,10 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 		onMovePoint(point.id, direction);
 	}, [point, onMovePoint]);
 
+	// 入れ替えボタンの表示条件（onMovePointがある場合は常に表示）
+	const showSwapButtons = !!onMovePoint;
 	// waypointのみ入れ替え可能
-	const canSwap = point?.type === 'waypoint' && onMovePoint;
+	const canSwap = point?.type === 'waypoint';
 
 	// キーボードイベント: Escapeで閉じる
 	useEffect(() => {
@@ -84,19 +86,20 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 					×
 				</button>
 
-				<div className={clsx(styles.body, canSwap && styles.bodyWithSwap)}>
+				<div className={clsx(styles.body, showSwapButtons && styles.bodyWithSwap)}>
 					{/* ラベル行 */}
 					<span className={clsx(formStyles.label, styles.pointLabel)}>ポイント:</span>
 					<label htmlFor="comment" className={clsx(formStyles.label, styles.commentLabel)}>
 						コメント:
 					</label>
 
-					{/* 入れ替えボタン（waypointのみ表示） */}
-					{canSwap && (
+					{/* 入れ替えボタン（常に表示、waypointのみ有効） */}
+					{showSwapButtons && (
 						<>
 							<button
 								type="button"
 								onClick={() => handleMove('up')}
+								disabled={!canSwap}
 								aria-label="前へ"
 								className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.secondary, styles.moveUpButton)}
 							>
@@ -105,6 +108,7 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 							<button
 								type="button"
 								onClick={() => handleMove('down')}
+								disabled={!canSwap}
 								aria-label="後へ"
 								className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.secondary, styles.moveDownButton)}
 							>
