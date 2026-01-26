@@ -1,8 +1,20 @@
-# Route Planner
+## 名称
+- サービス名：通学路マップ
+- プロジェクト名：school-route-mapper
 
-OpenStreetMap上で経路を作成できるWebアプリケーション（フロントエンドのみ）。
+## 目的
+日本の小学校・中学校で毎年提出が必要な「通学路の地図」を、ユーザー登録なし・簡単操作で作成できるWebサービス。
 
-> 詳細: [ARCHITECTURE.md](./ARCHITECTURE.md) | [DEVELOPMENT.md](./DEVELOPMENT.md)
+## 特徴
+- スタート・ゴール・中継地点を地図上に配置
+- Valhalla APIによる道路沿い経路の自動生成（フロントエンドから直接呼び出し）
+- ポイントごとのコメント追加機能
+- バックエンド不要のシンプルな構成
+
+## 基本方針
+- ユーザー登録・ログインは行わない
+- サーバーに個人データを保存しない
+- 機能は「通学路地図作成と提出」に必要な最小限に絞る
 
 ## 技術スタック
 
@@ -16,9 +28,15 @@ OpenStreetMap上で経路を作成できるWebアプリケーション（フロ�
 ```
 src/
 ├── components/    # Reactコンポーネント
+│   ├── address/   # 住所検索関連
+│   ├── map/       # 地図関連
+│   ├── menu/      # メニュー関連
+│   ├── point/     # ポイント関連
+│   ├── route/     # 経路関連
+│   └── welcome/   # ウェルカム画面
 ├── contexts/      # Context API
 ├── hooks/         # カスタムフック
-├── api/           # APIクライアント（Valhalla）
+├── api/           # APIクライアント（Valhalla、国土地理院ジオコーディング）
 ├── utils/         # ユーティリティ関数
 ├── constants/     # 定数
 ├── types/         # 型定義
