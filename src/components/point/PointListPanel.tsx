@@ -1,28 +1,52 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import type { Point } from '../../types/point';
 import type { PointHandlers } from '../../types/handlers';
+import type { GeocodingResult } from '../../api/geocoding-client';
 import PointItem from './PointItem';
+import AddressSearchInput from '../address/AddressSearchInput';
 import styles from './PointListPanel.module.css';
 
 interface PointListPanelProps {
 	points: Point[];
 	highlightedPointId: string | null;
 	pointHandlers: PointHandlers;
+	onAddPointFromAddress: (lat: number, lng: number, comment: string) => void;
+	onMessage: (message: string, type?: 'success' | 'error') => void;
 }
 
 const PointListPanel = memo(({
 	points,
 	highlightedPointId,
 	pointHandlers,
+	onAddPointFromAddress,
+	onMessage,
 }: PointListPanelProps) => {
 	const startPoint = points.find((p) => p.type === 'start') || null;
 	const goalPoint = points.find((p) => p.type === 'goal') || null;
 	const waypoints = points.filter((p) => p.type === 'waypoint');
 
+	const handleAddressSelect = useCallback((result: GeocodingResult) => {
+		onAddPointFromAddress(result.lat, result.lng, result.address);
+	}, [onAddPointFromAddress]);
+
+	const handleAddressError = useCallback((message: string) => {
+		onMessage(message, 'error');
+	}, [onMessage]);
+
 	return (
 		<div className={styles.panel}>
 			<div className={styles.header}>
-				<h3 className={styles.title}>ポイントの一覧 ({points.length})</h3>
+				<h3 className={styles.title}>ポイントの一覧</h3>
+			</div>
+
+			{/* 住所検索入力欄 */}
+			<div className={styles.addressSearch}>
+				<AddressSearchInput
+					onSelect={handleAddressSelect}
+					onError={handleAddressError}
+					placeholder="住所から追加"
+					compact
+				/>
 			</div>
 
 			<div className={styles.content}>

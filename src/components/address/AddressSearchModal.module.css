@@ -1,0 +1,36 @@
+/**
+ * 住所検索モーダル スタイル
+ */
+
+.container {
+	position: relative;
+}
+
+.closeButton {
+	position: absolute;
+	top: var(--spacing-md);
+	right: var(--spacing-md);
+	width: 36px;
+	height: 36px;
+	background: var(--color-bg-light);
+	border: none;
+	border-radius: var(--radius-md);
+	font-size: 20px;
+	cursor: pointer;
+	color: var(--color-text-secondary);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+	background-color: var(--color-border);
+	color: var(--color-text-primary);
+}
+
+.description {
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+	margin-bottom: var(--spacing-md);
+}

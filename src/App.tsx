@@ -12,6 +12,7 @@ import PointListPanel from './components/point/PointListPanel';
 import RouteNameModal from './components/route/RouteNameModal';
 import RouteListModal from './components/route/RouteListModal';
 import HamburgerMenu from './components/menu/HamburgerMenu';
+import AddressSearchModal from './components/address/AddressSearchModal';
 import MessageDisplay from './components/ui/MessageDisplay';
 import LoadingOverlay from './components/ui/LoadingOverlay';
 import { saveRoute, loadRouteById } from './api/route-api';
@@ -52,6 +53,7 @@ const AppContent = () => {
 	const routeNameModal = useModal();
 	const pointEditModal = useModal<Point>();
 	const [isRouteListOpen, setIsRouteListOpen] = useState(false);
+	const [isAddressSearchOpen, setIsAddressSearchOpen] = useState(false);
 
 	// 経路一覧の更新トリガー
 	const [routeListRefreshTrigger, setRouteListRefreshTrigger] = useState(0);
@@ -173,6 +175,21 @@ const AppContent = () => {
 		setIsRouteListOpen(true);
 	}, []);
 
+	// 住所検索モーダルを開く
+	const handleOpenAddressSearch = useCallback(() => {
+		setIsAddressSearchOpen(true);
+	}, []);
+
+	// 住所からポイントを追加
+	const handleAddPointFromAddress = useCallback(async (lat: number, lng: number, comment: string) => {
+		const pointId = await addPoint(lat, lng, comment);
+		// 追加されたポイントにフォーカス
+		setMapCenter([lat, lng]);
+		if (pointId) {
+			highlightPoint(pointId);
+		}
+		showMessage(`ポイントを追加しました: ${comment}`);
+	}, [addPoint, setMapCenter, highlightPoint, showMessage]);
 
 	return (
 		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
@@ -187,6 +204,7 @@ const AppContent = () => {
 				onNewRoute={handleNewRoute}
 				onSaveRoute={handleSave}
 				onOpenRouteList={handleOpenRouteList}
+				onOpenAddressSearch={handleOpenAddressSearch}
 				onMessage={showMessage}
 				onRefreshRouteList={handleRefreshRouteList}
 				hasPoints={points.length > 0}
@@ -207,6 +225,8 @@ const AppContent = () => {
 				points={points}
 				highlightedPointId={highlightedPointId}
 				pointHandlers={pointHandlers}
+				onAddPointFromAddress={handleAddPointFromAddress}
+				onMessage={showMessage}
 			/>
 
 			{/* 経路名入力モーダル */}
@@ -223,6 +243,14 @@ const AppContent = () => {
 				onSave={handleSavePoint}
 				onDeletePoint={pointHandlers.onDeletePoint}
 				onMovePoint={pointHandlers.onMovePoint}
+			/>
+
+			{/* 住所検索モーダル */}
+			<AddressSearchModal
+				isOpen={isAddressSearchOpen}
+				onClose={() => setIsAddressSearchOpen(false)}
+				onAddPoint={handleAddPointFromAddress}
+				onError={(msg) => showMessage(msg, 'error')}
 			/>
 
 			{/* 地図 */}

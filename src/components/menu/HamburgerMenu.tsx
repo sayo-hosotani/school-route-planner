@@ -7,6 +7,7 @@ interface HamburgerMenuProps {
 	onNewRoute: () => void;
 	onSaveRoute: () => void;
 	onOpenRouteList: () => void;
+	onOpenAddressSearch: () => void;
 	onMessage: (message: string, type?: 'success' | 'error') => void;
 	onRefreshRouteList: () => void;
 	hasPoints: boolean;
@@ -16,6 +17,7 @@ const HamburgerMenu = memo(({
 	onNewRoute,
 	onSaveRoute,
 	onOpenRouteList,
+	onOpenAddressSearch,
 	onMessage,
 	onRefreshRouteList,
 	hasPoints,
@@ -50,6 +52,11 @@ const HamburgerMenu = memo(({
 	const handleOpenRouteList = useCallback(() => {
 		handleMenuItemClick(onOpenRouteList);
 	}, [handleMenuItemClick, onOpenRouteList]);
+
+	// 住所からポイントを追加
+	const handleOpenAddressSearch = useCallback(() => {
+		handleMenuItemClick(onOpenAddressSearch);
+	}, [handleMenuItemClick, onOpenAddressSearch]);
 
 	// エクスポート
 	const handleExport = useCallback(() => {
@@ -152,6 +159,18 @@ const HamburgerMenu = memo(({
 						>
 							<span className={styles.menuIcon}>📋</span>
 							通学路の一覧
+						</button>
+
+						<div className={styles.separator} />
+
+						<button
+							type="button"
+							className={styles.menuItem}
+							onClick={handleOpenAddressSearch}
+							role="menuitem"
+						>
+							<span className={styles.menuIcon}>📍</span>
+							住所からポイントを追加
 						</button>
 
 						<div className={styles.separator} />

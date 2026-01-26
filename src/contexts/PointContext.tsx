@@ -10,7 +10,7 @@ interface PointContextValue {
 	// 経路状態
 	routeLine: [number, number][];
 	// ポイント操作（経路も自動更新）
-	addPoint: (lat: number, lng: number) => Promise<void>;
+	addPoint: (lat: number, lng: number, comment?: string) => Promise<string>;
 	updatePoint: (pointId: string, updates: Partial<Point>) => Promise<void>;
 	deletePoint: (pointId: string) => Promise<void>;
 	movePoint: (pointId: string, direction: 'up' | 'down') => Promise<boolean>;
@@ -65,14 +65,18 @@ export const PointProvider = ({ children }: PointProviderProps) => {
 
 	// ポイント追加（経路も自動更新）
 	const addPoint = useCallback(
-		async (lat: number, lng: number) => {
-			const newPoints = addPointBase(lat, lng);
+		async (lat: number, lng: number, comment?: string): Promise<string> => {
+			const newPoints = addPointBase(lat, lng, comment);
+			// 追加されたポイントのIDを取得（最後に追加されたポイント、またはゴールの前に挿入されたポイント）
+			const addedPoint = newPoints.find((p) => p.lat === lat && p.lng === lng);
+			const addedPointId = addedPoint?.id ?? '';
 			setLoading(true, '経路を計算中...');
 			try {
 				await generateRouteFromPoints(newPoints);
 			} finally {
 				setLoading(false);
 			}
+			return addedPointId;
 		},
 		[addPointBase, generateRouteFromPoints, setLoading],
 	);

@@ -89,19 +89,88 @@
 - [x] App.tsx で入れ替えハンドラを PointEditModal に渡す
   - handleMovePoint を利用して onSwapPrevious/onSwapNext を実装
 
-## 8. 新機能
+## ~~8. 住所からポイントを追加する機能~~ (完了)
+
+### 概要
+住所を入力して国土地理院APIでジオコーディングし、その座標でポイントを追加する。
+コメントには入力された住所を設定する。
+
+### 使用API
+- **国土地理院ジオコーディングAPI**
+- エンドポイント: `https://msearch.gsi.go.jp/address-search/AddressSearch`
+- パラメータ: `q=住所文字列`
+- レスポンス: `[{geometry: {coordinates: [経度, 緯度]}, properties: {title: "住所"}}]`
+
+### 実装タスク
+
+#### 8-1. APIクライアントの作成
+- [x] `src/api/geocoding-client.ts` を作成
+  - 住所から座標を取得する関数 `searchAddress(query: string)`
+  - レスポンス型定義 `GeocodingResult`
+  - エラーハンドリング（見つからない場合、ネットワークエラー等）
+
+#### 8-2. 共通の住所検索コンポーネントの作成
+- [x] `src/components/address/AddressSearchInput.tsx` を作成
+  - 住所入力フィールド
+  - 検索ボタン
+  - 候補リスト表示（複数結果がある場合）
+  - 選択時にコールバックで座標と住所を返す
+- [x] `src/components/address/AddressSearchInput.module.css` を作成
+
+#### 8-3. ポイント一覧上部への住所入力欄の追加
+- [x] `PointListPanel.tsx` を修正
+  - AddressSearchInput を上部に配置
+  - 選択時に addPoint を呼び出し、コメントに住所を設定
+
+#### 8-4. メニュー項目「住所からポイントを追加」の追加
+- [x] `src/components/address/AddressSearchModal.tsx` を作成
+  - 画面中央のミニ画面（モーダル）
+  - AddressSearchInput を含む
+  - 選択時にポイント追加してモーダルを閉じる
+- [x] `src/components/address/AddressSearchModal.module.css` を作成
+- [x] `HamburgerMenu.tsx` を修正
+  - 「住所からポイントを追加」メニュー項目を追加
+  - クリック時に AddressSearchModal を表示するコールバックを呼び出す
+
+#### 8-5. App.tsx への統合
+- [x] AddressSearchModal の状態管理を追加
+- [x] HamburgerMenu に新しいプロパティを追加
+
+### 新規作成ファイル
+```
+src/
+├── api/
+│   └── geocoding-client.ts
+└── components/
+    └── address/
+        ├── AddressSearchInput.tsx
+        ├── AddressSearchInput.module.css
+        ├── AddressSearchModal.tsx
+        └── AddressSearchModal.module.css
+```
+
+### 修正するファイル
+- `src/components/point/PointListPanel.tsx`
+- `src/components/menu/HamburgerMenu.tsx`
+- `src/App.tsx`
+- `src/hooks/use-points.ts` (addPointにコメント引数を追加)
+- `src/contexts/PointContext.tsx` (addPointにコメント引数を追加)
+
+---
+
+## 9. その他の新機能（未着手）
 - [ ] 地図画像ダウンロード機能
   - 表示中の経路をPNG画像としてダウンロード
   - Scale以外のコントロール（Zoom、Coordinate、Attribution等）を非表示にして画像化
   - leaflet-imageやhtml2canvasなどのライブラリを検討
 - [ ] 経路上にポイントをフィットさせるボタンの追加
 
-## 8. テスト（優先度: 低）
+## 10. テスト（優先度: 低）
 - [ ] フロントエンドのテスト
   - コンポーネントのテスト
   - Valhalla API連携のテスト
 
-## 9. 本番環境準備（優先度: 低）
+## 11. 本番環境準備（優先度: 低）
 - [ ] 本番ビルドスクリプト作成
 - [ ] 静的ファイル配信設定（GitHub Pages、Vercel等）
 - [ ] 環境変数管理（Valhalla APIのURL等）

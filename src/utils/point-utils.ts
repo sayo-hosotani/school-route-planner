@@ -29,8 +29,23 @@ export const getPointTypeLabelSimple = (type: Point['type']): string => {
 };
 
 /**
+ * ポイント種別のアイコンを取得
+ */
+export const getPointTypeIcon = (type: Point['type']): string => {
+	switch (type) {
+		case 'start':
+			return '🟢';
+		case 'waypoint':
+			return '🔴';
+		case 'goal':
+			return '🔵';
+	}
+};
+
+/**
  * サイドバー用の表示タイトルを取得
- * コメントがある場合は最初の16文字、なければ種別ラベル
+ * 常に先頭にポイント種別のアイコンを表示
+ * コメントがある場合はアイコン + コメントの最初の16文字、なければ種別ラベル
  */
 export const getDisplayTitle = (
 	point: Point | null,
@@ -40,11 +55,12 @@ export const getDisplayTitle = (
 	if (!point || !point.comment) {
 		return getPointTypeLabel(type, waypointNumber);
 	}
+	const icon = getPointTypeIcon(type);
 	const firstLine = point.comment.split('\n')[0];
 	if (firstLine.length <= 16) {
-		return firstLine;
+		return `${icon} ${firstLine}`;
 	}
-	return firstLine.substring(0, 16);
+	return `${icon} ${firstLine.substring(0, 16)}`;
 };
 
 /**

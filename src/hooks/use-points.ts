@@ -4,7 +4,7 @@ import type { Point } from '../types/point';
 interface UsePointsReturn {
 	points: Point[];
 	setPoints: React.Dispatch<React.SetStateAction<Point[]>>;
-	addPoint: (lat: number, lng: number) => Point[];
+	addPoint: (lat: number, lng: number, comment?: string) => Point[];
 	updatePoint: (pointId: string, updates: Partial<Point>) => Point[];
 	deletePoint: (pointId: string) => Point[];
 	movePoint: (pointId: string, direction: 'up' | 'down') => Point[] | null;
@@ -25,14 +25,14 @@ export const usePoints = (): UsePointsReturn => {
 	const [points, setPoints] = useState<Point[]>([]);
 
 	// ポイントを追加
-	const addPoint = useCallback((lat: number, lng: number): Point[] => {
+	const addPoint = useCallback((lat: number, lng: number, comment = ''): Point[] => {
 		const newPoint: Point = {
 			id: `point-${Date.now()}`,
 			lat,
 			lng,
 			type: 'waypoint',
 			order: points.length,
-			comment: '',
+			comment,
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
 		};
