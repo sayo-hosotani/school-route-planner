@@ -94,6 +94,7 @@ const HamburgerMenu = memo(({
 				const count = importRoutesFromJson(content, 'after');
 				onMessage(`${count}件の経路をインポートしました`);
 				onRefreshRouteList();
+				onOpenRouteList();
 			} catch {
 				onMessage('インポートに失敗しました。JSONファイルの形式を確認してください', 'error');
 			}
@@ -104,7 +105,7 @@ const HamburgerMenu = memo(({
 		reader.readAsText(file);
 		e.target.value = '';
 		closeMenu();
-	}, [onMessage, onRefreshRouteList, closeMenu]);
+	}, [onMessage, onRefreshRouteList, onOpenRouteList, closeMenu]);
 
 	return (
 		<>
