@@ -72,8 +72,15 @@ const RouteListModal = memo(({
 					<ul className={styles.list} aria-label="通学路一覧">
 						{savedRoutes.map((route) => (
 							<li key={route.id} className={styles.item}>
-								<div className={styles.routeInfo}>
-									<div className={styles.routeName}>{route.name}</div>
+								<button
+									type="button"
+									className={styles.rowButton}
+									onClick={() => handleView(route.id)}
+									aria-label={`${route.name}を表示`}
+								>
+									<div className={styles.routeHeader}>
+										<span className={styles.routeName}>{route.name}</span>
+									</div>
 									<div className={styles.routeMeta}>
 										作成: {new Date(route.created_at).toLocaleString('ja-JP', {
 											year: 'numeric',
@@ -84,31 +91,25 @@ const RouteListModal = memo(({
 										})}
 										{route.points && ` / ${route.points.length}ポイント`}
 									</div>
-								</div>
+								</button>
 								<div className={styles.actions}>
 									<button
 										type="button"
-										className={`${styles.actionButton} ${styles.viewButton}`}
-										onClick={() => handleView(route.id)}
-										aria-label={`${route.name}を表示`}
-									>
-										表示
-									</button>
-									<button
-										type="button"
-										className={`${styles.actionButton} ${styles.editButton}`}
+										className={styles.iconButton}
 										onClick={() => handleEdit(route.id)}
 										aria-label={`${route.name}を編集`}
+										title="編集"
 									>
-										編集
+										✏️
 									</button>
 									<button
 										type="button"
-										className={`${styles.actionButton} ${styles.deleteButton}`}
+										className={`${styles.iconButton} ${styles.deleteButton}`}
 										onClick={() => handleDelete(route.id, route.name)}
 										aria-label={`${route.name}を削除`}
+										title="削除"
 									>
-										削除
+										🗑️
 									</button>
 								</div>
 							</li>
