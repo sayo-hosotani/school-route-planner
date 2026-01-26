@@ -52,7 +52,6 @@ const AppContent = () => {
 	const routeNameModal = useModal();
 	const pointEditModal = useModal<Point>();
 	const [isRouteListOpen, setIsRouteListOpen] = useState(false);
-	const [isPointListOpen, setIsPointListOpen] = useState(false);
 
 	// 経路一覧の更新トリガー
 	const [routeListRefreshTrigger, setRouteListRefreshTrigger] = useState(0);
@@ -174,10 +173,6 @@ const AppContent = () => {
 		setIsRouteListOpen(true);
 	}, []);
 
-	// ポイント一覧を開く
-	const handleOpenPointList = useCallback(() => {
-		setIsPointListOpen(true);
-	}, []);
 
 	return (
 		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
@@ -192,7 +187,6 @@ const AppContent = () => {
 				onNewRoute={handleNewRoute}
 				onSaveRoute={handleSave}
 				onOpenRouteList={handleOpenRouteList}
-				onOpenPointList={handleOpenPointList}
 				onMessage={showMessage}
 				onRefreshRouteList={handleRefreshRouteList}
 				hasPoints={points.length > 0}
@@ -210,8 +204,6 @@ const AppContent = () => {
 
 			{/* ポイント一覧パネル */}
 			<PointListPanel
-				isOpen={isPointListOpen}
-				onClose={() => setIsPointListOpen(false)}
 				points={points}
 				highlightedPointId={highlightedPointId}
 				pointHandlers={pointHandlers}

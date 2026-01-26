@@ -7,7 +7,6 @@ interface HamburgerMenuProps {
 	onNewRoute: () => void;
 	onSaveRoute: () => void;
 	onOpenRouteList: () => void;
-	onOpenPointList: () => void;
 	onMessage: (message: string, type?: 'success' | 'error') => void;
 	onRefreshRouteList: () => void;
 	hasPoints: boolean;
@@ -17,7 +16,6 @@ const HamburgerMenu = memo(({
 	onNewRoute,
 	onSaveRoute,
 	onOpenRouteList,
-	onOpenPointList,
 	onMessage,
 	onRefreshRouteList,
 	hasPoints,
@@ -52,11 +50,6 @@ const HamburgerMenu = memo(({
 	const handleOpenRouteList = useCallback(() => {
 		handleMenuItemClick(onOpenRouteList);
 	}, [handleMenuItemClick, onOpenRouteList]);
-
-	// ポイントの一覧
-	const handleOpenPointList = useCallback(() => {
-		handleMenuItemClick(onOpenPointList);
-	}, [handleMenuItemClick, onOpenPointList]);
 
 	// エクスポート
 	const handleExport = useCallback(() => {
@@ -159,19 +152,6 @@ const HamburgerMenu = memo(({
 						>
 							<span className={styles.menuIcon}>📋</span>
 							通学路の一覧
-						</button>
-
-						<div className={styles.separator} />
-
-						<button
-							type="button"
-							className={styles.menuItem}
-							onClick={handleOpenPointList}
-							role="menuitem"
-							disabled={!hasPoints}
-						>
-							<span className={styles.menuIcon}>📍</span>
-							ポイントの一覧
 						</button>
 
 						<div className={styles.separator} />

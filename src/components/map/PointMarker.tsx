@@ -57,7 +57,7 @@ const PointMarker = memo(({ point, editMode, onDragEnd, onClick }: PointMarkerPr
 				click: handleClick,
 			}}
 		>
-			{!editMode && point.comment && (
+			{point.comment && (
 				<Tooltip
 					permanent
 					direction="top"

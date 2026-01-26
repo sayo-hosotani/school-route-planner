@@ -5,22 +5,16 @@ import PointItem from './PointItem';
 import styles from './PointListPanel.module.css';
 
 interface PointListPanelProps {
-	isOpen: boolean;
-	onClose: () => void;
 	points: Point[];
 	highlightedPointId: string | null;
 	pointHandlers: PointHandlers;
 }
 
 const PointListPanel = memo(({
-	isOpen,
-	onClose,
 	points,
 	highlightedPointId,
 	pointHandlers,
 }: PointListPanelProps) => {
-	if (!isOpen) return null;
-
 	const startPoint = points.find((p) => p.type === 'start') || null;
 	const goalPoint = points.find((p) => p.type === 'goal') || null;
 	const waypoints = points.filter((p) => p.type === 'waypoint');
@@ -29,14 +23,6 @@ const PointListPanel = memo(({
 		<div className={styles.panel}>
 			<div className={styles.header}>
 				<h3 className={styles.title}>ポイントの一覧 ({points.length})</h3>
-				<button
-					type="button"
-					className={styles.closeButton}
-					onClick={onClose}
-					aria-label="閉じる"
-				>
-					×
-				</button>
 			</div>
 
 			<div className={styles.content}>
