@@ -1,0 +1,59 @@
+.container {
+	width: 450px;
+	max-width: 95%;
+	text-align: center;
+}
+
+.title {
+	margin: 0 0 var(--spacing-sm) 0;
+	font-size: 1.8rem;
+	font-weight: bold;
+	color: var(--color-text-primary);
+}
+
+.description {
+	margin: 0 0 var(--spacing-lg) 0;
+	font-size: var(--font-size-md);
+	color: var(--color-text-secondary);
+	line-height: 1.6;
+}
+
+.section {
+	text-align: left;
+	margin-bottom: var(--spacing-md);
+}
+
+.sectionTitle {
+	margin: 0 0 var(--spacing-sm) 0;
+	font-size: var(--font-size-md);
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.divider {
+	height: 1px;
+	background-color: var(--color-border);
+	margin: var(--spacing-md) 0;
+}
+
+.importButton {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--spacing-xs);
+}
+
+.buttonIcon {
+	font-size: 1.2em;
+}
+
+.hiddenInput {
+	display: none;
+}
+
+.hint {
+	margin: var(--spacing-lg) 0 0 0;
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+}

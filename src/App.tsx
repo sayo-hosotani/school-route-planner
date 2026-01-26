@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, ScaleControl, AttributionControl, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import CoordinateDisplay from './components/map/CoordinateDisplay';
@@ -13,9 +13,10 @@ import RouteNameModal from './components/route/RouteNameModal';
 import RouteListModal from './components/route/RouteListModal';
 import HamburgerMenu from './components/menu/HamburgerMenu';
 import AddressSearchModal from './components/address/AddressSearchModal';
+import WelcomeScreen from './components/welcome/WelcomeScreen';
 import MessageDisplay from './components/ui/MessageDisplay';
 import LoadingOverlay from './components/ui/LoadingOverlay';
-import { saveRoute, loadRouteById } from './api/route-api';
+import { saveRoute, loadRouteById, getAllRoutes } from './api/route-api';
 import { useModal } from './hooks/use-modal';
 import { PointProvider, AppProvider, usePointContext, useAppContext } from './contexts';
 import { handleAsyncOperation } from './utils/error-handler';
@@ -54,9 +55,28 @@ const AppContent = () => {
 	const pointEditModal = useModal<Point>();
 	const [isRouteListOpen, setIsRouteListOpen] = useState(false);
 	const [isAddressSearchOpen, setIsAddressSearchOpen] = useState(false);
+	const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
 
 	// 経路一覧の更新トリガー
 	const [routeListRefreshTrigger, setRouteListRefreshTrigger] = useState(0);
+
+	// ページ表示時に保存済み経路があれば一覧を表示、なければウェルカム画面を表示
+	useEffect(() => {
+		const checkSavedRoutes = async () => {
+			try {
+				const routes = await getAllRoutes();
+				if (routes.length > 0) {
+					setIsRouteListOpen(true);
+				} else {
+					setIsWelcomeOpen(true);
+				}
+			} catch {
+				// エラー時はウェルカム画面を表示
+				setIsWelcomeOpen(true);
+			}
+		};
+		checkSavedRoutes();
+	}, []);
 
 	// 経路一覧を更新
 	const handleRefreshRouteList = useCallback(() => {
@@ -191,6 +211,13 @@ const AppContent = () => {
 		showMessage(`ポイントを追加しました: ${comment}`);
 	}, [addPoint, setMapCenter, highlightPoint, showMessage]);
 
+	// ウェルカム画面からのインポート成功時
+	const handleWelcomeImportSuccess = useCallback((count: number) => {
+		showMessage(`${count}件の経路をインポートしました`);
+		handleRefreshRouteList();
+		setIsRouteListOpen(true);
+	}, [showMessage, handleRefreshRouteList]);
+
 	return (
 		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
 			{/* メッセージ表示 */}
@@ -250,6 +277,15 @@ const AppContent = () => {
 				isOpen={isAddressSearchOpen}
 				onClose={() => setIsAddressSearchOpen(false)}
 				onAddPoint={handleAddPointFromAddress}
+				onError={(msg) => showMessage(msg, 'error')}
+			/>
+
+			{/* ウェルカム画面 */}
+			<WelcomeScreen
+				isOpen={isWelcomeOpen}
+				onClose={() => setIsWelcomeOpen(false)}
+				onAddPoint={handleAddPointFromAddress}
+				onImportSuccess={handleWelcomeImportSuccess}
 				onError={(msg) => showMessage(msg, 'error')}
 			/>
 
