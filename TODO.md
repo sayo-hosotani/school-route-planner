@@ -15,6 +15,12 @@
   - Valhalla API連携のテスト
   - ジオコーディングAPI連携のテスト
 
+## 3. nginxの開発時検証（要検討）
+- [ ] 開発時もnginx経由でAPIにアクセスできるようにする
+
+## 4. Valhalla APIサーバーのリクエスト元制限
+- [ ] Valhalla APIへのリクエスト元を本アプリケーションに限定する
+
 ## メモ
 - CLAUDE.mdに設計が詳しく記載されている
 - フロントエンド: http://localhost:5173
