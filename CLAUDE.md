@@ -85,6 +85,11 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
 # 開発
 npm run dev    # 開発サーバー起動
 
+# テスト
+npm test              # 全テスト実行（watchモード）
+npm test -- --run     # 全テスト実行（単発）
+npm test -- --coverage  # カバレッジ付きで実行
+
 # Docker
 docker-compose up -d valhalla  # Valhalla起動
 ```
@@ -101,6 +106,70 @@ interface Point {
   comment: string;
 }
 ```
+
+## テスト
+
+### 構成
+
+- **フレームワーク**: Vitest（globals有効、jsdom環境）
+- **テストライブラリ**: @testing-library/react, @testing-library/jest-dom, @testing-library/user-event
+- **設定ファイル**: `vitest.config.ts`
+- **セットアップ**: `src/test/setup.ts`（jest-domマッチャーの読み込み）
+- **ヘルパー**: `src/test/helpers.ts`（`createTestPoint`, `createTestSavedRoute`）
+
+### テストファイル配置
+
+各ソースファイルと同じディレクトリに `*.test.ts` / `*.test.tsx` を配置する。
+
+```
+src/
+├── api/
+│   ├── valhalla-client.ts
+│   └── valhalla-client.test.ts    # 同階層に配置
+├── hooks/
+│   ├── use-points.ts
+│   └── use-points.test.ts
+├── components/
+│   └── point/
+│       ├── PointItem.tsx
+│       └── PointItem.test.tsx
+└── test/
+    ├── setup.ts                   # セットアップファイル
+    └── helpers.ts                 # テストヘルパー
+```
+
+### テスト対象レイヤー
+
+| レイヤー | 対象 | テスト手法 |
+|---------|------|-----------|
+| API | `src/api/` | `fetch`のモック、レスポンス検証 |
+| ユーティリティ | `src/utils/` | 純粋関数のユニットテスト |
+| フック | `src/hooks/` | `renderHook` + `act` |
+| Context | `src/contexts/` | `renderHook` + ラッパー |
+| コンポーネント | `src/components/` | `render` + `screen` + `userEvent` |
+
+### モック手法
+
+```typescript
+// fetch モック
+vi.stubGlobal('fetch', vi.fn());
+
+// モジュールモック
+vi.mock('../api/route-api', () => ({
+  generateRoute: vi.fn(),
+}));
+
+// タイマーモック
+vi.useFakeTimers();
+vi.advanceTimersByTime(3000);
+vi.useRealTimers();
+```
+
+### テスト作成時の注意
+
+1. テストヘルパー（`src/test/helpers.ts`）のファクトリー関数を活用する
+2. 非同期処理は `act` + `waitFor` で適切にラップする
+3. CSS Modulesは `non-scoped` 設定のためクラス名をそのまま検証可能
 
 ## 開発時の注意
 
