@@ -226,7 +226,7 @@ describe('usePoints', () => {
 		it('中継地点を上に移動できる', () => {
 			const result = setupFourPoints();
 
-			let moved: ReturnType<typeof result.current.movePoint>;
+			let moved: ReturnType<typeof result.current.movePoint> = null;
 			act(() => {
 				moved = result.current.movePoint('w2', 'up');
 			});
@@ -239,7 +239,7 @@ describe('usePoints', () => {
 		it('中継地点を下に移動できる', () => {
 			const result = setupFourPoints();
 
-			let moved: ReturnType<typeof result.current.movePoint>;
+			let moved: ReturnType<typeof result.current.movePoint> = null;
 			act(() => {
 				moved = result.current.movePoint('w1', 'down');
 			});
@@ -252,7 +252,7 @@ describe('usePoints', () => {
 		it('スタートは移動できずnullを返す', () => {
 			const result = setupFourPoints();
 
-			let moved: ReturnType<typeof result.current.movePoint>;
+			let moved: ReturnType<typeof result.current.movePoint> = null;
 			act(() => {
 				moved = result.current.movePoint('s1', 'down');
 			});
@@ -263,7 +263,7 @@ describe('usePoints', () => {
 		it('ゴールは移動できずnullを返す', () => {
 			const result = setupFourPoints();
 
-			let moved: ReturnType<typeof result.current.movePoint>;
+			let moved: ReturnType<typeof result.current.movePoint> = null;
 			act(() => {
 				moved = result.current.movePoint('g1', 'up');
 			});
@@ -286,7 +286,7 @@ describe('usePoints', () => {
 		it('存在しないIDの場合、nullを返す', () => {
 			const result = setupFourPoints();
 
-			let moved: ReturnType<typeof result.current.movePoint>;
+			let moved: ReturnType<typeof result.current.movePoint> = null;
 			act(() => {
 				moved = result.current.movePoint('nonexistent', 'up');
 			});

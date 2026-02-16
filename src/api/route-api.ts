@@ -108,7 +108,7 @@ export function exportRoutesToJson(): string {
  * JSONファイルから経路をインポート（既存経路の後ろに追加）
  */
 export function importRoutesFromJson(jsonString: string, position: 'before' | 'after' = 'after'): number {
-	const importedRoutes = JSON.parse(jsonString);
+	const importedRoutes: SavedRoute[] = JSON.parse(jsonString);
 
 	const validation = validateImportData(importedRoutes);
 	if (!validation.valid) {

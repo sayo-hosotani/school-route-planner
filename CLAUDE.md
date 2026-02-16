@@ -19,7 +19,7 @@
 ## 技術スタック
 
 - **言語**: TypeScript
-- **フロントエンド**: React, Vite, React Leaflet
+- **フロントエンド**: React, Vite, React Leaflet, clsx
 - **経路計算**: Valhalla (Docker) - フロントエンドから直接呼び出し
 - **ツール**: Biome, Vitest
 
@@ -33,6 +33,7 @@ src/
 │   ├── menu/      # メニュー関連
 │   ├── point/     # ポイント関連
 │   ├── route/     # 経路関連
+│   ├── ui/        # 汎用UIコンポーネント
 │   └── welcome/   # ウェルカム画面
 ├── contexts/      # Context API
 ├── hooks/         # カスタムフック
@@ -41,6 +42,7 @@ src/
 ├── constants/     # 定数
 ├── types/         # 型定義
 └── styles/        # 共通スタイル（CSS Modules）
+    └── shared/    # 共有スタイル
 ```
 
 ## デプロイ
@@ -72,7 +74,7 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
 | 型・クラス | PascalCase | `Point` |
 
 - インデント: タブ、セミコロン: 必須、クォート: シングル
-- `any`型禁止
+- `any`型禁止（Biomeでは`noExplicitAny: warn`）
 
 ## セキュリティ
 
@@ -82,7 +84,8 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
 - **JSONインポート**: バリデーション必須（`src/utils/validate-import.ts`）
   - ファイルサイズ上限: 1MB（UI側でチェック）
   - ルート件数上限: 100件
-  - 必須フィールド・型・座標範囲・文字列長を検証
+  - 名前上限: 100文字、コメント上限: 500文字
+  - 必須フィールド・型・座標範囲・文字列長・タイムスタンプを検証
 - **セキュリティヘッダ**:
   - GitHub Pages: `index.html` に `<meta http-equiv="Content-Security-Policy">` で CSP を設定
   - nginx gateway（`docker/gateway/default.conf`）: `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` をHTTPヘッダで設定
@@ -99,6 +102,11 @@ npm test              # 全テスト実行（watchモード）
 npm test -- --run     # 全テスト実行（単発）
 npm test -- --coverage  # カバレッジ付きで実行
 
+# リント・フォーマット
+npm run lint          # Biomeによるチェック
+npm run lint:fix      # Biomeによるチェック＋自動修正
+npm run format        # Biomeによるフォーマット
+
 # Docker
 docker-compose up -d valhalla  # Valhalla起動
 ```
@@ -113,6 +121,8 @@ interface Point {
   type: 'start' | 'waypoint' | 'goal';
   order: number;
   comment: string;
+  created_at: string;
+  updated_at: string;
 }
 ```
 
