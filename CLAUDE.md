@@ -58,7 +58,7 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
 
 **特徴**:
 - バックエンドなし
-- データベースなし（経路はローカルストレージで管理、JSONでエクスポート/インポート可能）
+- データベースなし（経路はメモリ上で管理、JSONでエクスポート/インポート可能。ブラウザリロードでクリア）
 - ユーザー認証なし
 
 ## コーディング規約
@@ -76,7 +76,8 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
 
 ## セキュリティ
 
-- **認証**: 実装しない（ローカル利用前提）
+- **認証**: 実装しない（個人利用前提）
+- **データ保存**: XSSの危険性を鑑みてlocalStorageは使用しない
 - **禁止**: dangerouslySetInnerHTML
 
 ## よく使うコマンド

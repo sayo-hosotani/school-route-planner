@@ -8,13 +8,12 @@ import {
 	loadRoute,
 	exportRoutesToJson,
 	importRoutesFromJson,
+	resetRoutes,
 } from './route-api';
-
-const STORAGE_KEY = 'school-route-planner-saved-routes';
 
 describe('route-api', () => {
 	beforeEach(() => {
-		localStorage.clear();
+		resetRoutes();
 		vi.spyOn(crypto, 'randomUUID').mockReturnValue('mock-uuid-001' as ReturnType<typeof crypto.randomUUID>);
 	});
 
@@ -23,7 +22,7 @@ describe('route-api', () => {
 	});
 
 	describe('saveRoute', () => {
-		it('新しい経路をlocalStorageに保存する', async () => {
+		it('新しい経路をメモリに保存する', async () => {
 			const routeData: RouteData = {
 				points: [
 					createTestPoint({ type: 'start', order: 0 }),
@@ -34,9 +33,9 @@ describe('route-api', () => {
 
 			await saveRoute(routeData, 'テスト経路');
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored).toHaveLength(1);
-			expect(stored[0].name).toBe('テスト経路');
+			const routes = await getAllRoutes();
+			expect(routes).toHaveLength(1);
+			expect(routes[0].name).toBe('テスト経路');
 		});
 
 		it('crypto.randomUUID()でIDを生成する', async () => {
@@ -47,8 +46,8 @@ describe('route-api', () => {
 
 			await saveRoute(routeData, 'テスト');
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored[0].id).toBe('mock-uuid-001');
+			const routes = await getAllRoutes();
+			expect(routes[0].id).toBe('mock-uuid-001');
 		});
 
 		it('created_atとupdated_atに現在日時を設定する', async () => {
@@ -61,14 +60,16 @@ describe('route-api', () => {
 			await saveRoute(routeData, 'テスト');
 
 			const after = new Date().toISOString();
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored[0].created_at >= before).toBe(true);
-			expect(stored[0].updated_at <= after).toBe(true);
+			const routes = await getAllRoutes();
+			expect(routes[0].created_at >= before).toBe(true);
+			expect(routes[0].updated_at <= after).toBe(true);
 		});
 
 		it('既存の経路の後ろに追加する', async () => {
 			const existingRoute = createTestSavedRoute({ id: 'existing-1', name: '既存経路' });
-			localStorage.setItem(STORAGE_KEY, JSON.stringify([existingRoute]));
+			importRoutesFromJson(JSON.stringify([existingRoute]));
+
+			vi.spyOn(crypto, 'randomUUID').mockReturnValue('new-uuid' as ReturnType<typeof crypto.randomUUID>);
 
 			const routeData: RouteData = {
 				points: [],
@@ -76,10 +77,10 @@ describe('route-api', () => {
 			};
 			await saveRoute(routeData, '新規経路');
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored).toHaveLength(2);
-			expect(stored[0].name).toBe('既存経路');
-			expect(stored[1].name).toBe('新規経路');
+			const routes = await getAllRoutes();
+			expect(routes).toHaveLength(2);
+			expect(routes[0].name).toBe('既存経路');
+			expect(routes[1].name).toBe('新規経路');
 		});
 	});
 
@@ -89,7 +90,7 @@ describe('route-api', () => {
 				createTestSavedRoute({ id: 'r1', name: '経路1' }),
 				createTestSavedRoute({ id: 'r2', name: '経路2' }),
 			];
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+			importRoutesFromJson(JSON.stringify(routes));
 
 			const result = await getAllRoutes();
 			expect(result).toHaveLength(2);
@@ -104,27 +105,35 @@ describe('route-api', () => {
 
 	describe('deleteRoute', () => {
 		it('指定IDの経路を削除する', async () => {
+			let callCount = 0;
+			vi.spyOn(crypto, 'randomUUID').mockImplementation(() => {
+				callCount++;
+				return `mock-uuid-${callCount}` as ReturnType<typeof crypto.randomUUID>;
+			});
+
 			const routes = [
 				createTestSavedRoute({ id: 'r1' }),
 				createTestSavedRoute({ id: 'r2' }),
 			];
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+			importRoutesFromJson(JSON.stringify(routes));
 
-			await deleteRoute('r1');
+			const allRoutes = await getAllRoutes();
+			expect(allRoutes).toHaveLength(2);
+			await deleteRoute(allRoutes[0].id);
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored).toHaveLength(1);
-			expect(stored[0].id).toBe('r2');
+			const remaining = await getAllRoutes();
+			expect(remaining).toHaveLength(1);
+			expect(remaining[0].id).toBe(allRoutes[1].id);
 		});
 
 		it('存在しないIDの場合、他の経路に影響しない', async () => {
 			const routes = [createTestSavedRoute({ id: 'r1' })];
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+			importRoutesFromJson(JSON.stringify(routes));
 
 			await deleteRoute('nonexistent');
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored).toHaveLength(1);
+			const remaining = await getAllRoutes();
+			expect(remaining).toHaveLength(1);
 		});
 	});
 
@@ -134,16 +143,15 @@ describe('route-api', () => {
 				createTestSavedRoute({ id: 'r1', name: '経路1' }),
 				createTestSavedRoute({ id: 'r2', name: '経路2' }),
 			];
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+			importRoutesFromJson(JSON.stringify(routes));
 
-			const result = await loadRouteById('r2');
-			expect(result.points).toEqual(routes[1].points);
-			expect(result.routeLine).toEqual(routes[1].routeLine);
+			const allRoutes = await getAllRoutes();
+			const result = await loadRouteById(allRoutes[1].id);
+			expect(result.points).toEqual(allRoutes[1].points);
+			expect(result.routeLine).toEqual(allRoutes[1].routeLine);
 		});
 
 		it('存在しないIDの場合、エラーをスローする', async () => {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
-
 			await expect(loadRouteById('nonexistent')).rejects.toThrow('経路が見つかりません');
 		});
 	});
@@ -154,11 +162,13 @@ describe('route-api', () => {
 				createTestSavedRoute({ id: 'r1', name: '経路1' }),
 				createTestSavedRoute({ id: 'r2', name: '最新経路' }),
 			];
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+			importRoutesFromJson(JSON.stringify(routes));
 
 			const result = await loadRoute();
 			expect(result).not.toBeNull();
-			expect(result!.points).toEqual(routes[1].points);
+
+			const allRoutes = await getAllRoutes();
+			expect(result!.points).toEqual(allRoutes[1].points);
 		});
 
 		it('経路がない場合、nullを返す', async () => {
@@ -170,17 +180,16 @@ describe('route-api', () => {
 	describe('exportRoutesToJson', () => {
 		it('全経路をJSON文字列で返す', () => {
 			const routes = [createTestSavedRoute({ id: 'r1' })];
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+			importRoutesFromJson(JSON.stringify(routes));
 
 			const json = exportRoutesToJson();
 			const parsed = JSON.parse(json);
 			expect(parsed).toHaveLength(1);
-			expect(parsed[0].id).toBe('r1');
 		});
 
 		it('整形されたJSON（インデント2）を返す', () => {
 			const routes = [createTestSavedRoute({ id: 'r1' })];
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+			importRoutesFromJson(JSON.stringify(routes));
 
 			const json = exportRoutesToJson();
 			expect(json).toContain('\n');
@@ -194,15 +203,15 @@ describe('route-api', () => {
 	});
 
 	describe('importRoutesFromJson', () => {
-		it('JSON文字列から経路をインポートする', () => {
+		it('JSON文字列から経路をインポートする', async () => {
 			const routes = [createTestSavedRoute({ id: 'original-id', name: 'インポート経路' })];
 			const json = JSON.stringify(routes);
 
 			importRoutesFromJson(json);
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored).toHaveLength(1);
-			expect(stored[0].name).toBe('インポート経路');
+			const allRoutes = await getAllRoutes();
+			expect(allRoutes).toHaveLength(1);
+			expect(allRoutes[0].name).toBe('インポート経路');
 		});
 
 		it('インポート件数を返す', () => {
@@ -214,50 +223,52 @@ describe('route-api', () => {
 			expect(count).toBe(2);
 		});
 
-		it('IDを再生成して重複を防ぐ', () => {
+		it('IDを再生成して重複を防ぐ', async () => {
 			const routes = [createTestSavedRoute({ id: 'original-id' })];
 			importRoutesFromJson(JSON.stringify(routes));
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored[0].id).toBe('mock-uuid-001');
-			expect(stored[0].id).not.toBe('original-id');
+			const allRoutes = await getAllRoutes();
+			expect(allRoutes[0].id).toBe('mock-uuid-001');
+			expect(allRoutes[0].id).not.toBe('original-id');
 		});
 
-		it('updated_atを現在日時に更新する', () => {
+		it('updated_atを現在日時に更新する', async () => {
 			const before = new Date().toISOString();
 			const routes = [createTestSavedRoute({ updated_at: '2020-01-01T00:00:00.000Z' })];
 			importRoutesFromJson(JSON.stringify(routes));
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored[0].updated_at >= before).toBe(true);
+			const allRoutes = await getAllRoutes();
+			expect(allRoutes[0].updated_at >= before).toBe(true);
 		});
 
-		it('position=afterの場合、既存経路の後ろに追加する', () => {
-			localStorage.setItem(
-				STORAGE_KEY,
+		it('position=afterの場合、既存経路の後ろに追加する', async () => {
+			importRoutesFromJson(
 				JSON.stringify([createTestSavedRoute({ id: 'existing', name: '既存' })]),
 			);
+
+			vi.spyOn(crypto, 'randomUUID').mockReturnValue('new-uuid' as ReturnType<typeof crypto.randomUUID>);
 
 			const routes = [createTestSavedRoute({ name: 'インポート' })];
 			importRoutesFromJson(JSON.stringify(routes), 'after');
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored[0].name).toBe('既存');
-			expect(stored[1].name).toBe('インポート');
+			const allRoutes = await getAllRoutes();
+			expect(allRoutes[0].name).toBe('既存');
+			expect(allRoutes[1].name).toBe('インポート');
 		});
 
-		it('position=beforeの場合、既存経路の前に追加する', () => {
-			localStorage.setItem(
-				STORAGE_KEY,
+		it('position=beforeの場合、既存経路の前に追加する', async () => {
+			importRoutesFromJson(
 				JSON.stringify([createTestSavedRoute({ id: 'existing', name: '既存' })]),
 			);
+
+			vi.spyOn(crypto, 'randomUUID').mockReturnValue('new-uuid' as ReturnType<typeof crypto.randomUUID>);
 
 			const routes = [createTestSavedRoute({ name: 'インポート' })];
 			importRoutesFromJson(JSON.stringify(routes), 'before');
 
-			const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-			expect(stored[0].name).toBe('インポート');
-			expect(stored[1].name).toBe('既存');
+			const allRoutes = await getAllRoutes();
+			expect(allRoutes[0].name).toBe('インポート');
+			expect(allRoutes[1].name).toBe('既存');
 		});
 
 		it('無効なJSONの場合、エラーをスローする', () => {

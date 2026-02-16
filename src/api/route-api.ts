@@ -7,9 +7,6 @@ import {
 
 export type { Point, RouteResult };
 
-// ローカルストレージのキー
-const STORAGE_KEY = 'school-route-planner-saved-routes';
-
 export interface SavedRoute {
 	id: string;
 	name: string;
@@ -17,6 +14,16 @@ export interface SavedRoute {
 	points: RouteData['points'];
 	created_at: string;
 	updated_at: string;
+}
+
+// メモリ上で経路データを管理（ブラウザリロードでクリアされる）
+let storedRoutes: SavedRoute[] = [];
+
+/**
+ * メモリ上の経路データをリセットする（テスト用）
+ */
+export function resetRoutes(): void {
+	storedRoutes = [];
 }
 
 /**
@@ -27,30 +34,9 @@ export async function generateRoute(points: Point[]): Promise<RouteResult> {
 }
 
 /**
- * ローカルストレージから全経路を取得
- */
-function getStoredRoutes(): SavedRoute[] {
-	try {
-		const stored = localStorage.getItem(STORAGE_KEY);
-		if (!stored) return [];
-		return JSON.parse(stored) as SavedRoute[];
-	} catch {
-		return [];
-	}
-}
-
-/**
- * ローカルストレージに経路を保存
- */
-function setStoredRoutes(routes: SavedRoute[]): void {
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
-}
-
-/**
  * 経路データを保存する
  */
 export async function saveRoute(routeData: RouteData, routeName: string): Promise<void> {
-	const routes = getStoredRoutes();
 	const now = new Date().toISOString();
 
 	const newRoute: SavedRoute = {
@@ -62,32 +48,28 @@ export async function saveRoute(routeData: RouteData, routeName: string): Promis
 		updated_at: now,
 	};
 
-	routes.push(newRoute);
-	setStoredRoutes(routes);
+	storedRoutes = [...storedRoutes, newRoute];
 }
 
 /**
  * すべての保存済み経路を取得
  */
 export async function getAllRoutes(): Promise<SavedRoute[]> {
-	return getStoredRoutes();
+	return [...storedRoutes];
 }
 
 /**
  * 特定の経路を削除
  */
 export async function deleteRoute(routeId: string): Promise<void> {
-	const routes = getStoredRoutes();
-	const filtered = routes.filter((r) => r.id !== routeId);
-	setStoredRoutes(filtered);
+	storedRoutes = storedRoutes.filter((r) => r.id !== routeId);
 }
 
 /**
  * 特定の経路を読み込む
  */
 export async function loadRouteById(routeId: string): Promise<RouteData> {
-	const routes = getStoredRoutes();
-	const route = routes.find((r) => r.id === routeId);
+	const route = storedRoutes.find((r) => r.id === routeId);
 
 	if (!route) {
 		throw new Error('経路が見つかりません');
@@ -105,13 +87,11 @@ export async function loadRouteById(routeId: string): Promise<RouteData> {
  * 保存済み経路データを読み込む（最新の1件）
  */
 export async function loadRoute(): Promise<RouteData | null> {
-	const routes = await getAllRoutes();
-
-	if (!routes || routes.length === 0) {
+	if (storedRoutes.length === 0) {
 		return null;
 	}
 
-	const latestRoute = routes[routes.length - 1];
+	const latestRoute = storedRoutes[storedRoutes.length - 1];
 
 	return loadRouteById(latestRoute.id);
 }
@@ -120,8 +100,7 @@ export async function loadRoute(): Promise<RouteData | null> {
  * 経路をJSONファイルとしてエクスポート
  */
 export function exportRoutesToJson(): string {
-	const routes = getStoredRoutes();
-	return JSON.stringify(routes, null, 2);
+	return JSON.stringify(storedRoutes, null, 2);
 }
 
 /**
@@ -142,13 +121,9 @@ export function importRoutesFromJson(jsonString: string, position: 'before' | 'a
 		updated_at: now,
 	}));
 
-	const existingRoutes = getStoredRoutes();
-
-	const mergedRoutes = position === 'before'
-		? [...routesWithNewIds, ...existingRoutes]
-		: [...existingRoutes, ...routesWithNewIds];
-
-	setStoredRoutes(mergedRoutes);
+	storedRoutes = position === 'before'
+		? [...routesWithNewIds, ...storedRoutes]
+		: [...storedRoutes, ...routesWithNewIds];
 
 	return routesWithNewIds.length;
 }
