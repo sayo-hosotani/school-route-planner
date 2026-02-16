@@ -83,6 +83,10 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
   - ファイルサイズ上限: 1MB（UI側でチェック）
   - ルート件数上限: 100件
   - 必須フィールド・型・座標範囲・文字列長を検証
+- **セキュリティヘッダ**:
+  - GitHub Pages: `index.html` に `<meta http-equiv="Content-Security-Policy">` で CSP を設定
+  - nginx gateway（`docker/gateway/default.conf`）: `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` をHTTPヘッダで設定
+  - CSPで許可する外部オリジン: `unpkg.com`（Leaflet CSS）、`cyberjapandata.gsi.go.jp`（タイル画像）、`msearch.gsi.go.jp`（ジオコーディング）、`school-route-planner-nginx-gateway.fly.dev`（Valhalla API）
 
 ## よく使うコマンド
 

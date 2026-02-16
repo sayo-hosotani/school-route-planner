@@ -66,12 +66,12 @@
 - [ ] **`innerHTML` 排除**（security.md #6）
   - [ ] `src/components/map/CoordinateDisplay.tsx`: `container.innerHTML = ...` → `container.textContent = ...` に変更
 
-- [ ] **セキュリティヘッダ整備**（security.md #7）
-  - [ ] `docker/gateway/default.conf`: `Content-Security-Policy` ヘッダ追加
-  - [ ] `docker/gateway/default.conf`: `X-Content-Type-Options: nosniff` 追加
-  - [ ] `docker/gateway/default.conf`: `Referrer-Policy: strict-origin-when-cross-origin` 追加
-  - [ ] `docker/gateway/default.conf`: `X-Frame-Options: DENY` 追加
-  - [ ] `index.html`: `<meta http-equiv="Content-Security-Policy">` を追加（GitHub Pages 用）
+- [x] **セキュリティヘッダ整備**（security.md #7）
+  - [x] `docker/gateway/default.conf`: `Content-Security-Policy` ヘッダ追加
+  - [x] `docker/gateway/default.conf`: `X-Content-Type-Options: nosniff` 追加
+  - [x] `docker/gateway/default.conf`: `Referrer-Policy: strict-origin-when-cross-origin` 追加
+  - [x] `docker/gateway/default.conf`: `X-Frame-Options: DENY` 追加
+  - [x] `index.html`: `<meta http-equiv="Content-Security-Policy">` を追加（GitHub Pages 用）
 
 ## メモ
 - CLAUDE.mdに設計が詳しく記載されている
