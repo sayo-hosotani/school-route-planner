@@ -79,6 +79,10 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
 - **認証**: 実装しない（個人利用前提）
 - **データ保存**: XSSの危険性を鑑みてlocalStorageは使用しない
 - **禁止**: dangerouslySetInnerHTML
+- **JSONインポート**: バリデーション必須（`src/utils/validate-import.ts`）
+  - ファイルサイズ上限: 1MB（UI側でチェック）
+  - ルート件数上限: 100件
+  - 必須フィールド・型・座標範囲・文字列長を検証
 
 ## よく使うコマンド
 
@@ -174,7 +178,7 @@ vi.useRealTimers();
 
 ## 開発時の注意
 
-1. **座標バリデーション**: 緯度 -90〜90、経度 -180〜180
+1. **座標バリデーション**: 緯度 20.4253〜45.5572（日本国内）、経度 122.9325〜153.9867（日本国内）
 2. **エラーハンドリング**: 全async処理でtry-catch
 3. **Valhalla API**: 開発時はViteプロキシ経由（`/api/valhalla` → `localhost:8002`）
 
@@ -182,3 +186,4 @@ vi.useRealTimers();
 
 - [React Leaflet](https://react-leaflet.js.org/)
 - [Valhalla API](https://valhalla.github.io/valhalla/api/)
+- [日本の緯度経度](https://www.gsi.go.jp/KOKUJYOHO/center.htm)

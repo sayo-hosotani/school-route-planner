@@ -33,19 +33,19 @@
   - [x] `src/App.tsx`: 初回表示で常にウェルカム画面を表示するよう変更（メモリベースのため初期状態は常に空）
   - [x] `src/api/route-api.test.ts`: localStorage モックを除去し、メモリベースのテストに書き換え
 
-- [ ] **JSONインポートの厳格バリデーション**（security.md #1）
-  - [ ] `src/utils/validate-import.ts`（新規作成）
+- [x] **JSONインポートの厳格バリデーション**（security.md #1）
+  - [x] `src/utils/validate-import.ts`（新規作成）
     - ファイルサイズ上限: 1MB
     - 件数上限: 100件
     - 各ルートの必須フィールド検証: `id`, `name`, `routeLine`, `points`, `created_at`, `updated_at`
-    - 座標範囲検証: 緯度 -90〜90、経度 -180〜180
+    - 座標範囲検証: 緯度 20.4253〜45.5572（日本国内）、経度 122.9325〜153.9867（日本国内）
     - `comment` の文字列長上限: 500文字
     - `name` の文字列長上限: 100文字
     - `type` の値検証: `'start' | 'waypoint' | 'goal'`
     - 検証エラー時は具体的な理由を返す
-  - [ ] `src/api/route-api.ts`: `importRoutesFromJson()` 内でバリデーション関数を呼び出す
-  - [ ] `src/components/welcome/WelcomeScreen.tsx` / `src/components/menu/HamburgerMenu.tsx`: ファイル選択時にサイズチェック（1MB超はエラー表示）、バリデーションエラーの詳細をユーザーに表示
-  - [ ] `src/utils/validate-import.test.ts`（新規作成）: 正常系・異常系のバリデーションテスト
+  - [x] `src/api/route-api.ts`: `importRoutesFromJson()` 内でバリデーション関数を呼び出す
+  - [x] `src/components/welcome/WelcomeScreen.tsx` / `src/components/menu/HamburgerMenu.tsx`: ファイル選択時にサイズチェック（1MB超はエラー表示）、バリデーションエラーの詳細をユーザーに表示
+  - [x] `src/utils/validate-import.test.ts`（新規作成）: 正常系・異常系のバリデーションテスト
 
 ### Phase 2: 中優先度
 

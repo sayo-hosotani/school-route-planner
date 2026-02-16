@@ -87,6 +87,13 @@ const HamburgerMenu = memo(({
 		const file = e.target.files?.[0];
 		if (!file) return;
 
+		if (file.size > 1024 * 1024) {
+			onMessage('ファイルサイズが1MBを超えています', 'error');
+			e.target.value = '';
+			closeMenu();
+			return;
+		}
+
 		const reader = new FileReader();
 		reader.onload = (event) => {
 			try {
@@ -95,8 +102,9 @@ const HamburgerMenu = memo(({
 				onMessage(`${count}件の経路をインポートしました`);
 				onRefreshRouteList();
 				onOpenRouteList();
-			} catch {
-				onMessage('インポートに失敗しました。JSONファイルの形式を確認してください', 'error');
+			} catch (err) {
+				const message = err instanceof Error ? err.message : 'JSONファイルの形式を確認してください';
+				onMessage(`インポートに失敗しました: ${message}`, 'error');
 			}
 		};
 		reader.onerror = () => {

@@ -40,6 +40,12 @@ const WelcomeScreen = memo(({
 		const file = e.target.files?.[0];
 		if (!file) return;
 
+		if (file.size > 1024 * 1024) {
+			onError('ファイルサイズが1MBを超えています');
+			e.target.value = '';
+			return;
+		}
+
 		const reader = new FileReader();
 		reader.onload = (event) => {
 			try {
@@ -47,8 +53,9 @@ const WelcomeScreen = memo(({
 				const count = importRoutesFromJson(content, 'after');
 				onImportSuccess(count);
 				onClose();
-			} catch {
-				onError('インポートに失敗しました。JSONファイルの形式を確認してください');
+			} catch (err) {
+				const message = err instanceof Error ? err.message : 'JSONファイルの形式を確認してください';
+				onError(`インポートに失敗しました: ${message}`);
 			}
 		};
 		reader.onerror = () => {

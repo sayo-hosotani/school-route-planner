@@ -276,7 +276,7 @@ describe('route-api', () => {
 		});
 
 		it('配列以外のJSONの場合、エラーをスローする', () => {
-			expect(() => importRoutesFromJson('{"key": "value"}')).toThrow('無効なJSONフォーマットです');
+			expect(() => importRoutesFromJson('{"key": "value"}')).toThrow('データが配列ではありません');
 		});
 	});
 });

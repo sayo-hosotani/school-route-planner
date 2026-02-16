@@ -1,4 +1,5 @@
 import type { RouteData } from '../types/route';
+import { validateImportData } from '../utils/validate-import';
 import {
 	generateRoute as valhallaGenerateRoute,
 	type Point,
@@ -107,10 +108,11 @@ export function exportRoutesToJson(): string {
  * JSONファイルから経路をインポート（既存経路の後ろに追加）
  */
 export function importRoutesFromJson(jsonString: string, position: 'before' | 'after' = 'after'): number {
-	const importedRoutes = JSON.parse(jsonString) as SavedRoute[];
+	const importedRoutes = JSON.parse(jsonString);
 
-	if (!Array.isArray(importedRoutes)) {
-		throw new Error('無効なJSONフォーマットです');
+	const validation = validateImportData(importedRoutes);
+	if (!validation.valid) {
+		throw new Error(validation.errors.join('\n'));
 	}
 
 	// IDを再生成して重複を防ぐ

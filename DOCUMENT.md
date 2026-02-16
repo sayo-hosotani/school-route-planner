@@ -236,6 +236,7 @@ App (AppProvider)
 |----------|------|
 | `utils/error-handler.ts` | 共通エラーハンドリング（handleAsyncOperation, handleApiResult） |
 | `utils/point-utils.ts` | ポイント関連ヘルパー（getPointTypeLabel, getDisplayTitle） |
+| `utils/validate-import.ts` | JSONインポートデータのバリデーション（validateImportData） |
 | `api/valhalla-client.ts` | Valhalla API呼び出し |
 | `api/route-api.ts` | 経路データ管理（メモリ保持、エクスポート/インポート） |
 | `api/geocoding-client.ts` | 国土地理院ジオコーディングAPI呼び出し |
@@ -324,6 +325,17 @@ interface SavedRoute {
 - **エクスポート**: 保存済み経路一覧をJSONファイルとしてダウンロード
 - **インポート**: JSONファイルを読み込み、既存経路の後ろに追加
   - インポート時はIDが再生成されるため、同じファイルを複数回インポート可能
+  - インポート時のバリデーション（`src/utils/validate-import.ts`）:
+
+| 検証項目 | ルール |
+|---------|--------|
+| ファイルサイズ | 1MB以下（UI側でチェック） |
+| ルート件数 | 100件以下 |
+| ルート必須フィールド | `id`, `name`, `routeLine`, `points`, `created_at`, `updated_at` |
+| `name` 文字列長 | 100文字以下 |
+| `comment` 文字列長 | 500文字以下 |
+| 座標範囲 | 緯度 20.4253〜45.5572（日本国内）、経度 122.9325〜153.9867（日本国内）（routeLine・points両方） |
+| ポイント `type` | `'start'` / `'waypoint'` / `'goal'` のいずれか |
 
 ## エラーハンドリング
 
@@ -498,6 +510,7 @@ curl http://localhost:8002/status
 |----------|------|
 | `utils/error-handler.ts` | 共通エラーハンドリング関数 |
 | `utils/point-utils.ts` | ポイント関連ヘルパー関数 |
+| `utils/validate-import.ts` | JSONインポートデータのバリデーション |
 | `api/valhalla-client.ts` | Valhalla API呼び出し |
 | `api/geocoding-client.ts` | 国土地理院ジオコーディングAPI呼び出し |
 | `api/route-api.ts` | 経路データ管理（メモリ保持、エクスポート/インポート） |
