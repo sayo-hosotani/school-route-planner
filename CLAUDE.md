@@ -90,6 +90,10 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
   - GitHub Pages: `index.html` に `<meta http-equiv="Content-Security-Policy">` で CSP を設定
   - nginx gateway（`docker/gateway/default.conf`）: `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` をHTTPヘッダで設定
   - CSPで許可する外部オリジン: `unpkg.com`（Leaflet CSS）、`cyberjapandata.gsi.go.jp`（タイル画像）、`msearch.gsi.go.jp`（ジオコーディング）、`school-route-planner-nginx-gateway.fly.dev`（Valhalla API）
+- **外部リンク**: `target="_blank"` には必ず `rel="noopener noreferrer"` を付与（逆タブナビング防止）
+- **DOM操作**: `innerHTML` 使用禁止（`textContent` を使用）
+- **nginxゲートウェイ**: `limit_req` / `limit_conn` によるレート制限（10req/s、burst=20）、`client_max_body_size 5M`
+- **Docker**: OSMデータ取得は HTTPS・md5チェックサム検証必須、ベースイメージは digest pin（`@sha256:...`）で固定
 
 ## よく使うコマンド
 

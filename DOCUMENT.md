@@ -15,6 +15,7 @@
 | 自動経路生成 | ポイント追加・移動時にValhalla API呼び出し |
 | 経路保存 | メモリ上に保存（セッション中のみ有効） |
 | エクスポート/インポート | JSONファイルで経路データをやり取り |
+| 地図ダウンロード | 表示中の経路をPNG画像としてダウンロード（html2canvas使用） |
 
 ## ポイント種別の自動判定
 
@@ -58,6 +59,7 @@
 | 住所からポイントを追加 | 住所検索モーダルを表示 |
 | エクスポート | 保存済み経路をJSONでダウンロード |
 | インポート | JSONファイルから経路をインポート |
+| 地図をダウンロード | 表示中の地図をPNG画像としてダウンロード |
 
 ### ポイント一覧パネル（左下）
 
@@ -237,6 +239,7 @@ App (AppProvider)
 | `utils/error-handler.ts` | 共通エラーハンドリング（handleAsyncOperation, handleApiResult） |
 | `utils/point-utils.ts` | ポイント関連ヘルパー（getPointTypeLabel, getDisplayTitle） |
 | `utils/validate-import.ts` | JSONインポートデータのバリデーション（validateImportData） |
+| `utils/map-download.ts` | 地図のPNG画像ダウンロード（html2canvas使用、コントロール類を非表示化） |
 | `api/valhalla-client.ts` | Valhalla API呼び出し |
 | `api/route-api.ts` | 経路データ管理（メモリ保持、エクスポート/インポート） |
 | `api/geocoding-client.ts` | 国土地理院ジオコーディングAPI呼び出し |
@@ -343,6 +346,46 @@ interface SavedRoute {
 - 全async処理でtry-catch必須
 - Valhalla APIエラー時は直線接続にフォールバック
 - ユーザーにはメッセージ表示で通知
+
+## セキュリティ
+
+### データ保存方針
+
+- `localStorage` は使用しない（XSS攻撃によるデータ漏洩リスクの排除）
+- 経路データはモジュールレベル変数（`storedRoutes`）でメモリ上に保持（→ [経路データ管理](#経路データ管理) 参照）
+- `dangerouslySetInnerHTML` は使用禁止
+- DOM操作で `innerHTML` は使用禁止（`textContent` を使用）
+
+### 外部リンク
+
+`target="_blank"` を持つ外部リンクには必ず `rel="noopener noreferrer"` を付与する（逆タブナビング攻撃の防止）。
+
+### セキュリティヘッダ
+
+| 設定場所 | 設定内容 |
+|---------|---------|
+| `index.html`（GitHub Pages用） | `Content-Security-Policy`（meta タグ） |
+| `docker/gateway/default.conf` | `Content-Security-Policy`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`X-Frame-Options: DENY` |
+
+CSPで許可する外部オリジン:
+
+| オリジン | 用途 |
+|---------|------|
+| `unpkg.com` | Leaflet CSS |
+| `cyberjapandata.gsi.go.jp` | タイル画像 |
+| `msearch.gsi.go.jp` | ジオコーディング |
+| `school-route-planner-nginx-gateway.fly.dev` | Valhalla API |
+
+### nginxゲートウェイ レート制限（`docker/gateway/default.conf`）
+
+- `limit_req_zone` / `limit_conn_zone` によるレート制限（10req/s、burst=20）
+- `client_max_body_size 5M` を明示
+
+### Docker セキュリティ（`docker/valhalla/Dockerfile`）
+
+- OSMデータ取得URLは HTTPS（`wget https://`）
+- md5チェックサム検証を実施
+- ベースイメージは digest pin（`@sha256:...`）で固定
 
 # 開発ガイド
 
@@ -511,6 +554,7 @@ curl http://localhost:8002/status
 | `utils/error-handler.ts` | 共通エラーハンドリング関数 |
 | `utils/point-utils.ts` | ポイント関連ヘルパー関数 |
 | `utils/validate-import.ts` | JSONインポートデータのバリデーション |
+| `utils/map-download.ts` | 地図のPNG画像ダウンロード（html2canvas使用） |
 | `api/valhalla-client.ts` | Valhalla API呼び出し |
 | `api/geocoding-client.ts` | 国土地理院ジオコーディングAPI呼び出し |
 | `api/route-api.ts` | 経路データ管理（メモリ保持、エクスポート/インポート） |
