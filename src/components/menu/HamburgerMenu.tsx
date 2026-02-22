@@ -10,6 +10,7 @@ interface HamburgerMenuProps {
 	onOpenAddressSearch: () => void;
 	onMessage: (message: string, type?: 'success' | 'error') => void;
 	onRefreshRouteList: () => void;
+	onDownloadMap: () => Promise<void>;
 	hasPoints: boolean;
 }
 
@@ -20,6 +21,7 @@ const HamburgerMenu = memo(({
 	onOpenAddressSearch,
 	onMessage,
 	onRefreshRouteList,
+	onDownloadMap,
 	hasPoints,
 }: HamburgerMenuProps) => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -77,6 +79,12 @@ const HamburgerMenu = memo(({
 		}
 		closeMenu();
 	}, [onMessage, closeMenu]);
+
+	// 地図ダウンロード
+	const handleDownloadMap = useCallback(() => {
+		onDownloadMap();
+		closeMenu();
+	}, [onDownloadMap, closeMenu]);
 
 	// インポート
 	const handleImportClick = useCallback(() => {
@@ -202,6 +210,16 @@ const HamburgerMenu = memo(({
 						>
 							<span className={styles.menuIcon}>📥</span>
 							インポート
+						</button>
+
+						<button
+							type="button"
+							className={styles.menuItem}
+							onClick={handleDownloadMap}
+							role="menuitem"
+						>
+							<span className={styles.menuIcon}>🖼️</span>
+							地図をダウンロード
 						</button>
 
 						<input

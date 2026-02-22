@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, ScaleControl, AttributionControl, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import CoordinateDisplay from './components/map/CoordinateDisplay';
@@ -20,6 +20,7 @@ import { saveRoute, loadRouteById } from './api/route-api';
 import { useModal } from './hooks/use-modal';
 import { PointProvider, AppProvider, usePointContext, useAppContext } from './contexts';
 import { handleAsyncOperation } from './utils/error-handler';
+import { downloadMapAsImage } from './utils/map-download';
 import { DEFAULT_MAP_CENTER, DEFAULT_ZOOM_LEVEL } from './constants/map-config';
 import type { Point } from './types/point';
 
@@ -49,6 +50,9 @@ const AppContent = () => {
 		mapCenter,
 		setMapCenter,
 	} = useAppContext();
+
+	// 地図コンテナへの参照
+	const mapContainerRef = useRef<HTMLDivElement>(null);
 
 	// モーダル・パネル
 	const routeNameModal = useModal();
@@ -164,6 +168,20 @@ const AppContent = () => {
 		onUpdateComment: handleUpdateComment,
 	}), [handleEditPoint, handleDeletePoint, handleMovePoint, handlePointClick, handleUpdateComment]);
 
+	// 地図画像のダウンロード
+	const handleDownloadMap = useCallback(async () => {
+		const leafletContainer = mapContainerRef.current?.querySelector<HTMLElement>('.leaflet-container');
+		if (!leafletContainer) {
+			showMessage('地図が見つかりませんでした', 'error');
+			return;
+		}
+		try {
+			await downloadMapAsImage(leafletContainer);
+		} catch {
+			showMessage('ダウンロードに失敗しました（タイル画像の読み込みエラー）', 'error');
+		}
+	}, [showMessage]);
+
 	// 通学路の新規作成
 	const handleNewRoute = useCallback(() => {
 		if (points.length === 0 || window.confirm('現在のポイントをすべてクリアして新規作成しますか？')) {
@@ -201,7 +219,7 @@ const AppContent = () => {
 	}, [showMessage, handleRefreshRouteList]);
 
 	return (
-		<div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
+		<div ref={mapContainerRef} style={{ position: 'relative', height: '100vh', width: '100vw' }}>
 			{/* メッセージ表示 */}
 			<MessageDisplay message={message} type={messageType} />
 
@@ -216,6 +234,7 @@ const AppContent = () => {
 				onOpenAddressSearch={handleOpenAddressSearch}
 				onMessage={showMessage}
 				onRefreshRouteList={handleRefreshRouteList}
+				onDownloadMap={handleDownloadMap}
 				hasPoints={points.length > 0}
 			/>
 
@@ -280,8 +299,9 @@ const AppContent = () => {
 				zoomControl={false}
 			>
 				<TileLayer
-					attribution='<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>'
+					attribution='<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">地理院タイル</a>'
 					url="https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
+					crossOrigin="anonymous"
 				/>
 				<AttributionControl position="bottomleft" />
 				<ZoomControl position="topright" />

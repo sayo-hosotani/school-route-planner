@@ -15,6 +15,7 @@ describe('HamburgerMenu', () => {
 		onOpenAddressSearch: vi.fn(),
 		onMessage: vi.fn(),
 		onRefreshRouteList: vi.fn(),
+		onDownloadMap: vi.fn(() => Promise.resolve()),
 		hasPoints: true,
 	};
 
