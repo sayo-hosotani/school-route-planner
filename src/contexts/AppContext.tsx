@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { useMessage } from '../hooks/use-message';
+import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
 import { HIGHLIGHT_TIMEOUT_MS } from '../constants/map-config';
+import { useMessage } from '../hooks/use-message';
 import type { MessageType } from '../types/common';
 
 interface AppContextValue {

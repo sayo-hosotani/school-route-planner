@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import type { MessageType } from '../types/common';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MESSAGE_TIMEOUT_MS } from '../constants/map-config';
+import type { MessageType } from '../types/common';
 
 interface UseMessageReturn {
 	message: string;

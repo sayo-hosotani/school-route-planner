@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import buttonStyles from '../../styles/shared/buttons.module.css';
 import formStyles from '../../styles/shared/forms.module.css';
 import modalStyles from '../../styles/shared/modal.module.css';

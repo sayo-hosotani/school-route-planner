@@ -1,10 +1,10 @@
 import clsx from 'clsx';
-import { useState, useEffect, useCallback } from 'react';
-import type { Point } from '../../types/point';
-import type { PointClickHandler, PointMoveHandler } from '../../types/handlers';
+import { useCallback, useEffect, useState } from 'react';
 import buttonStyles from '../../styles/shared/buttons.module.css';
 import formStyles from '../../styles/shared/forms.module.css';
 import modalStyles from '../../styles/shared/modal.module.css';
+import type { PointClickHandler, PointMoveHandler } from '../../types/handlers';
+import type { Point } from '../../types/point';
 import styles from './PointEditModal.module.css';
 
 interface PointEditModalProps {
@@ -15,7 +15,13 @@ interface PointEditModalProps {
 	onMovePoint?: PointMoveHandler;
 }
 
-const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: PointEditModalProps) => {
+const PointEditModal = ({
+	point,
+	onClose,
+	onSave,
+	onDeletePoint,
+	onMovePoint,
+}: PointEditModalProps) => {
 	const [type, setType] = useState<Point['type']>('waypoint');
 	const [comment, setComment] = useState('');
 
@@ -38,10 +44,13 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 		onClose();
 	}, [point, onDeletePoint, onClose]);
 
-	const handleMove = useCallback((direction: 'up' | 'down') => {
-		if (!point || !onMovePoint) return;
-		onMovePoint(point.id, direction);
-	}, [point, onMovePoint]);
+	const handleMove = useCallback(
+		(direction: 'up' | 'down') => {
+			if (!point || !onMovePoint) return;
+			onMovePoint(point.id, direction);
+		},
+		[point, onMovePoint],
+	);
 
 	// 入れ替えボタンの表示条件（onMovePointがある場合は常に表示）
 	const showSwapButtons = !!onMovePoint;
@@ -101,7 +110,12 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 								onClick={() => handleMove('up')}
 								disabled={!canSwap}
 								aria-label="前へ"
-								className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.secondary, styles.moveUpButton)}
+								className={clsx(
+									buttonStyles.button,
+									buttonStyles.md,
+									buttonStyles.secondary,
+									styles.moveUpButton,
+								)}
 							>
 								▲前へ
 							</button>
@@ -110,7 +124,12 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 								onClick={() => handleMove('down')}
 								disabled={!canSwap}
 								aria-label="後へ"
-								className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.secondary, styles.moveDownButton)}
+								className={clsx(
+									buttonStyles.button,
+									buttonStyles.md,
+									buttonStyles.secondary,
+									styles.moveDownButton,
+								)}
 							>
 								▼後へ
 							</button>
@@ -132,7 +151,12 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 						onClick={handleDelete}
 						aria-label="ポイントを削除"
 						title="削除"
-						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.danger, styles.deleteButton)}
+						className={clsx(
+							buttonStyles.button,
+							buttonStyles.md,
+							buttonStyles.danger,
+							styles.deleteButton,
+						)}
 					>
 						削除
 					</button>
@@ -141,7 +165,12 @@ const PointEditModal = ({ point, onClose, onSave, onDeletePoint, onMovePoint }: 
 						onClick={handleSave}
 						aria-label="コメントを保存（Ctrl+Sでも操作可）"
 						title="保存（Ctrl+S）"
-						className={clsx(buttonStyles.button, buttonStyles.md, buttonStyles.success, styles.saveButton)}
+						className={clsx(
+							buttonStyles.button,
+							buttonStyles.md,
+							buttonStyles.success,
+							styles.saveButton,
+						)}
 					>
 						保存
 					</button>

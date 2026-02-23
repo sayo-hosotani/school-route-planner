@@ -1,6 +1,6 @@
+import L from 'leaflet';
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import L from 'leaflet';
 
 interface CoordinateDisplayProps {
 	position?: 'topleft' | 'topright' | 'bottomleft' | 'bottomright';
@@ -12,10 +12,7 @@ const CoordinateDisplay = ({ position }: CoordinateDisplayProps) => {
 	useEffect(() => {
 		const CoordinateControl = L.Control.extend({
 			onAdd: () => {
-				const container = L.DomUtil.create(
-					'div',
-					'leaflet-bar leaflet-control coordinate-display',
-				);
+				const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control coordinate-display');
 
 				const updateCoordinates = () => {
 					const center = map.getCenter();

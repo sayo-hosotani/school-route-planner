@@ -11,12 +11,7 @@ const MessageDisplay = ({ message, type = 'success' }: MessageDisplayProps) => {
 	if (!message) return null;
 
 	return (
-		<div
-			className={clsx(
-				styles.container,
-				type === 'error' ? styles.error : styles.success
-			)}
-		>
+		<div className={clsx(styles.container, type === 'error' ? styles.error : styles.success)}>
 			{message}
 		</div>
 	);

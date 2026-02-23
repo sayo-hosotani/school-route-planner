@@ -8,7 +8,7 @@ vi.mock('../../api/route-api', () => ({
 	deleteRoute: vi.fn(),
 }));
 
-import { getAllRoutes, deleteRoute } from '../../api/route-api';
+import { deleteRoute, getAllRoutes } from '../../api/route-api';
 
 describe('RouteListModal', () => {
 	const defaultProps = {
@@ -26,9 +26,7 @@ describe('RouteListModal', () => {
 	});
 
 	it('isOpenがfalseの場合、何も表示しない', () => {
-		const { container } = render(
-			<RouteListModal {...defaultProps} isOpen={false} />,
-		);
+		const { container } = render(<RouteListModal {...defaultProps} isOpen={false} />);
 		expect(container.firstChild).toBeNull();
 	});
 
@@ -91,7 +89,10 @@ describe('RouteListModal', () => {
 
 	it('削除ボタンクリックで確認後に経路を削除する', async () => {
 		const user = userEvent.setup();
-		vi.stubGlobal('confirm', vi.fn(() => true));
+		vi.stubGlobal(
+			'confirm',
+			vi.fn(() => true),
+		);
 		vi.mocked(getAllRoutes).mockResolvedValue([
 			createTestSavedRoute({ id: 'r1', name: '学校への道' }),
 		]);

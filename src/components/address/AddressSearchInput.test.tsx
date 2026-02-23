@@ -66,7 +66,7 @@ describe('AddressSearchInput', () => {
 		const user = userEvent.setup();
 		vi.mocked(searchAddress).mockResolvedValue([
 			{ lat: 35.6895, lng: 139.6917, address: '東京都渋谷区A' },
-			{ lat: 35.6900, lng: 139.6920, address: '東京都渋谷区B' },
+			{ lat: 35.69, lng: 139.692, address: '東京都渋谷区B' },
 		]);
 
 		render(<AddressSearchInput {...defaultProps} />);
@@ -84,7 +84,7 @@ describe('AddressSearchInput', () => {
 		const user = userEvent.setup();
 		vi.mocked(searchAddress).mockResolvedValue([
 			{ lat: 35.6895, lng: 139.6917, address: '東京都渋谷区A' },
-			{ lat: 35.6900, lng: 139.6920, address: '東京都渋谷区B' },
+			{ lat: 35.69, lng: 139.692, address: '東京都渋谷区B' },
 		]);
 
 		render(<AddressSearchInput {...defaultProps} />);

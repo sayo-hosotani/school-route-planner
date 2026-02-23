@@ -1,6 +1,6 @@
+import L from 'leaflet';
 import { memo } from 'react';
 import { Marker, Tooltip } from 'react-leaflet';
-import L from 'leaflet';
 import type { Point } from '../../types/point';
 import styles from './PointMarker.module.css';
 
@@ -58,12 +58,7 @@ const PointMarker = memo(({ point, editMode, onDragEnd, onClick }: PointMarkerPr
 			}}
 		>
 			{point.comment && (
-				<Tooltip
-					permanent
-					direction="top"
-					offset={[0, -12]}
-					className="point-tooltip"
-				>
+				<Tooltip permanent direction="top" offset={[0, -12]} className="point-tooltip">
 					<div className={styles.tooltipContent}>
 						<div className={styles.tooltipComment}>{point.comment}</div>
 					</div>

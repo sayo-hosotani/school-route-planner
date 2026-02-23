@@ -16,7 +16,10 @@ export const createTestPoint = (overrides: Partial<Point> = {}): Point => ({
 export const createTestSavedRoute = (overrides: Partial<SavedRoute> = {}): SavedRoute => ({
 	id: 'test-route-1',
 	name: 'テスト経路',
-	routeLine: [[35.6762, 139.6503], [35.6800, 139.6550]],
+	routeLine: [
+		[35.6762, 139.6503],
+		[35.68, 139.655],
+	],
 	points: [
 		createTestPoint({ id: 'p1', type: 'start', order: 0 }),
 		createTestPoint({ id: 'p2', type: 'goal', order: 1 }),

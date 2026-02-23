@@ -15,13 +15,16 @@ const SavedRouteList = memo(({ onLoadRoute, onMessage, refreshTrigger }: SavedRo
 		refreshTrigger,
 	});
 
-	const handleLoadRoute = useCallback(async (routeId: string) => {
-		await handleAsyncOperation({
-			operation: () => onLoadRoute(routeId),
-			errorMessage: '読み込みに失敗しました',
-			showMessage: onMessage,
-		});
-	}, [onLoadRoute, onMessage]);
+	const handleLoadRoute = useCallback(
+		async (routeId: string) => {
+			await handleAsyncOperation({
+				operation: () => onLoadRoute(routeId),
+				errorMessage: '読み込みに失敗しました',
+				showMessage: onMessage,
+			});
+		},
+		[onLoadRoute, onMessage],
+	);
 
 	return (
 		<div className={styles.container}>

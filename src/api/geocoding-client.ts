@@ -33,10 +33,7 @@ export interface GeocodingResult {
 /**
  * タイムアウト付きfetch
  */
-async function fetchWithTimeout(
-	url: string,
-	timeout: number,
-): Promise<Response> {
+async function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), timeout);
 

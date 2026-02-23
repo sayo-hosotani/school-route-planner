@@ -1,6 +1,6 @@
-import { renderHook, act } from '@testing-library/react';
-import { AppProvider, useAppContext } from './AppContext';
+import { act, renderHook } from '@testing-library/react';
 import { HIGHLIGHT_TIMEOUT_MS } from '../constants/map-config';
+import { AppProvider, useAppContext } from './AppContext';
 
 describe('AppProvider', () => {
 	const wrapper = ({ children }: { children: React.ReactNode }) => (

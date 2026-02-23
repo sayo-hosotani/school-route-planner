@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { MESSAGE_TIMEOUT_MS } from '../constants/map-config';
 import { useMessage } from './use-message';
 

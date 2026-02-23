@@ -16,9 +16,7 @@ describe('PointEditModal', () => {
 	});
 
 	it('ポイントがnullの場合、何も表示しない', () => {
-		const { container } = render(
-			<PointEditModal point={null} {...defaultProps} />,
-		);
+		const { container } = render(<PointEditModal point={null} {...defaultProps} />);
 		expect(container.firstChild).toBeNull();
 	});
 

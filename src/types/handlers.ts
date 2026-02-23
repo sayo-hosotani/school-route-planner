@@ -1,5 +1,5 @@
-import type { Point } from './point';
 import type { MessageType } from './common';
+import type { Point } from './point';
 
 // ポイント操作ハンドラ型
 export type PointClickHandler = (pointId: string) => void;
