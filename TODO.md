@@ -12,7 +12,11 @@
   - `docker-compose up` 後 `npm run dev` で nginx gateway 経由でAPIにアクセス可能
 
 ## 2. Valhalla APIサーバーのリクエスト元制限
-- [ ] Valhalla APIへのリクエスト元を本アプリケーションに限定する
+- [x] Valhalla APIへのリクエスト元を本アプリケーションに限定する
+  - `docker/valhalla/fly.toml` の `http_service` を削除（外部HTTPS公開を廃止）
+  - `docker/gateway/default.conf` の `proxy_pass` を Fly.io 内部DNS（`*.internal:8002`）経由に変更
+  - `resolver fdaa::3` を追加（Fly.io プライベートネットワークの内部DNSリゾルバ）
+  - Valhalla は nginx gateway からの内部通信のみ受け付ける構成
 
 ## 3. コードレビュー指摘（セキュリティ / ロジック / 可読性）
 - [ ] [高][ロジック] ポイントID生成が `Date.now()` 依存のため、同ミリ秒の連続追加でID重複する可能性がある。`crypto.randomUUID()` へ置換する (`src/hooks/use-points.ts:30`)

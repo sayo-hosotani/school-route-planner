@@ -6,13 +6,9 @@
 app = 'school-route-planner-valhalla-api'
 primary_region = 'nrt'
 
-[http_service]
-  internal_port = 8002
-  force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+# http_service を設定しないことで外部HTTPSエンドポイントを廃止し、
+# Fly.io プライベートネットワーク（6PN）経由のアクセスのみ許可する。
+# nginx gateway は school-route-planner-valhalla-api.internal:8002 で到達する。
 
 [[vm]]
   memory = '1gb'
