@@ -150,12 +150,20 @@
 │  - 経路表示                          │
 │  - ホスティング: GitHub Pages        │
 └─────────────────────────────────────┘
-           ↓ HTTP
+           ↓ HTTPS
+┌─────────────────────────────────────┐
+│  nginx gateway                      │
+│  - リクエストプロキシ                │
+│  - レート制限・セキュリティヘッダ    │
+│  - ホスティング: Fly.io             │
+│  - 開発時: Docker (localhost:8080)  │
+└─────────────────────────────────────┘
+           ↓ Fly.io 内部ネットワーク（本番）/ Docker 内部（開発）
 ┌─────────────────────────────────────┐
 │  Valhalla API                       │
 │  - 経路計算                          │
-│  - ホスティング: Fly.io             │
-│  - 開発時: Docker (localhost:8002)  │
+│  - ホスティング: Fly.io（外部非公開）│
+│  - 開発時: Docker（内部アクセスのみ）│
 └─────────────────────────────────────┘
 ```
 
@@ -165,6 +173,7 @@
 - ユーザー認証なし
 - 経路データはメモリ上で管理（ブラウザリロードでクリア）
 - JSONファイルによる経路のエクスポート/インポート機能
+- Valhalla API は nginx gateway 経由でのみアクセス（外部に直接公開しない）
 
 ## フロントエンド設計
 
@@ -270,14 +279,15 @@ styles/
 ## Valhalla API連携
 
 ### 基本情報
-- Valhallaエンドポイント: `http://localhost:8002`
-- 開発時: Viteプロキシ経由（`/api/valhalla` → `localhost:8002`）でCORS回避
 - データ: 関東地方のOSMデータ
+- 開発時: Vite プロキシ経由（`/api/valhalla` → nginx gateway `localhost:8080`）でCORS回避
+- 本番: nginx gateway（Fly.io）から Fly.io 内部 DNS（`school-route-planner-valhalla-api.internal:8002`）経由でアクセス
+- Valhalla の外部向け HTTP エンドポイントは廃止済み（nginx gateway からの内部通信のみ受け付け）
 
 ### リクエスト例
 
 ```typescript
-// フロントエンドからの呼び出し（プロキシ経由）
+// フロントエンドからの呼び出し（Viteプロキシ → nginx gateway 経由）
 const response = await fetch('/api/valhalla/route', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -298,22 +308,28 @@ const response = await fetch('/api/valhalla/route', {
 
 ```typescript
 interface Point {
-  id: string;
+  id: string;           // crypto.randomUUID() で生成
   lat: number;
   lng: number;
   type: 'start' | 'waypoint' | 'goal';
-  order: number;
+  order: number;        // 0以上の整数・重複なし・連番
   comment: string;
+  created_at: string;   // ISO 8601 形式
+  updated_at: string;   // ISO 8601 形式
 }
 
 interface SavedRoute {
   id: string;
   name: string;
-  routeLine: [number, number][]; // [lat, lng] 形式
+  routeLine: [number, number][]; // [lat, lng] 形式（Leaflet 座標系）
   points: Point[];
-  created_at: string;
-  updated_at: string;
+  created_at: string;   // ISO 8601 形式
+  updated_at: string;   // ISO 8601 形式
 }
+
+// updatePoint の入力型（src/types/point.ts）
+interface PointPositionUpdate { lat: number; lng: number; }
+interface PointMetaUpdate { comment?: string; type?: Point['type']; }
 ```
 
 ## 経路データ管理
@@ -339,6 +355,9 @@ interface SavedRoute {
 | `comment` 文字列長 | 500文字以下 |
 | 座標範囲 | 緯度 20.4253〜45.5572（日本国内）、経度 122.9325〜153.9867（日本国内）（routeLine・points両方） |
 | ポイント `type` | `'start'` / `'waypoint'` / `'goal'` のいずれか |
+| ポイント `order` | 0以上の整数・ルート内で重複なし・0から始まる連番 |
+| `created_at` / `updated_at` | 有効な ISO 8601 日時形式（ルート・ポイント両方） |
+| JSON パース失敗 | SyntaxError → 日本語メッセージ、配列以外 → 日本語メッセージを throw |
 
 ## エラーハンドリング
 
@@ -411,11 +430,13 @@ npm run dev
 
 ### 開発用URL
 - フロントエンド: http://localhost:5173
-- Valhalla API: http://localhost:8002
+- nginx gateway: http://localhost:8080（Valhalla へのリクエストはここを経由）
+- Valhalla API: Docker 内部のみ（ホスト側から直接アクセス不可）
 
 ### 本番環境
 - フロントエンド: GitHub Pages
-- Valhalla API: Fly.io
+- nginx gateway: Fly.io（外部公開エンドポイント）
+- Valhalla API: Fly.io（nginx gateway からの内部通信のみ受け付け）
 
 ## コマンド一覧
 
@@ -428,7 +449,8 @@ npm run dev    # 開発サーバー起動
 ### Docker
 
 ```bash
-docker-compose up -d valhalla  # Valhalla起動
+docker-compose up -d           # Valhalla + nginx gateway 起動（通常はこちら）
+docker-compose up -d valhalla  # Valhalla のみ起動
 docker-compose down            # 停止
 docker-compose build valhalla  # Valhallaリビルド（初回10-20分）
 ```
@@ -444,16 +466,16 @@ npm run format                 # Biomeフォーマット
 ## Valhalla API連携
 
 ### 基本情報
-- Valhallaエンドポイント: `http://localhost:8002`
-- 開発時: Viteプロキシ経由（`/api/valhalla` → `localhost:8002`）
 - データ: 関東地方のOSMデータ
+- 開発時: Vite プロキシ → nginx gateway（Docker、`localhost:${GATEWAY_PORT:-8080}`）→ Valhalla（Docker 内部）
+- 本番: React App → nginx gateway（Fly.io）→ Valhalla（Fly.io 内部ネットワーク `*.internal:8002`）
 
 ### プロキシ設定
-`vite.config.ts`でCORS回避用のプロキシを設定済み:
+`vite.config.ts`でCORS回避用のプロキシを設定済み（ターゲットは nginx gateway）:
 ```typescript
 proxy: {
   '/api/valhalla': {
-    target: 'http://localhost:8002',
+    target: `http://localhost:${process.env.GATEWAY_PORT ?? '8080'}`,
     changeOrigin: true,
     rewrite: (path) => path.replace(/^\/api\/valhalla/, ''),
   },
@@ -483,10 +505,11 @@ curl http://localhost:8002/status
 
 | 問題 | 解決策 |
 |------|--------|
-| 経路生成されない | `docker-compose up -d valhalla` で起動確認 |
+| 経路生成されない | `docker-compose up -d` で valhalla・gateway の起動確認 |
 | 座標範囲外エラー | 関東地方の座標か確認 |
 | タイムアウト | Valhallaコンテナのリソース確認 |
 | CORSエラー | Viteプロキシ設定を確認（`/api/valhalla`経由か） |
+| gateway が起動しない | `docker-compose logs -f gateway` でログ確認 |
 
 #### Valhallaが起動しない場合
 
@@ -524,7 +547,7 @@ curl http://localhost:8002/status
 | `RouteNameModal.tsx` | 経路名入力モーダル |
 | `LoadingOverlay.tsx` | ローディングインジケーター |
 | `MessageDisplay.tsx` | 画面中央上部のメッセージ表示 |
-| `MapClickHandler.tsx` | 地図クリックイベント処理 |
+| `MapClickHandler.tsx` | 地図クリックイベント処理（20px 以内に既存ポイントがあれば編集モーダルを開く） |
 | `PointMarker.tsx` | 地図上のポイントマーカー（ドラッグ・クリック対応） |
 | `RouteLine.tsx` | 経路ライン表示 |
 | `CoordinateDisplay.tsx` | 座標・ズーム表示 |
@@ -562,6 +585,7 @@ curl http://localhost:8002/status
 | `constants/colors.ts` | カラーコード定数 |
 | `types/handlers.ts` | ハンドラ関数の型定義 |
 | `types/common.ts` | 共通型（MessageType） |
+| `types/point.ts` | Point 型、PointPositionUpdate・PointMetaUpdate 型 |
 
 ## コーディング規約詳細
 

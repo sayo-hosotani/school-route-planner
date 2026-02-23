@@ -20,7 +20,8 @@
 
 - **言語**: TypeScript
 - **フロントエンド**: React, Vite, React Leaflet, clsx
-- **経路計算**: Valhalla (Docker) - フロントエンドから直接呼び出し
+- **経路計算**: Valhalla (Docker/Fly.io) - nginx gateway 経由で呼び出し
+- **ゲートウェイ**: nginx (Docker/Fly.io) - プロキシ・レート制限・セキュリティヘッダ
 - **ツール**: Biome, Vitest
 
 ## プロジェクト構成
@@ -48,20 +49,22 @@ src/
 ## デプロイ
 
 - **フロントエンド**: GitHub Pages
-- **Valhalla API**: Fly.io
+- **nginx gateway**: Fly.io（外部公開エンドポイント）
+- **Valhalla API**: Fly.io（内部ネットワーク経由のみ）
 
 ## アーキテクチャ
 
-フロントエンドのみの構成。経路計算はValhallaに直接リクエスト。
+フロントエンドのみの構成。nginx gateway を経由して Valhalla にリクエスト。
 
 ```
-React App (GitHub Pages) → Valhalla API (Fly.io)
+React App (GitHub Pages) → nginx gateway (Fly.io) → Valhalla API (Fly.io)
 ```
 
 **特徴**:
 - バックエンドなし
 - データベースなし（経路はメモリ上で管理、JSONでエクスポート/インポート可能。ブラウザリロードでクリア）
 - ユーザー認証なし
+- Valhalla API は Fly.io 内部ネットワーク経由でのみアクセス（外部に直接公開しない）
 
 ## コーディング規約
 
@@ -86,6 +89,9 @@ React App (GitHub Pages) → Valhalla API (Fly.io)
   - ルート件数上限: 100件
   - 名前上限: 100文字、コメント上限: 500文字
   - 必須フィールド・型・座標範囲・文字列長・タイムスタンプを検証
+  - `order`: 0以上の整数・ルート内で重複なし・0から始まる連番であること
+  - `created_at` / `updated_at`: 有効な ISO 8601 日時形式であること（ルート・ポイント両方）
+  - JSON のパースエラーは種別ごとに日本語メッセージを throw（`src/api/route-api.ts`）
 - **セキュリティヘッダ**:
   - GitHub Pages: `index.html` に `<meta http-equiv="Content-Security-Policy">` で CSP を設定
   - nginx gateway（`docker/gateway/default.conf`）: `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` をHTTPヘッダで設定
@@ -112,7 +118,8 @@ npm run lint:fix      # Biomeによるチェック＋自動修正
 npm run format        # Biomeによるフォーマット
 
 # Docker
-docker-compose up -d valhalla  # Valhalla起動
+docker-compose up -d           # Valhalla + nginx gateway 起動（通常はこちら）
+docker-compose up -d valhalla  # Valhalla のみ起動
 ```
 
 ## データ型
@@ -198,7 +205,9 @@ vi.useRealTimers();
 
 1. **座標バリデーション**: 緯度 20.4253〜45.5572（日本国内）、経度 122.9325〜153.9867（日本国内）
 2. **エラーハンドリング**: 全async処理でtry-catch
-3. **Valhalla API**: 開発時はViteプロキシ経由（`/api/valhalla` → `localhost:8002`）
+3. **Valhalla API**: 開発時は Vite プロキシ経由（`/api/valhalla` → `localhost:${GATEWAY_PORT:-8080}`）で nginx gateway（Docker）を経由
+4. **ポイント ID**: `crypto.randomUUID()` で生成（衝突リスクなし）
+5. **地図クリック**: クリック位置から 20px 以内に既存ポイントがある場合、新規追加でなく編集モーダルを開く（`MapClickHandler.tsx`）
 
 ## 参考リンク
 

@@ -34,38 +34,39 @@ https://sayo-hosotani.github.io/school-route-planner/
 # 1. 依存関係インストール
 npm install
 
-# 2. Valhalla起動（初回は10-20分かかります）
-docker-compose up -d valhalla
+# 2. Valhalla + nginx gateway 起動（初回は10-20分かかります）
+docker-compose up -d
 
 # 3. 開発サーバー起動
 npm run dev
 ```
 
 - フロントエンド: http://localhost:5173
-- Valhalla API: http://localhost:8002
+- nginx gateway: http://localhost:8080（Valhalla へのプロキシ）
 
 ## アーキテクチャ
 
 ```
-┌─────────────────────┐      ┌─────────────────────┐
-│   React App         │      │   Valhalla API      │
-│   (GitHub Pages)    │ ──── │   (Fly.io)          │
-│                     │      │                     │
-│ - 地図表示・操作     │      │ - 経路計算          │
-│ - ポイント管理       │      │ - OSMデータ         │
-│ - メモリ上データ管理 │      │                     │
-└─────────────────────┘      └─────────────────────┘
+┌─────────────────────┐      ┌─────────────────────┐      ┌─────────────────────┐
+│   React App         │      │   nginx gateway     │      │   Valhalla API      │
+│   (GitHub Pages)    │ ──── │   (Fly.io)          │ ──── │   (Fly.io)          │
+│                     │      │                     │      │                     │
+│ - 地図表示・操作     │      │ - プロキシ           │      │ - 経路計算          │
+│ - ポイント管理       │      │ - レート制限         │      │ - OSMデータ         │
+│ - メモリ上データ管理 │      │ - セキュリティヘッダ  │      │ - 内部通信のみ公開  │
+└─────────────────────┘      └─────────────────────┘      └─────────────────────┘
 ```
 
 **設計方針**
 - バックエンドサーバーなし（静的ホスティングのみ）
 - データベースなし（経路データはメモリ上で管理、ブラウザリロードでクリア）
 - ユーザー認証なし（個人利用前提）
+- Valhalla API は nginx gateway 経由でのみアクセス（Fly.io 内部ネットワーク限定）
 
 ## セキュリティ
 
 - **データ非保存**: localStorage不使用。経路データはメモリ上のみ（ブラウザリロードでクリア）
-- **JSONインポート検証**: ファイルサイズ（1MB以下）・件数（100件以下）・座標範囲（日本国内）・文字列長を検証
+- **JSONインポート検証**: ファイルサイズ（1MB以下）・件数（100件以下）・座標範囲（日本国内）・文字列長・`order`の連番整合性・タイムスタンプの ISO 形式を検証
 - **セキュリティヘッダ**: CSP、X-Content-Type-Options、Referrer-Policy、X-Frame-Options を設定済み
 - **外部リンク**: `rel="noopener noreferrer"` 付与済み
 - **nginxゲートウェイ**: レート制限（10req/s）・リクエストサイズ制限（5MB）設定済み
@@ -74,6 +75,6 @@ npm run dev
 
 | ファイル | 内容 |
 |---------|------|
-| [DOCUMENT.md.md](./DOCUMENT.md.md) | 機能仕様、アーキテクチャ詳細、開発ガイド |
+| [DOCUMENT.md](./DOCUMENT.md) | 機能仕様、アーキテクチャ詳細、開発ガイド |
 | [CLAUDE.md](./CLAUDE.md) | 開発者向けクイックリファレンス |
 | [TODO.md](./TODO.md) | 未完了タスク |
