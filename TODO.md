@@ -3,8 +3,13 @@
 ## 作業方針
 - **タスクは1つずつ進める**: 完了するごとにユーザーが確認してコミットするため、複数タスクを一気に進めない
 
-## 1. nginxの開発時検証（要検討）
-- [ ] 開発時もnginx経由でAPIにアクセスできるようにする
+## 1. nginxの開発時検証
+- [x] 開発時もnginx経由でAPIにアクセスできるようにする
+  - `docker/gateway/dev.conf` 作成（Docker内部でvalhalla:8002へプロキシ）
+  - `docker-compose.yml` に `gateway` サービス追加（nginx:alpine、ポート8080）
+  - valhallaのhostポート公開を削除（gatewayのみ公開）
+  - `vite.config.ts` のプロキシターゲットを `http://localhost:${GATEWAY_PORT}` に変更
+  - `docker-compose up` 後 `npm run dev` で nginx gateway 経由でAPIにアクセス可能
 
 ## 2. Valhalla APIサーバーのリクエスト元制限
 - [ ] Valhalla APIへのリクエスト元を本アプリケーションに限定する

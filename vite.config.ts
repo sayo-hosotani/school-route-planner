@@ -9,7 +9,9 @@ export default defineConfig({
 		host: true,
 		proxy: {
 			'/api/valhalla': {
-				target: 'http://localhost:8002',
+				// nginx gateway経由（docker-compose up gateway）で本番に近い構成を検証する
+				// Viteのプロキシが同オリジンでフォワードするためCORSは発生しない
+				target: `http://localhost:${process.env.GATEWAY_PORT ?? '8080'}`,
 				changeOrigin: true,
 				rewrite: (path) => path.replace(/^\/api\/valhalla/, ''),
 			},
