@@ -1,20 +1,22 @@
 import { createTestPoint, createTestSavedRoute } from '../test/helpers';
 import type { RouteData } from '../types/route';
 import {
-	saveRoute,
-	getAllRoutes,
 	deleteRoute,
-	loadRouteById,
-	loadRoute,
 	exportRoutesToJson,
+	getAllRoutes,
 	importRoutesFromJson,
+	loadRoute,
+	loadRouteById,
 	resetRoutes,
+	saveRoute,
 } from './route-api';
 
 describe('route-api', () => {
 	beforeEach(() => {
 		resetRoutes();
-		vi.spyOn(crypto, 'randomUUID').mockReturnValue('mock-uuid-001' as ReturnType<typeof crypto.randomUUID>);
+		vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+			'mock-uuid-001' as ReturnType<typeof crypto.randomUUID>,
+		);
 	});
 
 	afterEach(() => {
@@ -28,7 +30,10 @@ describe('route-api', () => {
 					createTestPoint({ type: 'start', order: 0 }),
 					createTestPoint({ type: 'goal', order: 1 }),
 				],
-				routeLine: [[35.6762, 139.6503], [35.68, 139.655]],
+				routeLine: [
+					[35.6762, 139.6503],
+					[35.68, 139.655],
+				],
 			};
 
 			await saveRoute(routeData, 'テスト経路');
@@ -69,7 +74,9 @@ describe('route-api', () => {
 			const existingRoute = createTestSavedRoute({ id: 'existing-1', name: '既存経路' });
 			importRoutesFromJson(JSON.stringify([existingRoute]));
 
-			vi.spyOn(crypto, 'randomUUID').mockReturnValue('new-uuid' as ReturnType<typeof crypto.randomUUID>);
+			vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+				'new-uuid' as ReturnType<typeof crypto.randomUUID>,
+			);
 
 			const routeData: RouteData = {
 				points: [],
@@ -111,10 +118,7 @@ describe('route-api', () => {
 				return `mock-uuid-${callCount}` as ReturnType<typeof crypto.randomUUID>;
 			});
 
-			const routes = [
-				createTestSavedRoute({ id: 'r1' }),
-				createTestSavedRoute({ id: 'r2' }),
-			];
+			const routes = [createTestSavedRoute({ id: 'r1' }), createTestSavedRoute({ id: 'r2' })];
 			importRoutesFromJson(JSON.stringify(routes));
 
 			const allRoutes = await getAllRoutes();
@@ -215,10 +219,7 @@ describe('route-api', () => {
 		});
 
 		it('インポート件数を返す', () => {
-			const routes = [
-				createTestSavedRoute({ id: 'r1' }),
-				createTestSavedRoute({ id: 'r2' }),
-			];
+			const routes = [createTestSavedRoute({ id: 'r1' }), createTestSavedRoute({ id: 'r2' })];
 			const count = importRoutesFromJson(JSON.stringify(routes));
 			expect(count).toBe(2);
 		});
@@ -246,7 +247,9 @@ describe('route-api', () => {
 				JSON.stringify([createTestSavedRoute({ id: 'existing', name: '既存' })]),
 			);
 
-			vi.spyOn(crypto, 'randomUUID').mockReturnValue('new-uuid' as ReturnType<typeof crypto.randomUUID>);
+			vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+				'new-uuid' as ReturnType<typeof crypto.randomUUID>,
+			);
 
 			const routes = [createTestSavedRoute({ name: 'インポート' })];
 			importRoutesFromJson(JSON.stringify(routes), 'after');
@@ -261,7 +264,9 @@ describe('route-api', () => {
 				JSON.stringify([createTestSavedRoute({ id: 'existing', name: '既存' })]),
 			);
 
-			vi.spyOn(crypto, 'randomUUID').mockReturnValue('new-uuid' as ReturnType<typeof crypto.randomUUID>);
+			vi.spyOn(crypto, 'randomUUID').mockReturnValue(
+				'new-uuid' as ReturnType<typeof crypto.randomUUID>,
+			);
 
 			const routes = [createTestSavedRoute({ name: 'インポート' })];
 			importRoutesFromJson(JSON.stringify(routes), 'before');
@@ -275,8 +280,12 @@ describe('route-api', () => {
 			expect(() => importRoutesFromJson('invalid json')).toThrow();
 		});
 
+		it('不正なJSON（SyntaxError）の場合、日本語エラーメッセージをスローする', () => {
+			expect(() => importRoutesFromJson('invalid json')).toThrow('JSONの形式が正しくありません');
+		});
+
 		it('配列以外のJSONの場合、エラーをスローする', () => {
-			expect(() => importRoutesFromJson('{"key": "value"}')).toThrow('データが配列ではありません');
+			expect(() => importRoutesFromJson('{"key": "value"}')).toThrow('データが配列形式ではありません');
 		});
 	});
 });

@@ -1,8 +1,8 @@
-import { createContext, useContext, useCallback, type ReactNode } from 'react';
+import { type ReactNode, createContext, useCallback, useContext } from 'react';
 import { usePoints } from '../hooks/use-points';
 import { useRouteGeneration } from '../hooks/use-route-generation';
+import type { Point, PointMetaUpdate, PointPositionUpdate } from '../types/point';
 import { useAppContext } from './AppContext';
-import type { Point } from '../types/point';
 
 interface PointContextValue {
 	// ポイント状態
@@ -11,7 +11,7 @@ interface PointContextValue {
 	routeLine: [number, number][];
 	// ポイント操作（経路も自動更新）
 	addPoint: (lat: number, lng: number, comment?: string) => Promise<string>;
-	updatePoint: (pointId: string, updates: Partial<Point>) => Promise<void>;
+	updatePoint: (pointId: string, updates: PointPositionUpdate | PointMetaUpdate) => Promise<void>;
 	deletePoint: (pointId: string) => Promise<void>;
 	movePoint: (pointId: string, direction: 'up' | 'down') => Promise<boolean>;
 	clearPoints: () => void;
@@ -66,24 +66,21 @@ export const PointProvider = ({ children }: PointProviderProps) => {
 	// ポイント追加（経路も自動更新）
 	const addPoint = useCallback(
 		async (lat: number, lng: number, comment?: string): Promise<string> => {
-			const newPoints = addPointBase(lat, lng, comment);
-			// 追加されたポイントのIDを取得（最後に追加されたポイント、またはゴールの前に挿入されたポイント）
-			const addedPoint = newPoints.find((p) => p.lat === lat && p.lng === lng);
-			const addedPointId = addedPoint?.id ?? '';
+			const { points: newPoints, addedPoint } = addPointBase(lat, lng, comment);
 			setLoading(true, '経路を計算中...');
 			try {
 				await generateRouteFromPoints(newPoints);
 			} finally {
 				setLoading(false);
 			}
-			return addedPointId;
+			return addedPoint.id;
 		},
 		[addPointBase, generateRouteFromPoints, setLoading],
 	);
 
 	// ポイント更新（経路も自動更新）
 	const updatePoint = useCallback(
-		async (pointId: string, updates: Partial<Point>) => {
+		async (pointId: string, updates: PointPositionUpdate | PointMetaUpdate) => {
 			const updatedPoints = updatePointBase(pointId, updates);
 			// 座標が変更された場合のみ経路を再生成
 			if ('lat' in updates || 'lng' in updates) {

@@ -73,7 +73,7 @@ export interface Point {
 }
 
 export interface RouteResult {
-	coordinates: Array<[number, number]>; // [lng, lat] の配列（GeoJSON形式）
+	coordinates: Array<[number, number]>; // [lat, lng] の配列（Leaflet形式）
 	distance: number; // キロメートル
 	duration: number; // 秒
 	summary: {
@@ -120,7 +120,8 @@ function decodePolyline(encoded: string): Array<[number, number]> {
 		lng += dlng;
 
 		// Valhallaは精度6（1e6）を使用
-		coordinates.push([lng / 1e6, lat / 1e6]);
+		// Leafletの [lat, lng] 形式に変換して返す
+		coordinates.push([lat / 1e6, lng / 1e6]);
 	}
 
 	return coordinates;

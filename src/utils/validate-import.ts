@@ -3,6 +3,10 @@ const MAX_NAME_LENGTH = 100;
 const MAX_COMMENT_LENGTH = 500;
 const VALID_POINT_TYPES = ['start', 'waypoint', 'goal'] as const;
 
+function isValidISODate(str: string): boolean {
+	return !Number.isNaN(new Date(str).getTime());
+}
+
 // 日本の座標範囲（国土地理院: https://www.gsi.go.jp/KOKUJYOHO/center.htm）
 const JAPAN_LAT_MIN = 20.4253; // 北緯20°25′31″
 const JAPAN_LAT_MAX = 45.5572; // 北緯45°33′26″
@@ -33,25 +37,37 @@ function validatePoint(point: unknown, routeIndex: number, pointIndex: number): 
 	}
 
 	if (typeof p.lat !== 'number' || !isValidLatitude(p.lat)) {
-		errors.push(`${prefix}: 緯度が無効です（${JAPAN_LAT_MIN}〜${JAPAN_LAT_MAX}の範囲で指定してください）`);
+		errors.push(
+			`${prefix}: 緯度が無効です（${JAPAN_LAT_MIN}〜${JAPAN_LAT_MAX}の範囲で指定してください）`,
+		);
 	}
 
 	if (typeof p.lng !== 'number' || !isValidLongitude(p.lng)) {
-		errors.push(`${prefix}: 経度が無効です（${JAPAN_LNG_MIN}〜${JAPAN_LNG_MAX}の範囲で指定してください）`);
+		errors.push(
+			`${prefix}: 経度が無効です（${JAPAN_LNG_MIN}〜${JAPAN_LNG_MAX}の範囲で指定してください）`,
+		);
 	}
 
 	if (typeof p.type !== 'string' || !(VALID_POINT_TYPES as readonly string[]).includes(p.type)) {
 		errors.push(`${prefix}: typeが無効です（start, waypoint, goalのいずれかを指定してください）`);
 	}
 
-	if (typeof p.order !== 'number') {
-		errors.push(`${prefix}: orderが数値ではありません`);
+	if (typeof p.order !== 'number' || !Number.isInteger(p.order) || p.order < 0) {
+		errors.push(`${prefix}: orderが無効です（0以上の整数を指定してください）`);
 	}
 
 	if (typeof p.comment !== 'string') {
 		errors.push(`${prefix}: commentが文字列ではありません`);
 	} else if (p.comment.length > MAX_COMMENT_LENGTH) {
 		errors.push(`${prefix}: commentが${MAX_COMMENT_LENGTH}文字を超えています`);
+	}
+
+	if (typeof p.created_at !== 'string' || !isValidISODate(p.created_at)) {
+		errors.push(`${prefix}: created_atが有効なISO日時ではありません`);
+	}
+
+	if (typeof p.updated_at !== 'string' || !isValidISODate(p.updated_at)) {
+		errors.push(`${prefix}: updated_atが有効なISO日時ではありません`);
 	}
 
 	return errors;
@@ -78,12 +94,12 @@ function validateRoute(route: unknown, index: number): string[] {
 		errors.push(`${prefix}: nameが${MAX_NAME_LENGTH}文字を超えています`);
 	}
 
-	if (typeof r.created_at !== 'string') {
-		errors.push(`${prefix}: created_atが文字列ではありません`);
+	if (typeof r.created_at !== 'string' || !isValidISODate(r.created_at)) {
+		errors.push(`${prefix}: created_atが有効なISO日時ではありません`);
 	}
 
-	if (typeof r.updated_at !== 'string') {
-		errors.push(`${prefix}: updated_atが文字列ではありません`);
+	if (typeof r.updated_at !== 'string' || !isValidISODate(r.updated_at)) {
+		errors.push(`${prefix}: updated_atが有効なISO日時ではありません`);
 	}
 
 	// routeLine検証
@@ -101,10 +117,14 @@ function validateRoute(route: unknown, index: number): string[] {
 				errors.push(`${prefix}: routeLine[${i}]が[緯度, 経度]の形式ではありません`);
 			} else {
 				if (!isValidLatitude(coord[0])) {
-					errors.push(`${prefix}: routeLine[${i}]の緯度が無効です（${JAPAN_LAT_MIN}〜${JAPAN_LAT_MAX}の範囲で指定してください）`);
+					errors.push(
+						`${prefix}: routeLine[${i}]の緯度が無効です（${JAPAN_LAT_MIN}〜${JAPAN_LAT_MAX}の範囲で指定してください）`,
+					);
 				}
 				if (!isValidLongitude(coord[1])) {
-					errors.push(`${prefix}: routeLine[${i}]の経度が無効です（${JAPAN_LNG_MIN}〜${JAPAN_LNG_MAX}の範囲で指定してください）`);
+					errors.push(
+						`${prefix}: routeLine[${i}]の経度が無効です（${JAPAN_LNG_MIN}〜${JAPAN_LNG_MAX}の範囲で指定してください）`,
+					);
 				}
 			}
 		}
@@ -116,6 +136,24 @@ function validateRoute(route: unknown, index: number): string[] {
 	} else {
 		for (let i = 0; i < r.points.length; i++) {
 			errors.push(...validatePoint(r.points[i], index, i));
+		}
+
+		// orderの一意・連番検証（個別検証を通過したポイントのみ対象）
+		const validOrders = r.points
+			.map((p) => {
+				const point = p as Record<string, unknown>;
+				return typeof point.order === 'number' && Number.isInteger(point.order) && point.order >= 0
+					? (point.order as number)
+					: null;
+			})
+			.filter((o): o is number => o !== null);
+
+		if (validOrders.length === r.points.length) {
+			const sorted = [...validOrders].sort((a, b) => a - b);
+			const isSequential = sorted.every((v, i) => v === i);
+			if (!isSequential) {
+				errors.push(`${prefix}: pointsのorderは0から始まる重複なしの連番でなければなりません`);
+			}
 		}
 	}
 

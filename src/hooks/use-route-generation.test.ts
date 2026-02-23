@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { createTestPoint } from '../test/helpers';
 import { useRouteGeneration } from './use-route-generation';
 
@@ -22,9 +22,7 @@ describe('useRouteGeneration', () => {
 		const { result } = renderHook(() => useRouteGeneration());
 
 		await act(async () => {
-			await result.current.generateRouteFromPoints([
-				createTestPoint({ type: 'start', order: 0 }),
-			]);
+			await result.current.generateRouteFromPoints([createTestPoint({ type: 'start', order: 0 })]);
 		});
 
 		expect(result.current.routeLine).toEqual([]);
@@ -50,9 +48,12 @@ describe('useRouteGeneration', () => {
 		]);
 	});
 
-	it('Valhalla APIで経路を生成し座標を[lat,lng]に変換する', async () => {
+	it('Valhalla APIで経路を生成しrouteLineに設定する', async () => {
 		vi.mocked(generateRoute).mockResolvedValue({
-			coordinates: [[139.6503, 35.6762], [139.655, 35.68]], // [lng, lat] GeoJSON形式
+			coordinates: [
+				[35.6762, 139.6503],
+				[35.68, 139.655],
+			], // [lat, lng] 形式（decodePolylineで変換済み）
 			distance: 0.5,
 			duration: 300,
 			summary: { has_toll: false, has_highway: false, has_ferry: false },
@@ -137,6 +138,34 @@ describe('useRouteGeneration', () => {
 		});
 
 		expect(result.current.routeLine).toEqual([]);
+	});
+
+	it('orderが逆順の配列でも正しいorderを保持してgenerateRouteへ渡す', async () => {
+		vi.mocked(generateRoute).mockResolvedValue({
+			coordinates: [[35.6762, 139.6503]],
+			distance: 0.5,
+			duration: 300,
+			summary: { has_toll: false, has_highway: false, has_ferry: false },
+		});
+
+		const { result } = renderHook(() => useRouteGeneration());
+
+		// order が逆順（goal=0, waypoint=1, start=2）の配列を渡す
+		const unorderedPoints = [
+			createTestPoint({ id: 'goal', type: 'goal', order: 2, lat: 35.68, lng: 139.655 }),
+			createTestPoint({ id: 'wp', type: 'waypoint', order: 1, lat: 35.677, lng: 139.652 }),
+			createTestPoint({ id: 'start', type: 'start', order: 0, lat: 35.6762, lng: 139.6503 }),
+		];
+
+		await act(async () => {
+			await result.current.generateRouteFromPoints(unorderedPoints);
+		});
+
+		// generateRoute が呼ばれ、apiPoints に order 情報が保持されている
+		expect(generateRoute).toHaveBeenCalledTimes(1);
+		const calledWith = vi.mocked(generateRoute).mock.calls[0][0];
+		// order 情報が渡されている（valhalla-client 内でソートされる）
+		expect(calledWith.map((p) => p.order)).toEqual(expect.arrayContaining([0, 1, 2]));
 	});
 
 	it('直線接続時にポイントをorder順にソートする', async () => {

@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { usePoints } from './use-points';
 
 describe('usePoints', () => {
@@ -59,14 +59,38 @@ describe('usePoints', () => {
 			expect(result.current.points[2].order).toBe(2);
 		});
 
-		it('追加されたポイントの配列を返す', () => {
+		it('追加されたポイントと全ポイント配列を返す', () => {
 			const { result } = renderHook(() => usePoints());
 			let returned: ReturnType<typeof result.current.addPoint>;
 			act(() => {
 				returned = result.current.addPoint(35.6762, 139.6503);
 			});
-			expect(returned!).toHaveLength(1);
-			expect(returned![0].lat).toBe(35.6762);
+			expect(returned!.points).toHaveLength(1);
+			expect(returned!.addedPoint.lat).toBe(35.6762);
+			expect(returned!.addedPoint.id).toBe(returned!.points[0].id);
+		});
+
+		it('addedPoint.idはUUID形式でありポイントごとにユニークである', () => {
+			const { result } = renderHook(() => usePoints());
+			const ids: string[] = [];
+
+			act(() => {
+				ids.push(result.current.addPoint(35.6762, 139.6503).addedPoint.id);
+			});
+			act(() => {
+				ids.push(result.current.addPoint(35.68, 139.655).addedPoint.id);
+			});
+			act(() => {
+				ids.push(result.current.addPoint(35.677, 139.652).addedPoint.id);
+			});
+
+			// UUID形式（crypto.randomUUID）
+			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+			for (const id of ids) {
+				expect(id).toMatch(uuidRegex);
+			}
+			// ユニークである
+			expect(new Set(ids).size).toBe(ids.length);
 		});
 
 		it('デフォルトでコメントが空文字になる', () => {
@@ -104,7 +128,16 @@ describe('usePoints', () => {
 			const { result } = renderHook(() => usePoints());
 			act(() => {
 				result.current.loadPoints([
-					{ id: 'p1', lat: 35.6762, lng: 139.6503, type: 'start', order: 0, comment: '', created_at: '2020-01-01T00:00:00.000Z', updated_at: '2020-01-01T00:00:00.000Z' },
+					{
+						id: 'p1',
+						lat: 35.6762,
+						lng: 139.6503,
+						type: 'start',
+						order: 0,
+						comment: '',
+						created_at: '2020-01-01T00:00:00.000Z',
+						updated_at: '2020-01-01T00:00:00.000Z',
+					},
 				]);
 			});
 
@@ -133,8 +166,26 @@ describe('usePoints', () => {
 		const loadTwoPoints = (result: { current: ReturnType<typeof usePoints> }) => {
 			act(() => {
 				result.current.loadPoints([
-					{ id: 'p1', lat: 35.6762, lng: 139.6503, type: 'start', order: 0, comment: '', created_at: '', updated_at: '' },
-					{ id: 'p2', lat: 35.68, lng: 139.655, type: 'goal', order: 1, comment: '', created_at: '', updated_at: '' },
+					{
+						id: 'p1',
+						lat: 35.6762,
+						lng: 139.6503,
+						type: 'start',
+						order: 0,
+						comment: '',
+						created_at: '',
+						updated_at: '',
+					},
+					{
+						id: 'p2',
+						lat: 35.68,
+						lng: 139.655,
+						type: 'goal',
+						order: 1,
+						comment: '',
+						created_at: '',
+						updated_at: '',
+					},
 				]);
 			});
 		};
@@ -142,9 +193,36 @@ describe('usePoints', () => {
 		const loadThreePoints = (result: { current: ReturnType<typeof usePoints> }) => {
 			act(() => {
 				result.current.loadPoints([
-					{ id: 'p1', lat: 35.6762, lng: 139.6503, type: 'start', order: 0, comment: '', created_at: '', updated_at: '' },
-					{ id: 'p2', lat: 35.677, lng: 139.652, type: 'waypoint', order: 1, comment: '', created_at: '', updated_at: '' },
-					{ id: 'p3', lat: 35.68, lng: 139.655, type: 'goal', order: 2, comment: '', created_at: '', updated_at: '' },
+					{
+						id: 'p1',
+						lat: 35.6762,
+						lng: 139.6503,
+						type: 'start',
+						order: 0,
+						comment: '',
+						created_at: '',
+						updated_at: '',
+					},
+					{
+						id: 'p2',
+						lat: 35.677,
+						lng: 139.652,
+						type: 'waypoint',
+						order: 1,
+						comment: '',
+						created_at: '',
+						updated_at: '',
+					},
+					{
+						id: 'p3',
+						lat: 35.68,
+						lng: 139.655,
+						type: 'goal',
+						order: 2,
+						comment: '',
+						created_at: '',
+						updated_at: '',
+					},
 				]);
 			});
 		};
@@ -209,10 +287,46 @@ describe('usePoints', () => {
 
 	describe('movePoint', () => {
 		const fourPoints = [
-			{ id: 's1', lat: 35.6762, lng: 139.6503, type: 'start' as const, order: 0, comment: '', created_at: '', updated_at: '' },
-			{ id: 'w1', lat: 35.677, lng: 139.652, type: 'waypoint' as const, order: 1, comment: '', created_at: '', updated_at: '' },
-			{ id: 'w2', lat: 35.678, lng: 139.653, type: 'waypoint' as const, order: 2, comment: '', created_at: '', updated_at: '' },
-			{ id: 'g1', lat: 35.68, lng: 139.655, type: 'goal' as const, order: 3, comment: '', created_at: '', updated_at: '' },
+			{
+				id: 's1',
+				lat: 35.6762,
+				lng: 139.6503,
+				type: 'start' as const,
+				order: 0,
+				comment: '',
+				created_at: '',
+				updated_at: '',
+			},
+			{
+				id: 'w1',
+				lat: 35.677,
+				lng: 139.652,
+				type: 'waypoint' as const,
+				order: 1,
+				comment: '',
+				created_at: '',
+				updated_at: '',
+			},
+			{
+				id: 'w2',
+				lat: 35.678,
+				lng: 139.653,
+				type: 'waypoint' as const,
+				order: 2,
+				comment: '',
+				created_at: '',
+				updated_at: '',
+			},
+			{
+				id: 'g1',
+				lat: 35.68,
+				lng: 139.655,
+				type: 'goal' as const,
+				order: 3,
+				comment: '',
+				created_at: '',
+				updated_at: '',
+			},
 		];
 
 		const setupFourPoints = () => {
@@ -362,8 +476,26 @@ describe('usePoints', () => {
 		it('ポイントを一括読み込みする', () => {
 			const { result } = renderHook(() => usePoints());
 			const points = [
-				{ id: 'p1', lat: 35.6762, lng: 139.6503, type: 'start' as const, order: 0, comment: '', created_at: '', updated_at: '' },
-				{ id: 'p2', lat: 35.68, lng: 139.655, type: 'goal' as const, order: 1, comment: '', created_at: '', updated_at: '' },
+				{
+					id: 'p1',
+					lat: 35.6762,
+					lng: 139.6503,
+					type: 'start' as const,
+					order: 0,
+					comment: '',
+					created_at: '',
+					updated_at: '',
+				},
+				{
+					id: 'p2',
+					lat: 35.68,
+					lng: 139.655,
+					type: 'goal' as const,
+					order: 1,
+					comment: '',
+					created_at: '',
+					updated_at: '',
+				},
 			];
 
 			act(() => {

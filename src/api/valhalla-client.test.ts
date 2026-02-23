@@ -1,4 +1,4 @@
-import { generateRoute, checkValhallaStatus } from './valhalla-client';
+import { checkValhallaStatus, generateRoute } from './valhalla-client';
 
 // Valhalla APIレスポンスのモック
 function createMockValhallaResponse(shapes: string[] = ['encodedShape']) {
@@ -95,7 +95,10 @@ describe('generateRoute', () => {
 	});
 
 	it('ポイントをorder順にソートしてAPIに送信する', async () => {
-		const shape = encodePolyline6([[35.6762, 139.6503], [35.6800, 139.6550]]);
+		const shape = encodePolyline6([
+			[35.6762, 139.6503],
+			[35.68, 139.655],
+		]);
 		const mockResponse = createMockValhallaResponse([shape]);
 
 		vi.mocked(fetch).mockResolvedValue({
@@ -116,7 +119,10 @@ describe('generateRoute', () => {
 	});
 
 	it('costingをpedestrianに設定する', async () => {
-		const shape = encodePolyline6([[35.6762, 139.6503], [35.6800, 139.6550]]);
+		const shape = encodePolyline6([
+			[35.6762, 139.6503],
+			[35.68, 139.655],
+		]);
 		vi.mocked(fetch).mockResolvedValue({
 			ok: true,
 			json: () => Promise.resolve(createMockValhallaResponse([shape])),
@@ -132,7 +138,10 @@ describe('generateRoute', () => {
 	});
 
 	it('正常なレスポンスからRouteResultに変換する', async () => {
-		const coords: Array<[number, number]> = [[35.6762, 139.6503], [35.68, 139.655]];
+		const coords: Array<[number, number]> = [
+			[35.6762, 139.6503],
+			[35.68, 139.655],
+		];
 		const shape = encodePolyline6(coords);
 		const mockResponse = createMockValhallaResponse([shape]);
 
@@ -155,7 +164,7 @@ describe('generateRoute', () => {
 		});
 	});
 
-	it('エンコードされたpolylineを正しくデコードし座標を[lng,lat]形式で返す', async () => {
+	it('エンコードされたpolylineを正しくデコードし座標を[lat,lng]形式で返す', async () => {
 		const coords: Array<[number, number]> = [[35.6762, 139.6503]];
 		const shape = encodePolyline6(coords);
 		const mockResponse = createMockValhallaResponse([shape]);
@@ -170,9 +179,9 @@ describe('generateRoute', () => {
 			{ lat: 35.68, lng: 139.655, order: 1 },
 		]);
 
-		// Valhallaクライアントは[lng, lat]形式（GeoJSON）で返す
-		expect(result.coordinates[0][0]).toBeCloseTo(139.6503, 4);
-		expect(result.coordinates[0][1]).toBeCloseTo(35.6762, 4);
+		// decodePolyline は [lat, lng] 形式（Leaflet形式）で返す
+		expect(result.coordinates[0][0]).toBeCloseTo(35.6762, 4);
+		expect(result.coordinates[0][1]).toBeCloseTo(139.6503, 4);
 	});
 
 	it('複数legのshapeを結合する', async () => {

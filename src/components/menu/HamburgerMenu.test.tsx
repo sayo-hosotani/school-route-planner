@@ -108,6 +108,95 @@ describe('HamburgerMenu', () => {
 		vi.unstubAllGlobals();
 	});
 
+	describe('JSONインポート導線', () => {
+		it('ファイルサイズが1MBを超える場合にエラーメッセージを表示する', async () => {
+			const user = userEvent.setup();
+			render(<HamburgerMenu {...defaultProps} />);
+
+			const menuButton = screen.getByRole('button', { name: /メニューを開く/ });
+			await user.click(menuButton);
+
+			const importButton = screen.getByRole('menuitem', { name: /インポート/ });
+			const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+
+			// 1MB超のファイルをシミュレート
+			const largeFile = new File(['x'.repeat(1024 * 1024 + 1)], 'large.json', { type: 'application/json' });
+			await user.click(importButton);
+			await user.upload(fileInput, largeFile);
+
+			expect(defaultProps.onMessage).toHaveBeenCalledWith(
+				'ファイルサイズが1MBを超えています',
+				'error',
+			);
+		});
+
+		it('FileReader.onerrorが発生した場合にエラーメッセージを表示する', async () => {
+			const user = userEvent.setup();
+			render(<HamburgerMenu {...defaultProps} />);
+
+			const menuButton = screen.getByRole('button', { name: /メニューを開く/ });
+			await user.click(menuButton);
+
+			const importButton = screen.getByRole('menuitem', { name: /インポート/ });
+			const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+
+			// FileReaderのonerrorを発火させるためにモック
+			const mockReader = {
+				readAsText: vi.fn(function (this: FileReader) {
+					this.onerror?.(new ProgressEvent('error') as ProgressEvent<FileReader>);
+				}),
+				onload: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+				onerror: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+			};
+			vi.spyOn(window, 'FileReader').mockImplementation(() => mockReader as unknown as FileReader);
+
+			const file = new File(['{}'], 'test.json', { type: 'application/json' });
+			await user.click(importButton);
+			await user.upload(fileInput, file);
+
+			expect(defaultProps.onMessage).toHaveBeenCalledWith(
+				'ファイルの読み込みに失敗しました',
+				'error',
+			);
+			vi.restoreAllMocks();
+		});
+
+		it('importRoutesFromJsonが例外をスローした場合にエラーメッセージを表示する', async () => {
+			const { importRoutesFromJson } = await import('../../api/route-api');
+			vi.mocked(importRoutesFromJson).mockImplementation(() => {
+				throw new Error('JSONの形式が正しくありません');
+			});
+
+			const user = userEvent.setup();
+			render(<HamburgerMenu {...defaultProps} />);
+
+			const menuButton = screen.getByRole('button', { name: /メニューを開く/ });
+			await user.click(menuButton);
+
+			const importButton = screen.getByRole('menuitem', { name: /インポート/ });
+			const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+
+			const mockReader = {
+				readAsText: vi.fn(function (this: typeof mockReader) {
+					this.onload?.({ target: { result: 'invalid' } } as unknown as ProgressEvent<FileReader>);
+				}),
+				onload: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+				onerror: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+			};
+			vi.spyOn(window, 'FileReader').mockImplementation(() => mockReader as unknown as FileReader);
+
+			const file = new File(['invalid'], 'test.json', { type: 'application/json' });
+			await user.click(importButton);
+			await user.upload(fileInput, file);
+
+			expect(defaultProps.onMessage).toHaveBeenCalledWith(
+				'インポートに失敗しました: JSONの形式が正しくありません',
+				'error',
+			);
+			vi.restoreAllMocks();
+		});
+	});
+
 	it('aria-expandedがメニューの開閉状態を反映する', async () => {
 		const user = userEvent.setup();
 		render(<HamburgerMenu {...defaultProps} />);

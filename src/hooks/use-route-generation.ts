@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import type { Point } from '../types/point';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { generateRoute } from '../api/route-api';
+import type { Point } from '../types/point';
 
 interface UseRouteGenerationOptions {
 	onError?: (message: string) => void;
@@ -39,43 +39,43 @@ export const useRouteGeneration = (
 	}, []);
 
 	// Valhalla APIで経路を生成
-	const generateRouteFromPoints = useCallback(async (pointsList: Point[]) => {
-		if (pointsList.length < 2) {
-			setRouteLine([]);
-			return;
-		}
+	const generateRouteFromPoints = useCallback(
+		async (pointsList: Point[]) => {
+			if (pointsList.length < 2) {
+				setRouteLine([]);
+				return;
+			}
 
-		// スタートとゴールが存在するかチェック
-		const hasStart = pointsList.some((p) => p.type === 'start');
-		const hasGoal = pointsList.some((p) => p.type === 'goal');
+			// スタートとゴールが存在するかチェック
+			const hasStart = pointsList.some((p) => p.type === 'start');
+			const hasGoal = pointsList.some((p) => p.type === 'goal');
 
-		if (!hasStart || !hasGoal) {
-			// スタートまたはゴールがない場合は直線接続
-			updateRouteLineStraight(pointsList);
-			return;
-		}
+			if (!hasStart || !hasGoal) {
+				// スタートまたはゴールがない場合は直線接続
+				updateRouteLineStraight(pointsList);
+				return;
+			}
 
-		try {
-			// Valhalla APIで経路を生成
-			const apiPoints = pointsList.map((p) => ({
-				lat: p.lat,
-				lng: p.lng,
-				order: p.order,
-			}));
+			try {
+				// Valhalla APIで経路を生成
+				const apiPoints = pointsList.map((p) => ({
+					lat: p.lat,
+					lng: p.lng,
+					order: p.order,
+				}));
 
-			const result = await generateRoute(apiPoints);
+				const result = await generateRoute(apiPoints);
 
-			// GeoJSON形式の座標を[lat, lng]形式に変換
-			const coordinates: [number, number][] = result.coordinates.map(
-				([lng, lat]: [number, number]) => [lat, lng],
-			);
-			setRouteLine(coordinates);
-		} catch {
-			// エラー時は直線接続にフォールバックし、エラーを通知
-			onErrorRef.current?.('経路の生成に失敗しました。直線で接続します。');
-			updateRouteLineStraight(pointsList);
-		}
-	}, [updateRouteLineStraight]);
+				// decodePolyline が [lat, lng] 形式で返すためそのまま設定
+				setRouteLine(result.coordinates);
+			} catch {
+				// エラー時は直線接続にフォールバックし、エラーを通知
+				onErrorRef.current?.('経路の生成に失敗しました。直線で接続します。');
+				updateRouteLineStraight(pointsList);
+			}
+		},
+		[updateRouteLineStraight],
+	);
 
 	const clearRoute = useCallback(() => {
 		setRouteLine([]);

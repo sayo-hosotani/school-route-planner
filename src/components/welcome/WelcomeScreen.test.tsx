@@ -24,9 +24,7 @@ describe('WelcomeScreen', () => {
 	});
 
 	it('isOpenがfalseの場合、何も表示しない', () => {
-		const { container } = render(
-			<WelcomeScreen {...defaultProps} isOpen={false} />,
-		);
+		const { container } = render(<WelcomeScreen {...defaultProps} isOpen={false} />);
 		expect(container.firstChild).toBeNull();
 	});
 
@@ -63,5 +61,69 @@ describe('WelcomeScreen', () => {
 		await user.click(title);
 
 		expect(defaultProps.onClose).not.toHaveBeenCalled();
+	});
+
+	describe('JSONインポート導線', () => {
+		it('ファイルサイズが1MBを超える場合にonErrorを呼ぶ', async () => {
+			const user = userEvent.setup();
+			render(<WelcomeScreen {...defaultProps} />);
+
+			const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+			const largeFile = new File(['x'.repeat(1024 * 1024 + 1)], 'large.json', {
+				type: 'application/json',
+			});
+			await user.upload(fileInput, largeFile);
+
+			expect(defaultProps.onError).toHaveBeenCalledWith('ファイルサイズが1MBを超えています');
+		});
+
+		it('FileReader.onerrorが発生した場合にonErrorを呼ぶ', async () => {
+			const user = userEvent.setup();
+			render(<WelcomeScreen {...defaultProps} />);
+
+			const mockReader = {
+				readAsText: vi.fn(function (this: typeof mockReader) {
+					this.onerror?.(new ProgressEvent('error') as ProgressEvent<FileReader>);
+				}),
+				onload: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+				onerror: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+			};
+			vi.spyOn(window, 'FileReader').mockImplementation(() => mockReader as unknown as FileReader);
+
+			const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+			const file = new File(['{}'], 'test.json', { type: 'application/json' });
+			await user.upload(fileInput, file);
+
+			expect(defaultProps.onError).toHaveBeenCalledWith('ファイルの読み込みに失敗しました');
+			vi.restoreAllMocks();
+		});
+
+		it('importRoutesFromJsonが例外をスローした場合にonErrorを呼ぶ', async () => {
+			const { importRoutesFromJson } = await import('../../api/route-api');
+			vi.mocked(importRoutesFromJson).mockImplementation(() => {
+				throw new Error('JSONの形式が正しくありません');
+			});
+
+			const user = userEvent.setup();
+			render(<WelcomeScreen {...defaultProps} />);
+
+			const mockReader = {
+				readAsText: vi.fn(function (this: typeof mockReader) {
+					this.onload?.({ target: { result: 'invalid' } } as unknown as ProgressEvent<FileReader>);
+				}),
+				onload: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+				onerror: null as ((ev: ProgressEvent<FileReader>) => void) | null,
+			};
+			vi.spyOn(window, 'FileReader').mockImplementation(() => mockReader as unknown as FileReader);
+
+			const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+			const file = new File(['invalid'], 'test.json', { type: 'application/json' });
+			await user.upload(fileInput, file);
+
+			expect(defaultProps.onError).toHaveBeenCalledWith(
+				'インポートに失敗しました: JSONの形式が正しくありません',
+			);
+			vi.restoreAllMocks();
+		});
 	});
 });

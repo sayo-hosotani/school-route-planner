@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { createTestPoint, createTestSavedRoute } from '../test/helpers';
 import { validateImportData } from './validate-import';
-import { createTestSavedRoute, createTestPoint } from '../test/helpers';
 
 describe('validateImportData', () => {
 	describe('正常系', () => {
@@ -76,14 +76,28 @@ describe('validateImportData', () => {
 			const data = [createTestSavedRoute({ created_at: 123 as unknown as string })];
 			const result = validateImportData(data);
 			expect(result.valid).toBe(false);
-			expect(result.errors).toContain('ルート1: created_atが文字列ではありません');
+			expect(result.errors).toContain('ルート1: created_atが有効なISO日時ではありません');
+		});
+
+		it('created_atが不正な日時文字列の場合はエラー', () => {
+			const data = [createTestSavedRoute({ created_at: 'not-a-date' })];
+			const result = validateImportData(data);
+			expect(result.valid).toBe(false);
+			expect(result.errors).toContain('ルート1: created_atが有効なISO日時ではありません');
 		});
 
 		it('updated_atが文字列でない場合はエラー', () => {
 			const data = [createTestSavedRoute({ updated_at: undefined as unknown as string })];
 			const result = validateImportData(data);
 			expect(result.valid).toBe(false);
-			expect(result.errors).toContain('ルート1: updated_atが文字列ではありません');
+			expect(result.errors).toContain('ルート1: updated_atが有効なISO日時ではありません');
+		});
+
+		it('updated_atが不正な日時文字列の場合はエラー', () => {
+			const data = [createTestSavedRoute({ updated_at: 'invalid-date' })];
+			const result = validateImportData(data);
+			expect(result.valid).toBe(false);
+			expect(result.errors).toContain('ルート1: updated_atが有効なISO日時ではありません');
 		});
 
 		it('ルートがオブジェクトでない場合はエラー', () => {
@@ -95,7 +109,9 @@ describe('validateImportData', () => {
 
 	describe('routeLineの検証', () => {
 		it('routeLineが配列でない場合はエラー', () => {
-			const data = [createTestSavedRoute({ routeLine: 'invalid' as unknown as [number, number][] })];
+			const data = [
+				createTestSavedRoute({ routeLine: 'invalid' as unknown as [number, number][] }),
+			];
 			const result = validateImportData(data);
 			expect(result.valid).toBe(false);
 			expect(result.errors).toContain('ルート1: routeLineが配列ではありません');
@@ -214,7 +230,7 @@ describe('validateImportData', () => {
 			});
 			const result = validateImportData([route]);
 			expect(result.valid).toBe(false);
-			expect(result.errors[0]).toContain('orderが数値ではありません');
+			expect(result.errors[0]).toContain('orderが無効です');
 		});
 
 		it('ポイントがオブジェクトでない場合はエラー', () => {
@@ -222,6 +238,84 @@ describe('validateImportData', () => {
 			const result = validateImportData([route]);
 			expect(result.valid).toBe(false);
 			expect(result.errors[0]).toContain('オブジェクトではありません');
+		});
+
+		it('orderがNaNの場合はエラー', () => {
+			const route = createTestSavedRoute({
+				points: [createTestPoint({ order: Number.NaN })],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('orderが無効です'))).toBe(true);
+		});
+
+		it('orderがInfinityの場合はエラー', () => {
+			const route = createTestSavedRoute({
+				points: [createTestPoint({ order: Number.POSITIVE_INFINITY })],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('orderが無効です'))).toBe(true);
+		});
+
+		it('orderが小数の場合はエラー', () => {
+			const route = createTestSavedRoute({
+				points: [createTestPoint({ order: 1.5 })],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('orderが無効です'))).toBe(true);
+		});
+
+		it('orderが負の整数の場合はエラー', () => {
+			const route = createTestSavedRoute({
+				points: [createTestPoint({ order: -1 })],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('orderが無効です'))).toBe(true);
+		});
+
+		it('orderが重複している場合はエラー（一意性違反）', () => {
+			const route = createTestSavedRoute({
+				points: [
+					createTestPoint({ id: 'p1', order: 0, type: 'start' }),
+					createTestPoint({ id: 'p2', order: 0, type: 'goal' }), // 重複
+				],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('連番'))).toBe(true);
+		});
+
+		it('orderが連番でない場合はエラー（非連番）', () => {
+			const route = createTestSavedRoute({
+				points: [
+					createTestPoint({ id: 'p1', order: 0, type: 'start' }),
+					createTestPoint({ id: 'p2', order: 2, type: 'goal' }), // 1をスキップ
+				],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('連番'))).toBe(true);
+		});
+
+		it('ポイントのcreated_atが不正な日時の場合はエラー', () => {
+			const route = createTestSavedRoute({
+				points: [createTestPoint({ created_at: 'not-a-date' })],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('created_atが有効なISO日時ではありません'))).toBe(true);
+		});
+
+		it('ポイントのupdated_atが不正な日時の場合はエラー', () => {
+			const route = createTestSavedRoute({
+				points: [createTestPoint({ updated_at: 'invalid-date' })],
+			});
+			const result = validateImportData([route]);
+			expect(result.valid).toBe(false);
+			expect(result.errors.some((e) => e.includes('updated_atが有効なISO日時ではありません'))).toBe(true);
 		});
 	});
 

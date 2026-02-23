@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { createTestPoint } from '../test/helpers';
 import { AppProvider } from './AppContext';
 import { PointProvider, usePointContext } from './PointContext';
@@ -19,7 +19,10 @@ describe('PointProvider', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		vi.mocked(generateRoute).mockResolvedValue({
-			coordinates: [[139.6503, 35.6762], [139.655, 35.68]],
+			coordinates: [
+				[139.6503, 35.6762],
+				[139.655, 35.68],
+			],
 			distance: 0.5,
 			duration: 300,
 			summary: { has_toll: false, has_highway: false, has_ferry: false },
@@ -56,6 +59,29 @@ describe('PointProvider', () => {
 		expect(result.current.points[0].id).toBe(pointId!);
 	});
 
+	it('同座標のポイントが既存でも正確な新規IDを返す（回帰テスト）', async () => {
+		const { result } = renderHook(() => usePointContext(), { wrapper });
+
+		let firstId: string;
+		await act(async () => {
+			firstId = await result.current.addPoint(35.6762, 139.6503);
+		});
+
+		let secondId: string;
+		await act(async () => {
+			// 同一座標を追加：以前のlat/lng検索では誤ったIDを返す可能性があった
+			secondId = await result.current.addPoint(35.6762, 139.6503);
+		});
+
+		expect(firstId!).toBeTruthy();
+		expect(secondId!).toBeTruthy();
+		// 同座標でも異なるIDが返る
+		expect(firstId!).not.toBe(secondId!);
+		// それぞれのIDが実際のポイントに対応している
+		expect(result.current.points.some((p) => p.id === firstId!)).toBe(true);
+		expect(result.current.points.some((p) => p.id === secondId!)).toBe(true);
+	});
+
 	it('clearPointsでポイントとルートラインをクリアする', async () => {
 		const { result } = renderHook(() => usePointContext(), { wrapper });
 
@@ -78,7 +104,10 @@ describe('PointProvider', () => {
 			createTestPoint({ id: 'p1', type: 'start', order: 0 }),
 			createTestPoint({ id: 'p2', type: 'goal', order: 1 }),
 		];
-		const routeLine: [number, number][] = [[35.6762, 139.6503], [35.68, 139.655]];
+		const routeLine: [number, number][] = [
+			[35.6762, 139.6503],
+			[35.68, 139.655],
+		];
 
 		act(() => {
 			result.current.loadRoute(points, routeLine);
@@ -127,7 +156,10 @@ describe('PointProvider', () => {
 			createTestPoint({ id: 'p2', type: 'waypoint', order: 1 }),
 			createTestPoint({ id: 'p3', type: 'goal', order: 2 }),
 		];
-		const routeLine: [number, number][] = [[35.67, 139.65], [35.68, 139.66]];
+		const routeLine: [number, number][] = [
+			[35.67, 139.65],
+			[35.68, 139.66],
+		];
 
 		act(() => {
 			result.current.loadRoute(points, routeLine);

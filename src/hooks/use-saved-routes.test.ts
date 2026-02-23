@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { createTestSavedRoute } from '../test/helpers';
 import { useSavedRoutes } from './use-saved-routes';
 
@@ -7,7 +7,7 @@ vi.mock('../api/route-api', () => ({
 	deleteRoute: vi.fn(),
 }));
 
-import { getAllRoutes, deleteRoute } from '../api/route-api';
+import { deleteRoute, getAllRoutes } from '../api/route-api';
 
 describe('useSavedRoutes', () => {
 	const mockOnMessage = vi.fn();
@@ -22,9 +22,7 @@ describe('useSavedRoutes', () => {
 		const routes = [createTestSavedRoute({ id: 'r1' })];
 		vi.mocked(getAllRoutes).mockResolvedValue(routes);
 
-		const { result } = renderHook(() =>
-			useSavedRoutes({ onMessage: mockOnMessage }),
-		);
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
 
 		await waitFor(() => {
 			expect(result.current.savedRoutes).toHaveLength(1);
@@ -38,9 +36,7 @@ describe('useSavedRoutes', () => {
 		];
 		vi.mocked(getAllRoutes).mockResolvedValue(routes);
 
-		const { result } = renderHook(() =>
-			useSavedRoutes({ onMessage: mockOnMessage }),
-		);
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
 
 		await waitFor(() => {
 			expect(result.current.savedRoutes[0].id).toBe('r2');
@@ -51,9 +47,7 @@ describe('useSavedRoutes', () => {
 	it('取得完了後にisLoadingがfalseになる', async () => {
 		vi.mocked(getAllRoutes).mockResolvedValue([]);
 
-		const { result } = renderHook(() =>
-			useSavedRoutes({ onMessage: mockOnMessage }),
-		);
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -61,14 +55,15 @@ describe('useSavedRoutes', () => {
 	});
 
 	it('handleDeleteRouteで確認ダイアログを表示する', async () => {
-		vi.stubGlobal('confirm', vi.fn(() => true));
+		vi.stubGlobal(
+			'confirm',
+			vi.fn(() => true),
+		);
 		vi.mocked(getAllRoutes).mockResolvedValue([
 			createTestSavedRoute({ id: 'r1', name: 'テスト経路' }),
 		]);
 
-		const { result } = renderHook(() =>
-			useSavedRoutes({ onMessage: mockOnMessage }),
-		);
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -83,14 +78,15 @@ describe('useSavedRoutes', () => {
 	});
 
 	it('確認後に経路を削除しメッセージを表示する', async () => {
-		vi.stubGlobal('confirm', vi.fn(() => true));
+		vi.stubGlobal(
+			'confirm',
+			vi.fn(() => true),
+		);
 		vi.mocked(getAllRoutes).mockResolvedValue([
 			createTestSavedRoute({ id: 'r1', name: 'テスト経路' }),
 		]);
 
-		const { result } = renderHook(() =>
-			useSavedRoutes({ onMessage: mockOnMessage }),
-		);
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -106,12 +102,13 @@ describe('useSavedRoutes', () => {
 	});
 
 	it('キャンセル時は削除しない', async () => {
-		vi.stubGlobal('confirm', vi.fn(() => false));
+		vi.stubGlobal(
+			'confirm',
+			vi.fn(() => false),
+		);
 		vi.mocked(getAllRoutes).mockResolvedValue([]);
 
-		const { result } = renderHook(() =>
-			useSavedRoutes({ onMessage: mockOnMessage }),
-		);
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -122,6 +119,49 @@ describe('useSavedRoutes', () => {
 		});
 
 		expect(deleteRoute).not.toHaveBeenCalled();
+		vi.unstubAllGlobals();
+	});
+
+	it('getAllRoutesが失敗した場合にエラーメッセージを表示する', async () => {
+		vi.mocked(getAllRoutes).mockRejectedValue(new Error('取得エラー'));
+
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
+
+		await waitFor(() => {
+			expect(result.current.isLoading).toBe(false);
+		});
+
+		expect(mockOnMessage).toHaveBeenCalledWith('経路一覧の取得に失敗しました', 'error');
+	});
+
+	it('getAllRoutes失敗後にisLoadingがfalseになる', async () => {
+		vi.mocked(getAllRoutes).mockRejectedValue(new Error('取得エラー'));
+
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
+
+		expect(result.current.isLoading).toBe(true);
+
+		await waitFor(() => {
+			expect(result.current.isLoading).toBe(false);
+		});
+	});
+
+	it('deleteRouteが失敗した場合にエラーメッセージを表示する', async () => {
+		vi.stubGlobal('confirm', vi.fn(() => true));
+		vi.mocked(getAllRoutes).mockResolvedValue([createTestSavedRoute({ id: 'r1' })]);
+		vi.mocked(deleteRoute).mockRejectedValue(new Error('削除エラー'));
+
+		const { result } = renderHook(() => useSavedRoutes({ onMessage: mockOnMessage }));
+
+		await waitFor(() => {
+			expect(result.current.isLoading).toBe(false);
+		});
+
+		await act(async () => {
+			await result.current.handleDeleteRoute('r1', 'テスト経路');
+		});
+
+		expect(mockOnMessage).toHaveBeenCalledWith('削除に失敗しました', 'error');
 		vi.unstubAllGlobals();
 	});
 

@@ -1,9 +1,9 @@
 import type { RouteData } from '../types/route';
 import { validateImportData } from '../utils/validate-import';
 import {
-	generateRoute as valhallaGenerateRoute,
 	type Point,
 	type RouteResult,
+	generateRoute as valhallaGenerateRoute,
 } from './valhalla-client';
 
 export type { Point, RouteResult };
@@ -107,8 +107,25 @@ export function exportRoutesToJson(): string {
 /**
  * JSONファイルから経路をインポート（既存経路の後ろに追加）
  */
-export function importRoutesFromJson(jsonString: string, position: 'before' | 'after' = 'after'): number {
-	const importedRoutes: SavedRoute[] = JSON.parse(jsonString);
+export function importRoutesFromJson(
+	jsonString: string,
+	position: 'before' | 'after' = 'after',
+): number {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(jsonString);
+	} catch (e) {
+		if (e instanceof SyntaxError) {
+			throw new Error('JSONの形式が正しくありません');
+		}
+		throw new Error('JSONの読み込みに失敗しました');
+	}
+
+	if (!Array.isArray(parsed)) {
+		throw new Error('データが配列形式ではありません');
+	}
+
+	const importedRoutes = parsed as SavedRoute[];
 
 	const validation = validateImportData(importedRoutes);
 	if (!validation.valid) {
@@ -123,9 +140,10 @@ export function importRoutesFromJson(jsonString: string, position: 'before' | 'a
 		updated_at: now,
 	}));
 
-	storedRoutes = position === 'before'
-		? [...routesWithNewIds, ...storedRoutes]
-		: [...storedRoutes, ...routesWithNewIds];
+	storedRoutes =
+		position === 'before'
+			? [...routesWithNewIds, ...storedRoutes]
+			: [...storedRoutes, ...routesWithNewIds];
 
 	return routesWithNewIds.length;
 }
