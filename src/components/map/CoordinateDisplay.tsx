@@ -20,7 +20,7 @@ const CoordinateDisplay = ({ position }: CoordinateDisplayProps) => {
 				const updateCoordinates = () => {
 					const center = map.getCenter();
 					const zoom = map.getZoom();
-					container.innerHTML = `x: ${center.lng.toFixed(6)}, y: ${center.lat.toFixed(6)}, z: ${zoom}`;
+					container.textContent = `x: ${center.lng.toFixed(6)}, y: ${center.lat.toFixed(6)}, z: ${zoom}`;
 				};
 
 				updateCoordinates();
