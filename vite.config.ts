@@ -4,6 +4,17 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	base: '/school-route-planner/',
 	plugins: [react()],
+	build: {
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					'vendor-react': ['react', 'react-dom'],
+					'vendor-leaflet': ['leaflet', 'react-leaflet'],
+					'vendor-html2canvas': ['html2canvas'],
+				},
+			},
+		},
+	},
 	server: {
 		port: 5173,
 		host: true,
