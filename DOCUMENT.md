@@ -248,7 +248,7 @@ App (AppProvider)
 | `utils/error-handler.ts` | 共通エラーハンドリング（handleAsyncOperation, handleApiResult） |
 | `utils/point-utils.ts` | ポイント関連ヘルパー（getPointTypeLabel, getDisplayTitle） |
 | `utils/validate-import.ts` | JSONインポートデータのバリデーション（validateImportData） |
-| `utils/map-download.ts` | 地図のPNG画像ダウンロード（html2canvas使用、コントロール類を非表示化） |
+| `utils/map-download.ts` | 地図のPNG画像ダウンロード（html2canvas使用。経路SVGをクローンしてdivラッパーで正確に配置し、overlay-paneを非表示にした上でキャプチャ） |
 | `api/valhalla-client.ts` | Valhalla API呼び出し |
 | `api/route-api.ts` | 経路データ管理（メモリ保持、エクスポート/インポート） |
 | `api/geocoding-client.ts` | 国土地理院ジオコーディングAPI呼び出し |
@@ -577,7 +577,7 @@ curl http://localhost:8002/status
 | `utils/error-handler.ts` | 共通エラーハンドリング関数 |
 | `utils/point-utils.ts` | ポイント関連ヘルパー関数 |
 | `utils/validate-import.ts` | JSONインポートデータのバリデーション |
-| `utils/map-download.ts` | 地図のPNG画像ダウンロード（html2canvas使用） |
+| `utils/map-download.ts` | 地図のPNG画像ダウンロード（html2canvas使用。経路SVGをクローンしてdivラッパーで正確に配置し、overlay-paneを非表示にした上でキャプチャ） |
 | `api/valhalla-client.ts` | Valhalla API呼び出し |
 | `api/geocoding-client.ts` | 国土地理院ジオコーディングAPI呼び出し |
 | `api/route-api.ts` | 経路データ管理（メモリ保持、エクスポート/インポート） |

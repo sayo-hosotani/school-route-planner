@@ -9,6 +9,7 @@
 - スタート・ゴール・中継地点を地図上に配置
 - Valhalla APIによる道路沿い経路の自動生成（フロントエンドから直接呼び出し）
 - ポイントごとのコメント追加機能
+- 地図のダウンロード（PNG画像）
 - バックエンド不要のシンプルな構成
 
 ## 基本方針
@@ -208,6 +209,12 @@ vi.useRealTimers();
 3. **Valhalla API**: 開発時は Vite プロキシ経由（`/api/valhalla` → `localhost:${GATEWAY_PORT:-8080}`）で nginx gateway（Docker）を経由
 4. **ポイント ID**: `crypto.randomUUID()` で生成（衝突リスクなし）
 5. **地図クリック**: クリック位置から 20px 以内に既存ポイントがある場合、新規追加でなく編集モーダルを開く（`MapClickHandler.tsx`）
+6. **地図ダウンロード（`src/utils/map-download.ts`）**: html2canvas は HTML 要素の `transform` をキャプチャ前に除去するが SVG 要素は除去しない。そのため Leaflet の `.leaflet-overlay-pane > svg`（経路線）をそのままキャプチャすると位置がずれる。対策として以下の手順を取る：
+   - `.leaflet-overlay-pane` を `visibility: hidden` で非表示にする
+   - 経路 SVG を `cloneNode(true)` で複製し、`transform: none` を設定
+   - `getBoundingClientRect()` の差分で位置を求め、`div` ラッパー（`position: absolute`）に入れて正確な座標を設定
+   - `div` を `.leaflet-map-pane` 内の `.leaflet-marker-pane` の直前（z-index: 300）に挿入
+   - html2canvas 実行後に `div` を削除し、overlay-pane の表示を元に戻す
 
 ## 参考リンク
 

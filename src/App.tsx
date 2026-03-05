@@ -346,7 +346,7 @@ const AppContent = () => {
 				style={{ height: '100%', width: '100%' }}
 				attributionControl={false}
 				zoomControl={false}
-			>
+				>
 				<TileLayer
 					attribution='<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">地理院タイル</a>'
 					url="https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
