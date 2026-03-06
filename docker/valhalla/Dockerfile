@@ -10,6 +10,9 @@ RUN valhalla_build_config --mjolnir-tile-dir ${PWD}/valhalla_tiles --mjolnir-til
 RUN valhalla_build_tiles -c valhalla.json kanto-latest.osm.pbf
 RUN valhalla_build_extract -c valhalla.json -v
 
+RUN apt-get update && apt-get install -y --no-install-recommends socat && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8002
 
-CMD ["valhalla_service", "valhalla.json", "1"]
+# socat: IPv6:8002 → IPv4 localhost:8002 のブリッジ（Fly.io 6PN は IPv6 のみ）
+CMD ["sh", "-c", "socat TCP6-LISTEN:8002,fork,reuseaddr,ipv6only=1 TCP4:127.0.0.1:8002 & valhalla_service valhalla.json 1"]

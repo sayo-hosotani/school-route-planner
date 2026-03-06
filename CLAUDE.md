@@ -216,6 +216,18 @@ vi.useRealTimers();
    - `div` を `.leaflet-map-pane` 内の `.leaflet-marker-pane` の直前（z-index: 300）に挿入
    - html2canvas 実行後に `div` を削除し、overlay-pane の表示を元に戻す
 
+## Fly.io デプロイの注意事項
+
+### nginx gateway（`docker/gateway/`）
+
+- **resolver の IPv6 アドレスはブラケット必須**: `resolver fdaa::3` は nginx がパースエラーになりクラッシュする。`resolver [fdaa::3] valid=30s;` と書くこと
+- **`auto_stop_machines = 'stop'` は使わない**: VM コールドブートに ~10秒かかり、Fly.io プロキシのタイムアウト（~10秒）と競合して PM05 エラーになる。`auto_stop_machines = 'suspend'` を使う（メモリ保持スリープのため数百ms で復帰）
+
+### Valhalla（`docker/valhalla/`）
+
+- **Fly.io 6PN は IPv6 のみ / Valhalla の nanomsg は IPv4 のみ**: `.internal` DNS は IPv6 アドレスを返すが、Valhalla の HTTP サーバー（prime_server/nanomsg）は `tcp://*:8002`（IPv4 のみ）でしか listen できず、`tcp://[::]:8002` は `No such device` でクラッシュする
+- **解決策は socat ブリッジ**: `socat TCP6-LISTEN:8002,fork,reuseaddr,ipv6only=1 TCP4:127.0.0.1:8002` を Valhalla と同一コンテナで起動する（`docker/valhalla/Dockerfile` の CMD 参照）。IPv4 ソケット（Valhalla）と IPv6 ソケット（socat、`ipv6only=1`）は同一ポートで共存できる
+
 ## 参考リンク
 
 - [React Leaflet](https://react-leaflet.js.org/)
